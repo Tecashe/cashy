@@ -736,34 +736,342 @@
 //   )
 // }
 
+// "use client"
+
+// import { useState, useEffect, Suspense } from "react"
+// import { useRouter, useSearchParams } from "next/navigation"
+// import { Card } from "@/components/ui/card"
+// import { Input } from "@/components/ui/input"
+// import { Label } from "@/components/ui/label"
+// import { Textarea } from "@/components/ui/textarea"
+// import { Button } from "@/components/ui/button"
+// import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+// import { AutomationFlowCanvas } from "@/components/automation-flow-canvas"
+// import { AutomationConfigDialog } from "@/components/automation-config-dialog"
+// import { AutomationTemplateSelector } from "@/components/automation-template-selector"
+// import { createAutomation } from "@/lib/actions/automation-actions"
+// import { getInstagramAccounts } from "@/lib/actions/instagram-account-actions"
+// import { getTemplateById } from "@/lib/automation-templates"
+// import type { TriggerTypeId, ActionTypeId } from "@/lib/automation-constants"
+// import { ArrowLeft, Save, Zap } from "lucide-react"
+// import Link from "next/link"
+// import { toast } from "sonner"
+
+// function CreateAutomationPageContent() {
+//   const router = useRouter()
+//   const searchParams = useSearchParams()
+//   const templateId = searchParams.get("template")
+//   const fromScratch = searchParams.get("from") === "scratch"
+
+//   const [showTemplates, setShowTemplates] = useState(!templateId && !fromScratch)
+//   const [name, setName] = useState("")
+//   const [description, setDescription] = useState("")
+//   const [instagramAccountId, setInstagramAccountId] = useState<string>("")
+//   const [instagramAccounts, setInstagramAccounts] = useState<any[]>([])
+//   const [trigger, setTrigger] = useState<{ type: TriggerTypeId; config: any } | null>(null)
+//   const [actions, setActions] = useState<Array<{ type: ActionTypeId; config: any; order: number }>>([])
+//   const [isSaving, setIsSaving] = useState(false)
+//   const [configDialogOpen, setConfigDialogOpen] = useState(false)
+//   const [currentConfigNode, setCurrentConfigNode] = useState<{
+//     id: string
+//     type: "trigger" | "action"
+//     actionType: string
+//   } | null>(null)
+
+//   useEffect(() => {
+//     async function loadAccounts() {
+//       const accounts = await getInstagramAccounts()
+//       setInstagramAccounts(accounts)
+//       if (accounts.length === 1) {
+//         setInstagramAccountId(accounts[0].id)
+//       }
+//     }
+//     loadAccounts()
+//   }, [])
+
+//   useEffect(() => {
+//     if (templateId) {
+//       const template = getTemplateById(templateId)
+//       if (template) {
+//         setName(template.name)
+//         setDescription(template.description)
+//         setTrigger({ type: template.triggerType as TriggerTypeId, config: template.triggerConditions })
+//         setActions(
+//           template.actions.map((action) => ({
+//             type: action.type as ActionTypeId,
+//             config: action.content,
+//             order: action.order,
+//           })),
+//         )
+//         setShowTemplates(false)
+//       }
+//     } else if (fromScratch) {
+//       setTrigger({ type: "DM_RECEIVED", config: {} })
+//       setShowTemplates(false)
+//     }
+//   }, [templateId, fromScratch])
+
+//   const handleNodesChange = (
+//     newTrigger: { type: TriggerTypeId; config: any } | null,
+//     newActions: Array<{ type: ActionTypeId; config: any; order: number }>,
+//   ) => {
+//     if (newTrigger) setTrigger(newTrigger)
+//     setActions(newActions)
+//   }
+
+//   const handleConfigureNode = (nodeId: string, nodeType: "trigger" | "action", actionType: string) => {
+//     setCurrentConfigNode({ id: nodeId, type: nodeType, actionType })
+//     setConfigDialogOpen(true)
+//   }
+
+//   const handleSaveConfig = (config: any) => {
+//     if (!currentConfigNode) return
+
+//     if (currentConfigNode.type === "trigger" && trigger) {
+//       setTrigger({ ...trigger, config })
+//     } else if (currentConfigNode.type === "action") {
+//       const actionIndex = Number.parseInt(currentConfigNode.id.replace("action-", "")) - 1
+//       const updatedActions = [...actions]
+//       if (updatedActions[actionIndex]) {
+//         updatedActions[actionIndex].config = config
+//       }
+//       setActions(updatedActions)
+//     }
+
+//     setConfigDialogOpen(false)
+//     setCurrentConfigNode(null)
+//   }
+
+//   const handleSave = async () => {
+//     if (!name.trim()) {
+//       toast.error("Please enter an automation name")
+//       return
+//     }
+
+//     if (!instagramAccountId) {
+//       toast.error("Please select an Instagram account")
+//       return
+//     }
+
+//     if (!trigger) {
+//       toast.error("Please add a trigger to your automation")
+//       return
+//     }
+
+//     if (actions.length === 0) {
+//       toast.error("Please add at least one action")
+//       return
+//     }
+
+//     const unconfiguredActions = actions.filter((action) => Object.keys(action.config || {}).length === 0)
+//     if (unconfiguredActions.length > 0) {
+//       toast.error("Please configure all actions before saving")
+//       return
+//     }
+
+//     setIsSaving(true)
+//     try {
+//       await createAutomation({
+//         name,
+//         description,
+//         instagramAccountId,
+//         triggerType: trigger.type,
+//         triggerConditions: trigger.config,
+//         actions: actions.map((action) => ({
+//           type: action.type,
+//           content: action.config,
+//           order: action.order,
+//         })),
+//       })
+//       toast.success("Automation created successfully!")
+//       router.push("/automations")
+//     } catch (error) {
+//       console.error("[v0] Failed to create automation:", error)
+//       toast.error("Failed to create automation. Please try again.")
+//     } finally {
+//       setIsSaving(false)
+//     }
+//   }
+
+//   if (showTemplates) {
+//     return (
+//       <div className="min-h-screen bg-background">
+//         <div className="border-b bg-card">
+//           <div className="max-w-7xl mx-auto px-6 py-4">
+//             <div className="flex items-center gap-4">
+//               <Link href="/automations">
+//                 <Button variant="ghost" size="sm">
+//                   <ArrowLeft className="w-4 h-4 mr-2" />
+//                   Back
+//                 </Button>
+//               </Link>
+//             </div>
+//           </div>
+//         </div>
+//         <div className="max-w-7xl mx-auto px-6 py-8">
+//           <AutomationTemplateSelector />
+//         </div>
+//       </div>
+//     )
+//   }
+
+//   const currentConfig =
+//     currentConfigNode?.type === "trigger"
+//       ? trigger?.config
+//       : actions.find((_, index) => `action-${index + 1}` === currentConfigNode?.id)?.config
+
+//   return (
+//     <div className="min-h-screen bg-background">
+//       {/* Header */}
+//       <div className="border-b bg-card shadow-sm">
+//         <div className="max-w-7xl mx-auto px-6 py-4">
+//           <div className="flex items-center justify-between">
+//             <div className="flex items-center gap-4">
+//               <Link href="/automations">
+//                 <Button variant="ghost" size="sm">
+//                   <ArrowLeft className="w-4 h-4 mr-2" />
+//                   Back
+//                 </Button>
+//               </Link>
+//               <div className="flex items-center gap-3">
+//                 <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+//                   <Zap className="w-5 h-5 text-white" />
+//                 </div>
+//                 <div>
+//                   <h1 className="text-2xl font-bold text-foreground">Create Automation</h1>
+//                   <p className="text-sm text-muted-foreground">Build intelligent Instagram workflows</p>
+//                 </div>
+//               </div>
+//             </div>
+//             <Button onClick={handleSave} disabled={isSaving} size="lg" className="min-w-[160px]">
+//               <Save className="w-4 h-4 mr-2" />
+//               {isSaving ? "Creating..." : "Create Automation"}
+//             </Button>
+//           </div>
+//         </div>
+//       </div>
+
+//       {/* Main Content */}
+//       <div className="max-w-7xl mx-auto px-6 py-8 space-y-6">
+//         {/* Details Card */}
+//         <Card className="p-6 shadow-lg">
+//           <h3 className="font-semibold text-lg text-foreground mb-4">Automation Details</h3>
+//           <div className="grid gap-4 md:grid-cols-2">
+//             <div className="space-y-2">
+//               <Label htmlFor="name">Name *</Label>
+//               <Input
+//                 id="name"
+//                 placeholder="e.g., Welcome New Followers"
+//                 value={name}
+//                 onChange={(e) => setName(e.target.value)}
+//                 className="bg-background"
+//               />
+//             </div>
+//             <div className="space-y-2">
+//               <Label htmlFor="account">Instagram Account *</Label>
+//               <Select value={instagramAccountId} onValueChange={setInstagramAccountId}>
+//                 <SelectTrigger id="account" className="bg-background">
+//                   <SelectValue placeholder="Select account" />
+//                 </SelectTrigger>
+//                 <SelectContent>
+//                   {instagramAccounts.map((account) => (
+//                     <SelectItem key={account.id} value={account.id}>
+//                       <div className="flex items-center gap-2">
+//                         <span>@{account.username}</span>
+//                         {account.followerCount && (
+//                           <span className="text-xs text-muted-foreground">
+//                             ({account.followerCount.toLocaleString()} followers)
+//                           </span>
+//                         )}
+//                       </div>
+//                     </SelectItem>
+//                   ))}
+//                 </SelectContent>
+//               </Select>
+//             </div>
+//             <div className="md:col-span-2 space-y-2">
+//               <Label htmlFor="description">Description (Optional)</Label>
+//               <Textarea
+//                 id="description"
+//                 placeholder="Describe what this automation does..."
+//                 value={description}
+//                 onChange={(e) => setDescription(e.target.value)}
+//                 rows={2}
+//                 className="bg-background"
+//               />
+//             </div>
+//           </div>
+//         </Card>
+
+//         {/* Flow Canvas */}
+//         <AutomationFlowCanvas
+//           initialTrigger={trigger || undefined}
+//           initialActions={actions}
+//           onNodesChange={handleNodesChange}
+//           onConfigureNode={handleConfigureNode}
+//         />
+//       </div>
+
+//       {/* Configuration Dialog */}
+//       <AutomationConfigDialog
+//         open={configDialogOpen}
+//         onOpenChange={setConfigDialogOpen}
+//         nodeType={currentConfigNode?.type || "action"}
+//         actionType={currentConfigNode?.actionType || ""}
+//         config={currentConfig || {}}
+//         onSave={handleSaveConfig}
+//       />
+//     </div>
+//   )
+// }
+
+// export default function CreateAutomationPage() {
+//   return (
+//     <Suspense
+//       fallback={
+//         <div className="flex items-center justify-center min-h-screen">
+//           <div className="text-center">
+//             <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+//             <p className="text-muted-foreground">Loading...</p>
+//           </div>
+//         </div>
+//       }
+//     >
+//       <CreateAutomationPageContent />
+//     </Suspense>
+//   )
+// }
+
 "use client"
 
 import { useState, useEffect, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { Card } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { AutomationFlowCanvas } from "@/components/automation-flow-canvas"
 import { AutomationConfigDialog } from "@/components/automation-config-dialog"
+import { TriggerSelectorDialog } from "@/components/trigger-selector-dialog"
 import { AutomationTemplateSelector } from "@/components/automation-template-selector"
 import { createAutomation } from "@/lib/actions/automation-actions"
 import { getInstagramAccounts } from "@/lib/actions/instagram-account-actions"
 import { getTemplateById } from "@/lib/automation-templates"
 import type { TriggerTypeId, ActionTypeId } from "@/lib/automation-constants"
-import { ArrowLeft, Save, Zap } from "lucide-react"
+import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import { toast } from "sonner"
+import { AutomationCanvasHeader } from "@/components/automation-canvas-header"
+import { AutomationDetailsSidebar } from "@/components/automation-details-sidebar"
+import { useMobile } from "@/hooks/use-is-mobile"
 
 function CreateAutomationPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const templateId = searchParams.get("template")
   const fromScratch = searchParams.get("from") === "scratch"
+  const isMobile = useMobile()
 
   const [showTemplates, setShowTemplates] = useState(!templateId && !fromScratch)
+  const [showTriggerSelector, setShowTriggerSelector] = useState(false)
+  const [showDetailsSidebar, setShowDetailsSidebar] = useState(!isMobile)
   const [name, setName] = useState("")
   const [description, setDescription] = useState("")
   const [instagramAccountId, setInstagramAccountId] = useState<string>("")
@@ -806,10 +1114,20 @@ function CreateAutomationPageContent() {
         setShowTemplates(false)
       }
     } else if (fromScratch) {
-      setTrigger({ type: "DM_RECEIVED", config: {} })
       setShowTemplates(false)
     }
   }, [templateId, fromScratch])
+
+  const handleSelectTrigger = (triggerType: TriggerTypeId) => {
+    setTrigger({ type: triggerType, config: {} })
+    setShowTriggerSelector(false)
+
+    // Auto-open configuration for the trigger
+    setTimeout(() => {
+      setCurrentConfigNode({ id: "trigger-0", type: "trigger", actionType: triggerType })
+      setConfigDialogOpen(true)
+    }, 300)
+  }
 
   const handleNodesChange = (
     newTrigger: { type: TriggerTypeId; config: any } | null,
@@ -886,7 +1204,7 @@ function CreateAutomationPageContent() {
       toast.success("Automation created successfully!")
       router.push("/automations")
     } catch (error) {
-      console.error("[v0] Failed to create automation:", error)
+      console.error("Failed to create automation:", error)
       toast.error("Failed to create automation. Please try again.")
     } finally {
       setIsSaving(false)
@@ -898,14 +1216,12 @@ function CreateAutomationPageContent() {
       <div className="min-h-screen bg-background">
         <div className="border-b bg-card">
           <div className="max-w-7xl mx-auto px-6 py-4">
-            <div className="flex items-center gap-4">
-              <Link href="/automations">
-                <Button variant="ghost" size="sm">
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  Back
-                </Button>
-              </Link>
-            </div>
+            <Link href="/automations">
+              <Button variant="ghost" size="sm">
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back
+              </Button>
+            </Link>
           </div>
         </div>
         <div className="max-w-7xl mx-auto px-6 py-8">
@@ -921,98 +1237,45 @@ function CreateAutomationPageContent() {
       : actions.find((_, index) => `action-${index + 1}` === currentConfigNode?.id)?.config
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="border-b bg-card shadow-sm">
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Link href="/automations">
-                <Button variant="ghost" size="sm">
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  Back
-                </Button>
-              </Link>
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
-                  <Zap className="w-5 h-5 text-white" />
-                </div>
-                <div>
-                  <h1 className="text-2xl font-bold text-foreground">Create Automation</h1>
-                  <p className="text-sm text-muted-foreground">Build intelligent Instagram workflows</p>
-                </div>
-              </div>
-            </div>
-            <Button onClick={handleSave} disabled={isSaving} size="lg" className="min-w-[160px]">
-              <Save className="w-4 h-4 mr-2" />
-              {isSaving ? "Creating..." : "Create Automation"}
-            </Button>
-          </div>
+    <div className="h-screen flex flex-col bg-background overflow-hidden">
+      <AutomationCanvasHeader
+        name={name}
+        onNameChange={setName}
+        onSave={handleSave}
+        isSaving={isSaving}
+        onToggleSidebar={() => setShowDetailsSidebar(!showDetailsSidebar)}
+        showSidebar={showDetailsSidebar}
+        onBack={() => router.push("/automations")}
+      />
+
+      <div className="flex-1 flex overflow-hidden relative">
+        <div className="flex-1 relative">
+          <AutomationFlowCanvas
+            initialTrigger={trigger || undefined}
+            initialActions={actions}
+            onNodesChange={handleNodesChange}
+            onConfigureNode={handleConfigureNode}
+            onSelectTrigger={handleSelectTrigger}
+          />
         </div>
+
+        {showDetailsSidebar && (
+          <AutomationDetailsSidebar
+            name={name}
+            description={description}
+            instagramAccountId={instagramAccountId}
+            instagramAccounts={instagramAccounts}
+            trigger={trigger}
+            actions={actions}
+            onNameChange={setName}
+            onDescriptionChange={setDescription}
+            onInstagramAccountChange={setInstagramAccountId}
+            onChangeTrigger={() => setShowTriggerSelector(true)}
+            onClose={() => setShowDetailsSidebar(false)}
+          />
+        )}
       </div>
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-6 py-8 space-y-6">
-        {/* Details Card */}
-        <Card className="p-6 shadow-lg">
-          <h3 className="font-semibold text-lg text-foreground mb-4">Automation Details</h3>
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="name">Name *</Label>
-              <Input
-                id="name"
-                placeholder="e.g., Welcome New Followers"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="bg-background"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="account">Instagram Account *</Label>
-              <Select value={instagramAccountId} onValueChange={setInstagramAccountId}>
-                <SelectTrigger id="account" className="bg-background">
-                  <SelectValue placeholder="Select account" />
-                </SelectTrigger>
-                <SelectContent>
-                  {instagramAccounts.map((account) => (
-                    <SelectItem key={account.id} value={account.id}>
-                      <div className="flex items-center gap-2">
-                        <span>@{account.username}</span>
-                        {account.followerCount && (
-                          <span className="text-xs text-muted-foreground">
-                            ({account.followerCount.toLocaleString()} followers)
-                          </span>
-                        )}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="md:col-span-2 space-y-2">
-              <Label htmlFor="description">Description (Optional)</Label>
-              <Textarea
-                id="description"
-                placeholder="Describe what this automation does..."
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                rows={2}
-                className="bg-background"
-              />
-            </div>
-          </div>
-        </Card>
-
-        {/* Flow Canvas */}
-        <AutomationFlowCanvas
-          initialTrigger={trigger || undefined}
-          initialActions={actions}
-          onNodesChange={handleNodesChange}
-          onConfigureNode={handleConfigureNode}
-        />
-      </div>
-
-      {/* Configuration Dialog */}
       <AutomationConfigDialog
         open={configDialogOpen}
         onOpenChange={setConfigDialogOpen}
@@ -1020,6 +1283,13 @@ function CreateAutomationPageContent() {
         actionType={currentConfigNode?.actionType || ""}
         config={currentConfig || {}}
         onSave={handleSaveConfig}
+      />
+
+      <TriggerSelectorDialog
+        open={showTriggerSelector}
+        onOpenChange={setShowTriggerSelector}
+        onSelect={handleSelectTrigger}
+        currentTrigger={trigger?.type}
       />
     </div>
   )
