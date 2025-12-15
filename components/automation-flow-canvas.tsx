@@ -1353,12 +1353,13 @@
 //   )
 // }
 
-
 "use client"
+
+import { useMemo } from "react"
 
 import type React from "react"
 
-import { useCallback, useState, useEffect, useMemo, useRef } from "react"
+import { useCallback, useState, useEffect, useRef } from "react"
 import {
   ReactFlow,
   MiniMap,
@@ -1382,7 +1383,7 @@ import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { TRIGGER_TYPES, ACTION_TYPES, type TriggerTypeId, type ActionTypeId } from "@/lib/automation-constants"
-import { Trash2, Settings, Plus, ChevronDown, Zap, Sparkles, AlertCircle } from "lucide-react"
+import { Trash2, Settings, Plus, Zap, AlertCircle, ChevronDown, Sparkles } from "lucide-react"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { cn } from "@/lib/utils"
 import { useMobile } from "@/hooks/use-is-mobile"
@@ -1836,8 +1837,7 @@ export function AutomationFlowCanvas({
   const [isDragging, setIsDragging] = useState(false)
   const isMobile = useMobile()
   const isTablet = false
-
-
+  
   const prevTriggerRef = useRef<string | undefined>(undefined)
   const prevActionsRef = useRef<string | undefined>(undefined)
 
@@ -1856,20 +1856,6 @@ export function AutomationFlowCanvas({
 
     prevTriggerRef.current = triggerKey
     prevActionsRef.current = actionsKey
-
-  // const prevTriggerRef = useRef<string>()
-  // const prevActionsRef = useRef<string>()
-
-  // useEffect(() => {
-  //   const triggerKey = initialTrigger ? JSON.stringify(initialTrigger) : "none"
-  //   const actionsKey = JSON.stringify(initialActions)
-
-  //   if (prevTriggerRef.current === triggerKey && prevActionsRef.current === actionsKey) {
-  //     return
-  //   }
-
-  //   prevTriggerRef.current = triggerKey
-  //   prevActionsRef.current = actionsKey
 
     const newNodes: Node<FlowNodeData>[] = []
     const newEdges: Edge[] = []
