@@ -266,7 +266,7 @@ export function Sidebar() {
       )}
 
       {/* Live Stats */}
-      {!isCollapsed && (
+      {/* {!isCollapsed && (
         <div className="border-b border-border px-4 py-3 bg-muted/30">
           <div className="space-y-2">
             <div className="flex items-center justify-between text-xs">
@@ -289,7 +289,7 @@ export function Sidebar() {
             </div>
           </div>
         </div>
-      )}
+      )} */}
 
       {/* Navigation */}
       <nav className="flex-1 space-y-1 overflow-y-auto p-3">
