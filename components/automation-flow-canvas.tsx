@@ -864,12 +864,500 @@
 // }
 
 
+// "use client"
+
+// import { useCallback, useState, useEffect } from "react"
+// import {
+//   ReactFlow,
+//   MiniMap,
+//   Controls,
+//   Background,
+//   addEdge,
+//   type Connection,
+//   type Node,
+//   type Edge,
+//   MarkerType,
+//   BackgroundVariant,
+//   type NodeChange,
+//   type EdgeChange,
+//   applyNodeChanges,
+//   applyEdgeChanges,
+//   Panel,
+//   Handle,
+//   Position,
+//   ConnectionLineType,
+// } from "@xyflow/react"
+// import "@xyflow/react/dist/style.css"
+// import { Card } from "@/components/ui/card"
+// import { Button } from "@/components/ui/button"
+// import { Badge } from "@/components/ui/badge"
+// import { Separator } from "@/components/ui/separator"
+// import {
+//   TRIGGER_TYPES,
+//   ACTION_TYPES,
+//   ACTION_CATEGORIES,
+//   type TriggerTypeId,
+//   type ActionTypeId,
+// } from "@/lib/automation-constants"
+// import { Trash2, Settings, Plus, Zap } from "lucide-react"
+// import { cn } from "@/lib/utils"
+
+// type NodeType = "trigger" | "action"
+
+// interface FlowNodeData {
+//   label: string
+//   type: NodeType
+//   actionType: TriggerTypeId | ActionTypeId
+//   config: any
+//   onConfigure: () => void
+//   onDelete: () => void
+//   isConfigured: boolean
+// }
+
+// function CustomNode({ data }: { data: FlowNodeData }) {
+//   const isTrigger = data.type === "trigger"
+//   const typeConfig = isTrigger
+//     ? TRIGGER_TYPES[data.actionType as TriggerTypeId]
+//     : ACTION_TYPES[data.actionType as ActionTypeId]
+
+//   const Icon = typeConfig?.icon
+
+//   return (
+//     <div className="relative">
+//       {!isTrigger && (
+//         <Handle
+//           type="target"
+//           position={Position.Top}
+//           className="!w-4 !h-4 !bg-indigo-500 !border-2 !border-white dark:!border-slate-900 !shadow-lg hover:!w-5 hover:!h-5 transition-all"
+//           style={{ top: -8 }}
+//         />
+//       )}
+
+//       <Card
+//         className={cn(
+//           "min-w-[280px] cursor-move transition-all hover:shadow-lg",
+//           isTrigger
+//             ? "bg-gradient-to-br from-indigo-50 to-white dark:from-indigo-950/30 dark:to-background border-2 border-indigo-300 dark:border-indigo-700"
+//             : "bg-white dark:bg-card border-2 border-slate-200 dark:border-slate-700",
+//         )}
+//       >
+//         <div className="p-4">
+//           <div className="flex items-start justify-between gap-3 mb-3">
+//             <div className="flex items-center gap-3 flex-1">
+//               <div
+//                 className={cn(
+//                   "w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm",
+//                   isTrigger
+//                     ? "bg-indigo-500 text-white"
+//                     : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300",
+//                 )}
+//               >
+//                 {Icon && <Icon className="w-5 h-5" />}
+//               </div>
+//               <div className="flex-1 min-w-0">
+//                 <div className="flex items-center gap-2 mb-1">
+//                   <h4 className="font-semibold text-sm text-foreground truncate">{data.label}</h4>
+//                   {data.isConfigured ? (
+//                     <Badge variant="secondary" className="bg-green-500/10 text-green-700 dark:text-green-400 text-xs">
+//                       ✓
+//                     </Badge>
+//                   ) : (
+//                     <Badge variant="secondary" className="bg-amber-500/10 text-amber-700 dark:text-amber-400 text-xs">
+//                       Setup
+//                     </Badge>
+//                   )}
+//                 </div>
+//                 <Badge variant="outline" className="text-xs capitalize">
+//                   {isTrigger ? "Trigger" : "Action"}
+//                 </Badge>
+//               </div>
+//             </div>
+//             {!isTrigger && (
+//               <Button
+//                 variant="ghost"
+//                 size="sm"
+//                 onClick={(e) => {
+//                   e.stopPropagation()
+//                   data.onDelete()
+//                 }}
+//                 className="h-7 w-7 p-0 hover:bg-red-50 dark:hover:bg-red-950/20 flex-shrink-0"
+//               >
+//                 <Trash2 className="h-3.5 w-3.5 text-red-600 dark:text-red-400" />
+//               </Button>
+//             )}
+//           </div>
+//           <Button
+//             variant="outline"
+//             size="sm"
+//             onClick={(e) => {
+//               e.stopPropagation()
+//               data.onConfigure()
+//             }}
+//             className="w-full bg-transparent"
+//           >
+//             <Settings className="w-3.5 h-3.5 mr-2" />
+//             {data.isConfigured ? "Edit" : "Configure"}
+//           </Button>
+//         </div>
+//       </Card>
+
+//       <Handle
+//         type="source"
+//         position={Position.Bottom}
+//         className="!w-4 !h-4 !bg-indigo-500 !border-2 !border-white dark:!border-slate-900 !shadow-lg hover:!w-5 hover:!h-5 transition-all"
+//         style={{ bottom: -8 }}
+//       />
+//     </div>
+//   )
+// }
+
+// const nodeTypes = {
+//   custom: CustomNode,
+// }
+
+// interface AutomationFlowCanvasProps {
+//   initialTrigger?: { type: TriggerTypeId; config: any }
+//   initialActions?: Array<{ type: ActionTypeId; config: any; order: number }>
+//   onNodesChange: (
+//     trigger: { type: TriggerTypeId; config: any } | null,
+//     actions: Array<{ type: ActionTypeId; config: any; order: number }>,
+//   ) => void
+//   onConfigureNode: (nodeId: string, nodeType: NodeType, actionType: string) => void
+// }
+
+// export function AutomationFlowCanvas({
+//   initialTrigger,
+//   initialActions = [],
+//   onNodesChange,
+//   onConfigureNode,
+// }: AutomationFlowCanvasProps) {
+//   const [nodes, setNodes] = useState<Node[]>([])
+//   const [edges, setEdges] = useState<Edge[]>([])
+//   const [selectedCategory, setSelectedCategory] = useState<string>("all")
+
+//   useEffect(() => {
+//     const initialNodes: Node[] = []
+//     const initialEdges: Edge[] = []
+
+//     if (initialTrigger) {
+//       const triggerConfig = TRIGGER_TYPES[initialTrigger.type]
+//       const triggerNode: Node = {
+//         id: "trigger-0",
+//         type: "custom",
+//         position: { x: 300, y: 50 },
+//         data: {
+//           label: triggerConfig?.label || initialTrigger.type,
+//           type: "trigger" as NodeType,
+//           actionType: initialTrigger.type,
+//           config: initialTrigger.config,
+//           isConfigured: Object.keys(initialTrigger.config || {}).length > 0,
+//           onConfigure: () => onConfigureNode("trigger-0", "trigger", initialTrigger.type),
+//           onDelete: () => {},
+//         },
+//         draggable: true,
+//       }
+//       initialNodes.push(triggerNode)
+//     }
+
+//     initialActions.forEach((action, index) => {
+//       const actionConfig = ACTION_TYPES[action.type as ActionTypeId]
+//       const actionNode: Node = {
+//         id: `action-${index + 1}`,
+//         type: "custom",
+//         position: { x: 300, y: 200 + index * 180 },
+//         data: {
+//           label: actionConfig?.label || action.type,
+//           type: "action" as NodeType,
+//           actionType: action.type,
+//           config: action.config,
+//           isConfigured: Object.keys(action.config || {}).length > 0,
+//           onConfigure: () => onConfigureNode(`action-${index + 1}`, "action", action.type),
+//           onDelete: () => handleDeleteNode(`action-${index + 1}`),
+//         },
+//         draggable: true,
+//       }
+//       initialNodes.push(actionNode)
+
+//       if (index === 0 && initialTrigger) {
+//         initialEdges.push({
+//           id: `edge-trigger-action-1`,
+//           source: "trigger-0",
+//           target: "action-1",
+//           type: "smoothstep",
+//           animated: true,
+//           style: { stroke: "#6366f1", strokeWidth: 2 },
+//           markerEnd: { type: MarkerType.ArrowClosed, color: "#6366f1" },
+//         })
+//       } else if (index > 0) {
+//         initialEdges.push({
+//           id: `edge-action-${index}-${index + 1}`,
+//           source: `action-${index}`,
+//           target: `action-${index + 1}`,
+//           type: "smoothstep",
+//           animated: true,
+//           style: { stroke: "#6366f1", strokeWidth: 2 },
+//           markerEnd: { type: MarkerType.ArrowClosed, color: "#6366f1" },
+//         })
+//       }
+//     })
+
+//     if (initialNodes.length > 0) {
+//       setNodes(initialNodes)
+//       setEdges(initialEdges)
+//     }
+//   }, [initialTrigger, initialActions])
+
+//   const onNodesChangeHandler = useCallback((changes: NodeChange[]) => {
+//     setNodes((nds) => applyNodeChanges(changes, nds))
+//   }, [])
+
+//   const onEdgesChangeHandler = useCallback((changes: EdgeChange[]) => {
+//     setEdges((eds) => applyEdgeChanges(changes, eds))
+//   }, [])
+
+//   const handleDeleteNode = useCallback(
+//     (nodeId: string) => {
+//       setNodes((nds) => {
+//         const updatedNodes = nds.filter((node) => node.id !== nodeId)
+
+//         const renumberedNodes = updatedNodes.map((node, index) => {
+//           if (node.data.type === "action") {
+//             return {
+//               ...node,
+//               id: `action-${index}`,
+//             }
+//           }
+//           return node
+//         })
+
+//         syncNodesToParent(renumberedNodes)
+//         return renumberedNodes
+//       })
+
+//       setEdges((eds) => {
+//         const filteredEdges = eds.filter((edge) => edge.source !== nodeId && edge.target !== nodeId)
+
+//         const actionNodes = nodes.filter((n) => n.data.type === "action" && n.id !== nodeId)
+//         const newEdges: Edge[] = []
+
+//         actionNodes.forEach((node, index) => {
+//           if (index === 0) {
+//             newEdges.push({
+//               id: "edge-trigger-action-1",
+//               source: "trigger-0",
+//               target: "action-1",
+//               type: "smoothstep",
+//               animated: true,
+//               style: { stroke: "#6366f1", strokeWidth: 2 },
+//               markerEnd: { type: MarkerType.ArrowClosed, color: "#6366f1" },
+//             })
+//           } else {
+//             newEdges.push({
+//               id: `edge-action-${index}-${index + 1}`,
+//               source: `action-${index}`,
+//               target: `action-${index + 1}`,
+//               type: "smoothstep",
+//               animated: true,
+//               style: { stroke: "#6366f1", strokeWidth: 2 },
+//               markerEnd: { type: MarkerType.ArrowClosed, color: "#6366f1" },
+//             })
+//           }
+//         })
+
+//         return newEdges
+//       })
+//     },
+//     [nodes],
+//   )
+
+//   const addActionNode = useCallback(
+//     (actionType: ActionTypeId) => {
+//       const actionConfig = ACTION_TYPES[actionType]
+//       const actionNodes = nodes.filter((n) => n.data.type === "action")
+//       const newNodeId = `action-${actionNodes.length + 1}`
+//       const lastNode = nodes[nodes.length - 1]
+//       const yPosition = lastNode ? lastNode.position.y + 180 : 200
+
+//       const newNode: Node = {
+//         id: newNodeId,
+//         type: "custom",
+//         position: { x: 300, y: yPosition },
+//         data: {
+//           label: actionConfig.label,
+//           type: "action" as NodeType,
+//           actionType,
+//           config: {},
+//           isConfigured: false,
+//           onConfigure: () => onConfigureNode(newNodeId, "action", actionType),
+//           onDelete: () => handleDeleteNode(newNodeId),
+//         },
+//         draggable: true,
+//       }
+
+//       setNodes((nds) => {
+//         const updatedNodes = [...nds, newNode]
+//         syncNodesToParent(updatedNodes)
+//         return updatedNodes
+//       })
+
+//       if (lastNode) {
+//         const newEdge: Edge = {
+//           id: `edge-${lastNode.id}-${newNodeId}`,
+//           source: lastNode.id,
+//           target: newNodeId,
+//           type: "smoothstep",
+//           animated: true,
+//           style: { stroke: "#6366f1", strokeWidth: 2 },
+//           markerEnd: { type: MarkerType.ArrowClosed, color: "#6366f1" },
+//         }
+//         setEdges((eds) => [...eds, newEdge])
+//       }
+//     },
+//     [nodes, onConfigureNode, handleDeleteNode],
+//   )
+
+//   const syncNodesToParent = useCallback(
+//     (updatedNodes: Node[]) => {
+//       const triggerNode = updatedNodes.find((n) => n.data.type === "trigger")
+//       const actionNodes = updatedNodes.filter((n) => n.data.type === "action")
+
+//       const trigger = triggerNode
+//         ? { type: triggerNode.data.actionType as TriggerTypeId, config: triggerNode.data.config }
+//         : null
+
+//       const actions = actionNodes.map((node, index) => ({
+//         type: node.data.actionType as ActionTypeId,
+//         config: node.data.config,
+//         order: index,
+//       }))
+
+//       onNodesChange(trigger, actions)
+//     },
+//     [onNodesChange],
+//   )
+
+//   const onConnect = useCallback((params: Connection) => {
+//     const newEdge = {
+//       ...params,
+//       type: "smoothstep",
+//       animated: true,
+//       style: { stroke: "#6366f1", strokeWidth: 2 },
+//       markerEnd: { type: MarkerType.ArrowClosed, color: "#6366f1" },
+//     }
+//     setEdges((eds) => addEdge(newEdge, eds))
+//   }, [])
+
+//   const filteredActions = Object.entries(ACTION_TYPES).filter(([_, config]) => {
+//     if (selectedCategory === "all") return true
+//     return config.category === selectedCategory
+//   })
+
+//   return (
+//     <div className="space-y-6">
+//       {/* Flow Canvas */}
+//       <div className="h-[600px] border-2 rounded-xl bg-slate-50 dark:bg-slate-950/50 overflow-hidden shadow-inner">
+//         <ReactFlow
+//           nodes={nodes}
+//           edges={edges}
+//           onNodesChange={onNodesChangeHandler}
+//           onEdgesChange={onEdgesChangeHandler}
+//           onConnect={onConnect}
+//           nodeTypes={nodeTypes}
+//           fitView
+//           minZoom={0.3}
+//           maxZoom={1.5}
+//           defaultViewport={{ x: 0, y: 0, zoom: 0.8 }}
+//           connectionLineStyle={{ stroke: "#6366f1", strokeWidth: 3 }}
+//           connectionLineType={ConnectionLineType.SmoothStep}
+//         >
+//           <Controls className="bg-card border border-border rounded-lg shadow-lg" />
+//           <MiniMap
+//             className="bg-card border border-border rounded-lg shadow-lg"
+//             nodeColor={(node) => (node.data.type === "trigger" ? "#6366f1" : "#94a3b8")}
+//             maskColor="rgb(240, 240, 240, 0.6)"
+//           />
+//           <Background variant={BackgroundVariant.Dots} gap={16} size={1} className="bg-slate-50 dark:bg-slate-950/50" />
+//           <Panel
+//             position="top-left"
+//             className="bg-card/90 backdrop-blur-sm border border-border rounded-lg px-4 py-2 shadow-lg"
+//           >
+//             <div className="flex items-center gap-2 text-sm">
+//               <Zap className="w-4 h-4 text-indigo-500" />
+//               <span className="font-medium text-foreground">Automation Flow</span>
+//               <Badge variant="outline" className="text-xs">
+//                 Drag handles to connect
+//               </Badge>
+//             </div>
+//           </Panel>
+//         </ReactFlow>
+//       </div>
+
+//       {/* Add Actions Panel */}
+//       <Card className="p-6 shadow-lg">
+//         <div className="space-y-4">
+//           <div className="flex items-center justify-between">
+//             <div>
+//               <h4 className="font-semibold text-foreground flex items-center gap-2">
+//                 <Plus className="w-4 h-4" />
+//                 Add Action
+//               </h4>
+//               <p className="text-sm text-muted-foreground mt-1">Click an action to add it to your automation flow</p>
+//             </div>
+//           </div>
+
+//           <Separator />
+
+//           {/* Category Filter */}
+//           <div className="flex flex-wrap gap-2">
+//             {ACTION_CATEGORIES.map((category) => (
+//               <Button
+//                 key={category.id}
+//                 variant={selectedCategory === category.id ? "default" : "outline"}
+//                 size="sm"
+//                 onClick={() => setSelectedCategory(category.id)}
+//                 className="text-xs"
+//               >
+//                 {category.label}
+//               </Button>
+//             ))}
+//           </div>
+
+//           {/* Actions Grid */}
+//           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+//             {filteredActions.map(([typeId, config]) => {
+//               const Icon = config.icon
+//               return (
+//                 <Button
+//                   key={typeId}
+//                   variant="outline"
+//                   onClick={() => addActionNode(typeId as ActionTypeId)}
+//                   className="h-auto flex flex-col gap-2 py-4 hover:bg-primary/5 hover:border-primary hover:shadow-md transition-all"
+//                 >
+//                   <div
+//                     className={cn(
+//                       "w-10 h-10 rounded-lg flex items-center justify-center shadow-sm",
+//                       config.color,
+//                       "text-white",
+//                     )}
+//                   >
+//                     <Icon className="h-5 w-5" />
+//                   </div>
+//                   <span className="text-xs font-medium text-center leading-tight">{config.label}</span>
+//                 </Button>
+//               )
+//             })}
+//           </div>
+//         </div>
+//       </Card>
+//     </div>
+//   )
+// }
+
 "use client"
 
-import { useCallback, useState, useEffect } from "react"
+import { useState, useCallback, useEffect } from "react"
 import {
   ReactFlow,
-  MiniMap,
   Controls,
   Background,
   addEdge,
@@ -882,7 +1370,6 @@ import {
   type EdgeChange,
   applyNodeChanges,
   applyEdgeChanges,
-  Panel,
   Handle,
   Position,
   ConnectionLineType,
@@ -891,16 +1378,14 @@ import "@xyflow/react/dist/style.css"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import {
   TRIGGER_TYPES,
   ACTION_TYPES,
-  ACTION_CATEGORIES,
   type TriggerTypeId,
   type ActionTypeId,
 } from "@/lib/automation-constants"
-import { Trash2, Settings, Plus, Zap } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { Plus, Trash2, Settings, CheckCircle2, AlertCircle, Zap, ChevronRight } from "lucide-react"
 
 type NodeType = "trigger" | "action"
 
@@ -911,7 +1396,9 @@ interface FlowNodeData {
   config: any
   onConfigure: () => void
   onDelete: () => void
+  onAddBelow: () => void
   isConfigured: boolean
+  preview?: string
 }
 
 function CustomNode({ data }: { data: FlowNodeData }) {
@@ -919,57 +1406,45 @@ function CustomNode({ data }: { data: FlowNodeData }) {
   const typeConfig = isTrigger
     ? TRIGGER_TYPES[data.actionType as TriggerTypeId]
     : ACTION_TYPES[data.actionType as ActionTypeId]
-
   const Icon = typeConfig?.icon
 
   return (
-    <div className="relative">
+    <div className="relative group">
       {!isTrigger && (
         <Handle
           type="target"
           position={Position.Top}
-          className="!w-4 !h-4 !bg-indigo-500 !border-2 !border-white dark:!border-slate-900 !shadow-lg hover:!w-5 hover:!h-5 transition-all"
-          style={{ top: -8 }}
+          className="!w-3 !h-3 !bg-indigo-500 !border-2 !border-white !shadow-lg"
+          style={{ top: -6 }}
         />
       )}
 
       <Card
-        className={cn(
-          "min-w-[280px] cursor-move transition-all hover:shadow-lg",
+        className={`min-w-[280px] shadow-lg transition-all ${
           isTrigger
-            ? "bg-gradient-to-br from-indigo-50 to-white dark:from-indigo-950/30 dark:to-background border-2 border-indigo-300 dark:border-indigo-700"
-            : "bg-white dark:bg-card border-2 border-slate-200 dark:border-slate-700",
-        )}
+            ? "bg-gradient-to-br from-indigo-50 to-white border-2 border-indigo-400"
+            : "bg-white border-2 border-slate-200 hover:border-indigo-300"
+        }`}
       >
         <div className="p-4">
           <div className="flex items-start justify-between gap-3 mb-3">
             <div className="flex items-center gap-3 flex-1">
-              <div
-                className={cn(
-                  "w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm",
-                  isTrigger
-                    ? "bg-indigo-500 text-white"
-                    : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300",
-                )}
-              >
-                {Icon && <Icon className="w-5 h-5" />}
+              <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${typeConfig?.color} shadow-sm`}>
+                {Icon && <Icon className="w-5 h-5 text-white" />}
               </div>
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                  <h4 className="font-semibold text-sm text-foreground truncate">{data.label}</h4>
-                  {data.isConfigured ? (
-                    <Badge variant="secondary" className="bg-green-500/10 text-green-700 dark:text-green-400 text-xs">
-                      ✓
-                    </Badge>
-                  ) : (
-                    <Badge variant="secondary" className="bg-amber-500/10 text-amber-700 dark:text-amber-400 text-xs">
-                      Setup
-                    </Badge>
-                  )}
-                </div>
-                <Badge variant="outline" className="text-xs capitalize">
-                  {isTrigger ? "Trigger" : "Action"}
-                </Badge>
+                <h4 className="font-semibold text-sm truncate">{typeConfig?.label}</h4>
+                {data.isConfigured ? (
+                  <Badge variant="secondary" className="bg-green-100 text-green-700 text-xs mt-1">
+                    <CheckCircle2 className="w-3 h-3 mr-1" />
+                    Configured
+                  </Badge>
+                ) : (
+                  <Badge variant="secondary" className="bg-amber-100 text-amber-700 text-xs mt-1">
+                    <AlertCircle className="w-3 h-3 mr-1" />
+                    Setup Required
+                  </Badge>
+                )}
               </div>
             </div>
             {!isTrigger && (
@@ -980,12 +1455,17 @@ function CustomNode({ data }: { data: FlowNodeData }) {
                   e.stopPropagation()
                   data.onDelete()
                 }}
-                className="h-7 w-7 p-0 hover:bg-red-50 dark:hover:bg-red-950/20 flex-shrink-0"
+                className="h-7 w-7 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
               >
-                <Trash2 className="h-3.5 w-3.5 text-red-600 dark:text-red-400" />
+                <Trash2 className="h-3.5 w-3.5 text-red-500" />
               </Button>
             )}
           </div>
+          {data.isConfigured && data.preview && (
+            <div className="text-xs text-muted-foreground mb-3 line-clamp-2 bg-slate-50 p-2 rounded">
+              {data.preview}
+            </div>
+          )}
           <Button
             variant="outline"
             size="sm"
@@ -993,7 +1473,7 @@ function CustomNode({ data }: { data: FlowNodeData }) {
               e.stopPropagation()
               data.onConfigure()
             }}
-            className="w-full bg-transparent"
+            className="w-full"
           >
             <Settings className="w-3.5 h-3.5 mr-2" />
             {data.isConfigured ? "Edit" : "Configure"}
@@ -1004,16 +1484,28 @@ function CustomNode({ data }: { data: FlowNodeData }) {
       <Handle
         type="source"
         position={Position.Bottom}
-        className="!w-4 !h-4 !bg-indigo-500 !border-2 !border-white dark:!border-slate-900 !shadow-lg hover:!w-5 hover:!h-5 transition-all"
-        style={{ bottom: -8 }}
+        className="!w-3 !h-3 !bg-indigo-500 !border-2 !border-white !shadow-lg"
+        style={{ bottom: -6 }}
       />
+
+      {/* Add Action Button - appears on hover */}
+      <div className="absolute -bottom-12 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+        <Button
+          size="sm"
+          onClick={(e) => {
+            e.stopPropagation()
+            data.onAddBelow()
+          }}
+          className="rounded-full h-8 w-8 p-0 shadow-lg bg-indigo-500 hover:bg-indigo-600"
+        >
+          <Plus className="w-4 h-4" />
+        </Button>
+      </div>
     </div>
   )
 }
 
-const nodeTypes = {
-  custom: CustomNode,
-}
+const nodeTypes = { custom: CustomNode }
 
 interface AutomationFlowCanvasProps {
   initialTrigger?: { type: TriggerTypeId; config: any }
@@ -1033,8 +1525,11 @@ export function AutomationFlowCanvas({
 }: AutomationFlowCanvasProps) {
   const [nodes, setNodes] = useState<Node[]>([])
   const [edges, setEdges] = useState<Edge[]>([])
-  const [selectedCategory, setSelectedCategory] = useState<string>("all")
+  const [showTriggerDialog, setShowTriggerDialog] = useState(!initialTrigger)
+  const [showActionDialog, setShowActionDialog] = useState(false)
+  const [pendingAddBelowNode, setPendingAddBelowNode] = useState<string | null>(null)
 
+  // Initialize nodes from props
   useEffect(() => {
     const initialNodes: Node[] = []
     const initialEdges: Edge[] = []
@@ -1044,7 +1539,7 @@ export function AutomationFlowCanvas({
       const triggerNode: Node = {
         id: "trigger-0",
         type: "custom",
-        position: { x: 300, y: 50 },
+        position: { x: 400, y: 100 },
         data: {
           label: triggerConfig?.label || initialTrigger.type,
           type: "trigger" as NodeType,
@@ -1053,6 +1548,8 @@ export function AutomationFlowCanvas({
           isConfigured: Object.keys(initialTrigger.config || {}).length > 0,
           onConfigure: () => onConfigureNode("trigger-0", "trigger", initialTrigger.type),
           onDelete: () => {},
+          onAddBelow: () => handleAddBelow("trigger-0"),
+          preview: triggerConfig?.description,
         },
         draggable: true,
       }
@@ -1064,7 +1561,7 @@ export function AutomationFlowCanvas({
       const actionNode: Node = {
         id: `action-${index + 1}`,
         type: "custom",
-        position: { x: 300, y: 200 + index * 180 },
+        position: { x: 400, y: 300 + index * 200 },
         data: {
           label: actionConfig?.label || action.type,
           type: "action" as NodeType,
@@ -1073,6 +1570,7 @@ export function AutomationFlowCanvas({
           isConfigured: Object.keys(action.config || {}).length > 0,
           onConfigure: () => onConfigureNode(`action-${index + 1}`, "action", action.type),
           onDelete: () => handleDeleteNode(`action-${index + 1}`),
+          onAddBelow: () => handleAddBelow(`action-${index + 1}`),
         },
         draggable: true,
       }
@@ -1104,6 +1602,7 @@ export function AutomationFlowCanvas({
     if (initialNodes.length > 0) {
       setNodes(initialNodes)
       setEdges(initialEdges)
+      setShowTriggerDialog(false)
     }
   }, [initialTrigger, initialActions])
 
@@ -1115,105 +1614,112 @@ export function AutomationFlowCanvas({
     setEdges((eds) => applyEdgeChanges(changes, eds))
   }, [])
 
+  const onConnect = useCallback((params: Connection) => {
+    const newEdge = {
+      ...params,
+      type: "smoothstep",
+      animated: true,
+      style: { stroke: "#6366f1", strokeWidth: 2 },
+      markerEnd: { type: MarkerType.ArrowClosed, color: "#6366f1" },
+    }
+    setEdges((eds) => addEdge(newEdge, eds))
+  }, [])
+
+  const addTriggerNode = (triggerId: TriggerTypeId) => {
+    const trigger = TRIGGER_TYPES[triggerId]
+    if (!trigger) return
+
+    const triggerNode: Node = {
+      id: "trigger-0",
+      type: "custom",
+      position: { x: 400, y: 100 },
+      data: {
+        label: trigger.label,
+        type: "trigger" as NodeType,
+        actionType: triggerId,
+        config: {},
+        isConfigured: triggerId !== "KEYWORD", // Keywords require config
+        onConfigure: () => onConfigureNode("trigger-0", "trigger", triggerId),
+        onDelete: () => {},
+        onAddBelow: () => handleAddBelow("trigger-0"),
+        preview: trigger.description,
+      },
+      draggable: true,
+    }
+
+    setNodes([triggerNode])
+    setShowTriggerDialog(false)
+    syncNodesToParent([triggerNode])
+  }
+
+  const handleAddBelow = (nodeId: string) => {
+    setPendingAddBelowNode(nodeId)
+    setShowActionDialog(true)
+  }
+
+  const addActionNode = (actionId: ActionTypeId) => {
+    const action = ACTION_TYPES[actionId]
+    if (!action) return
+
+    const sourceNode = nodes.find((n) => n.id === pendingAddBelowNode)
+    if (!sourceNode) return
+
+    const existingActions = nodes.filter((n) => n.data.type === "action")
+    const newNodeId = `action-${existingActions.length + 1}`
+    const yPosition = sourceNode.position.y + 200
+
+    const newNode: Node = {
+      id: newNodeId,
+      type: "custom",
+      position: { x: sourceNode.position.x, y: yPosition },
+      data: {
+        label: action.label,
+        type: "action" as NodeType,
+        actionType: actionId,
+        config: {},
+        isConfigured: false,
+        onConfigure: () => onConfigureNode(newNodeId, "action", actionId),
+        onDelete: () => handleDeleteNode(newNodeId),
+        onAddBelow: () => handleAddBelow(newNodeId),
+      },
+      draggable: true,
+    }
+
+    setNodes((nds) => {
+      const updatedNodes = [...nds, newNode]
+      syncNodesToParent(updatedNodes)
+      return updatedNodes
+    })
+
+    const newEdge: Edge = {
+      id: `edge-${sourceNode.id}-${newNodeId}`,
+      source: sourceNode.id,
+      target: newNodeId,
+      type: "smoothstep",
+      animated: true,
+      style: { stroke: "#6366f1", strokeWidth: 2 },
+      markerEnd: { type: MarkerType.ArrowClosed, color: "#6366f1" },
+    }
+    setEdges((eds) => [...eds, newEdge])
+
+    setShowActionDialog(false)
+    setPendingAddBelowNode(null)
+
+    // Auto-open config dialog
+    setTimeout(() => onConfigureNode(newNodeId, "action", actionId), 100)
+  }
+
   const handleDeleteNode = useCallback(
     (nodeId: string) => {
       setNodes((nds) => {
         const updatedNodes = nds.filter((node) => node.id !== nodeId)
-
-        const renumberedNodes = updatedNodes.map((node, index) => {
-          if (node.data.type === "action") {
-            return {
-              ...node,
-              id: `action-${index}`,
-            }
-          }
-          return node
-        })
-
-        syncNodesToParent(renumberedNodes)
-        return renumberedNodes
-      })
-
-      setEdges((eds) => {
-        const filteredEdges = eds.filter((edge) => edge.source !== nodeId && edge.target !== nodeId)
-
-        const actionNodes = nodes.filter((n) => n.data.type === "action" && n.id !== nodeId)
-        const newEdges: Edge[] = []
-
-        actionNodes.forEach((node, index) => {
-          if (index === 0) {
-            newEdges.push({
-              id: "edge-trigger-action-1",
-              source: "trigger-0",
-              target: "action-1",
-              type: "smoothstep",
-              animated: true,
-              style: { stroke: "#6366f1", strokeWidth: 2 },
-              markerEnd: { type: MarkerType.ArrowClosed, color: "#6366f1" },
-            })
-          } else {
-            newEdges.push({
-              id: `edge-action-${index}-${index + 1}`,
-              source: `action-${index}`,
-              target: `action-${index + 1}`,
-              type: "smoothstep",
-              animated: true,
-              style: { stroke: "#6366f1", strokeWidth: 2 },
-              markerEnd: { type: MarkerType.ArrowClosed, color: "#6366f1" },
-            })
-          }
-        })
-
-        return newEdges
-      })
-    },
-    [nodes],
-  )
-
-  const addActionNode = useCallback(
-    (actionType: ActionTypeId) => {
-      const actionConfig = ACTION_TYPES[actionType]
-      const actionNodes = nodes.filter((n) => n.data.type === "action")
-      const newNodeId = `action-${actionNodes.length + 1}`
-      const lastNode = nodes[nodes.length - 1]
-      const yPosition = lastNode ? lastNode.position.y + 180 : 200
-
-      const newNode: Node = {
-        id: newNodeId,
-        type: "custom",
-        position: { x: 300, y: yPosition },
-        data: {
-          label: actionConfig.label,
-          type: "action" as NodeType,
-          actionType,
-          config: {},
-          isConfigured: false,
-          onConfigure: () => onConfigureNode(newNodeId, "action", actionType),
-          onDelete: () => handleDeleteNode(newNodeId),
-        },
-        draggable: true,
-      }
-
-      setNodes((nds) => {
-        const updatedNodes = [...nds, newNode]
         syncNodesToParent(updatedNodes)
         return updatedNodes
       })
 
-      if (lastNode) {
-        const newEdge: Edge = {
-          id: `edge-${lastNode.id}-${newNodeId}`,
-          source: lastNode.id,
-          target: newNodeId,
-          type: "smoothstep",
-          animated: true,
-          style: { stroke: "#6366f1", strokeWidth: 2 },
-          markerEnd: { type: MarkerType.ArrowClosed, color: "#6366f1" },
-        }
-        setEdges((eds) => [...eds, newEdge])
-      }
+      setEdges((eds) => eds.filter((edge) => edge.source !== nodeId && edge.target !== nodeId))
     },
-    [nodes, onConfigureNode, handleDeleteNode],
+    []
   )
 
   const syncNodesToParent = useCallback(
@@ -1233,29 +1739,13 @@ export function AutomationFlowCanvas({
 
       onNodesChange(trigger, actions)
     },
-    [onNodesChange],
+    [onNodesChange]
   )
 
-  const onConnect = useCallback((params: Connection) => {
-    const newEdge = {
-      ...params,
-      type: "smoothstep",
-      animated: true,
-      style: { stroke: "#6366f1", strokeWidth: 2 },
-      markerEnd: { type: MarkerType.ArrowClosed, color: "#6366f1" },
-    }
-    setEdges((eds) => addEdge(newEdge, eds))
-  }, [])
-
-  const filteredActions = Object.entries(ACTION_TYPES).filter(([_, config]) => {
-    if (selectedCategory === "all") return true
-    return config.category === selectedCategory
-  })
-
   return (
-    <div className="space-y-6">
-      {/* Flow Canvas */}
-      <div className="h-[600px] border-2 rounded-xl bg-slate-50 dark:bg-slate-950/50 overflow-hidden shadow-inner">
+    <div className="h-full flex flex-col">
+      {/* Full Canvas */}
+      <div className="flex-1 relative">
         <ReactFlow
           nodes={nodes}
           edges={edges}
@@ -1264,92 +1754,114 @@ export function AutomationFlowCanvas({
           onConnect={onConnect}
           nodeTypes={nodeTypes}
           fitView
-          minZoom={0.3}
+          minZoom={0.5}
           maxZoom={1.5}
-          defaultViewport={{ x: 0, y: 0, zoom: 0.8 }}
+          defaultViewport={{ x: 0, y: 0, zoom: 0.9 }}
           connectionLineStyle={{ stroke: "#6366f1", strokeWidth: 3 }}
           connectionLineType={ConnectionLineType.SmoothStep}
+          className="bg-slate-50"
         >
-          <Controls className="bg-card border border-border rounded-lg shadow-lg" />
-          <MiniMap
-            className="bg-card border border-border rounded-lg shadow-lg"
-            nodeColor={(node) => (node.data.type === "trigger" ? "#6366f1" : "#94a3b8")}
-            maskColor="rgb(240, 240, 240, 0.6)"
-          />
-          <Background variant={BackgroundVariant.Dots} gap={16} size={1} className="bg-slate-50 dark:bg-slate-950/50" />
-          <Panel
-            position="top-left"
-            className="bg-card/90 backdrop-blur-sm border border-border rounded-lg px-4 py-2 shadow-lg"
-          >
-            <div className="flex items-center gap-2 text-sm">
-              <Zap className="w-4 h-4 text-indigo-500" />
-              <span className="font-medium text-foreground">Automation Flow</span>
-              <Badge variant="outline" className="text-xs">
-                Drag handles to connect
-              </Badge>
+          <Controls className="bg-white border border-slate-200 rounded-lg shadow-lg" />
+          <Background variant={BackgroundVariant.Dots} gap={20} size={1} className="bg-slate-50" />
+
+          {/* Empty State */}
+          {nodes.length === 0 && (
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <div className="text-center max-w-md">
+                <div className="w-20 h-20 rounded-full bg-indigo-100 mx-auto flex items-center justify-center mb-4">
+                  <Zap className="w-10 h-10 text-indigo-500" />
+                </div>
+                <h3 className="text-2xl font-bold mb-2">Choose Your Trigger</h3>
+                <p className="text-muted-foreground mb-6">Select what event should start your automation</p>
+                <Button
+                  onClick={() => setShowTriggerDialog(true)}
+                  size="lg"
+                  className="pointer-events-auto bg-indigo-600 hover:bg-indigo-700"
+                >
+                  <Plus className="w-5 h-5 mr-2" />
+                  Select Trigger
+                </Button>
+              </div>
             </div>
-          </Panel>
+          )}
         </ReactFlow>
       </div>
 
-      {/* Add Actions Panel */}
-      <Card className="p-6 shadow-lg">
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h4 className="font-semibold text-foreground flex items-center gap-2">
-                <Plus className="w-4 h-4" />
-                Add Action
-              </h4>
-              <p className="text-sm text-muted-foreground mt-1">Click an action to add it to your automation flow</p>
-            </div>
-          </div>
-
-          <Separator />
-
-          {/* Category Filter */}
-          <div className="flex flex-wrap gap-2">
-            {ACTION_CATEGORIES.map((category) => (
-              <Button
-                key={category.id}
-                variant={selectedCategory === category.id ? "default" : "outline"}
-                size="sm"
-                onClick={() => setSelectedCategory(category.id)}
-                className="text-xs"
-              >
-                {category.label}
-              </Button>
-            ))}
-          </div>
-
-          {/* Actions Grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-            {filteredActions.map(([typeId, config]) => {
-              const Icon = config.icon
+      {/* Trigger Selection Dialog */}
+      <Dialog open={showTriggerDialog} onOpenChange={setShowTriggerDialog}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle className="text-2xl flex items-center gap-2">
+              <Zap className="w-6 h-6 text-indigo-500" />
+              Choose a Trigger
+            </DialogTitle>
+            <DialogDescription>Select what event should start this automation</DialogDescription>
+          </DialogHeader>
+          <div className="grid grid-cols-2 gap-3 mt-4">
+            {Object.entries(TRIGGER_TYPES).map(([triggerId, trigger]) => {
+              const Icon = trigger.icon
               return (
-                <Button
-                  key={typeId}
-                  variant="outline"
-                  onClick={() => addActionNode(typeId as ActionTypeId)}
-                  className="h-auto flex flex-col gap-2 py-4 hover:bg-primary/5 hover:border-primary hover:shadow-md transition-all"
+                <Card
+                  key={triggerId}
+                  className="p-4 cursor-pointer hover:border-indigo-500 hover:shadow-md transition-all group"
+                  onClick={() => addTriggerNode(triggerId as TriggerTypeId)}
                 >
-                  <div
-                    className={cn(
-                      "w-10 h-10 rounded-lg flex items-center justify-center shadow-sm",
-                      config.color,
-                      "text-white",
-                    )}
-                  >
-                    <Icon className="h-5 w-5" />
+                  <div className="flex items-start gap-3">
+                    <div
+                      className={`w-12 h-12 rounded-lg ${trigger.color} flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform`}
+                    >
+                      <Icon className="w-6 h-6 text-white" />
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-semibold mb-1">{trigger.label}</h4>
+                      <p className="text-sm text-muted-foreground">{trigger.description}</p>
+                    </div>
+                    <ChevronRight className="w-5 h-5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
                   </div>
-                  <span className="text-xs font-medium text-center leading-tight">{config.label}</span>
-                </Button>
+                </Card>
               )
             })}
           </div>
-        </div>
-      </Card>
+        </DialogContent>
+      </Dialog>
+
+      {/* Action Selection Dialog */}
+      <Dialog open={showActionDialog} onOpenChange={setShowActionDialog}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle className="text-2xl flex items-center gap-2">
+              <Plus className="w-6 h-6 text-indigo-500" />
+              Add an Action
+            </DialogTitle>
+            <DialogDescription>What should happen next?</DialogDescription>
+          </DialogHeader>
+          <div className="grid grid-cols-2 gap-3 mt-4">
+            {Object.entries(ACTION_TYPES).map(([actionId, action]) => {
+              const Icon = action.icon
+              return (
+                <Card
+                  key={actionId}
+                  className="p-4 cursor-pointer hover:border-indigo-500 hover:shadow-md transition-all group"
+                  onClick={() => addActionNode(actionId as ActionTypeId)}
+                >
+                  <div className="flex items-start gap-3">
+                    <div
+                      className={`w-12 h-12 rounded-lg ${action.color} flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform`}
+                    >
+                      <Icon className="w-6 h-6 text-white" />
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-semibold mb-1">{action.label}</h4>
+                      <p className="text-sm text-muted-foreground">{action.description}</p>
+                    </div>
+                    <ChevronRight className="w-5 h-5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </div>
+                </Card>
+              )
+            })}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
-

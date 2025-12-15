@@ -586,6 +586,7 @@ function EditAutomationPageContent() {
     actionType: string
   } | null>(null)
   const [currentConfig, setCurrentConfig] = useState<NodeConfig>({})
+  const [showDetailsDialog, setShowDetailsDialog] = useState(false)
 
   useEffect(() => {
     async function loadData() {
@@ -948,23 +949,124 @@ function EditAutomationPageContent() {
     )
   }
 
-  return (
-    <div className="min-h-screen bg-background">
-      <div className="border-b bg-card">
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Link href="/automations">
-                <Button variant="ghost" size="sm">
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  Back
-                </Button>
-              </Link>
-              <div>
-                <h1 className="text-2xl font-semibold text-foreground">Edit Automation</h1>
-                <p className="text-sm text-muted-foreground">Modify your automation workflow</p>
-              </div>
+//   return (
+//     <div className="min-h-screen bg-background">
+//       <div className="border-b bg-card">
+//         <div className="max-w-7xl mx-auto px-6 py-4">
+//           <div className="flex items-center justify-between">
+//             <div className="flex items-center gap-4">
+//               <Link href="/automations">
+//                 <Button variant="ghost" size="sm">
+//                   <ArrowLeft className="w-4 h-4 mr-2" />
+//                   Back
+//                 </Button>
+//               </Link>
+//               <div>
+//                 <h1 className="text-2xl font-semibold text-foreground">Edit Automation</h1>
+//                 <p className="text-sm text-muted-foreground">Modify your automation workflow</p>
+//               </div>
+//             </div>
+//             <Button onClick={handleSave} disabled={isSaving} size="lg">
+//               <Save className="w-4 h-4 mr-2" />
+//               {isSaving ? "Saving..." : "Update Automation"}
+//             </Button>
+//           </div>
+//         </div>
+//       </div>
+
+//       <div className="max-w-7xl mx-auto px-6 py-8 space-y-6">
+//         <Card className="p-6">
+//           <h3 className="font-semibold text-foreground mb-4">Automation Details</h3>
+//           <div className="grid gap-4 md:grid-cols-2">
+//             <div>
+//               <Label htmlFor="name">Name</Label>
+//               <Input
+//                 id="name"
+//                 placeholder="Welcome new followers"
+//                 value={name}
+//                 onChange={(e) => setName(e.target.value)}
+//               />
+//             </div>
+//             <div>
+//               <Label htmlFor="account">Instagram Account</Label>
+//               <Select value={instagramAccountId} onValueChange={setInstagramAccountId}>
+//                 <SelectTrigger id="account">
+//                   <SelectValue placeholder="Select account" />
+//                 </SelectTrigger>
+//                 <SelectContent>
+//                   {instagramAccounts.map((account) => (
+//                     <SelectItem key={account.id} value={account.id}>
+//                       @{account.username}
+//                     </SelectItem>
+//                   ))}
+//                 </SelectContent>
+//               </Select>
+//             </div>
+//             <div className="md:col-span-2">
+//               <Label htmlFor="description">Description (Optional)</Label>
+//               <Textarea
+//                 id="description"
+//                 placeholder="Describe what this automation does..."
+//                 value={description}
+//                 onChange={(e) => setDescription(e.target.value)}
+//                 rows={2}
+//               />
+//             </div>
+//           </div>
+//         </Card>
+
+//         <Card className="p-6">
+//           <AutomationFlowCanvas
+//             initialTrigger={trigger || undefined}
+//             initialActions={actions}
+//             onNodesChange={handleNodesChange}
+//             onConfigureNode={handleConfigureNode}
+//           />
+//         </Card>
+//       </div>
+
+//       <Dialog open={configDialogOpen} onOpenChange={setConfigDialogOpen}>
+//         <DialogContent className="sm:max-w-[500px]">
+//           <DialogHeader>
+//             <DialogTitle>Configure {currentConfigNode?.type === "trigger" ? "Trigger" : "Action"}</DialogTitle>
+//             <DialogDescription>Customize the settings below</DialogDescription>
+//           </DialogHeader>
+//           <div className="space-y-4">
+//             {renderConfigForm()}
+//             <div className="flex justify-end gap-2 pt-4">
+//               <Button variant="outline" onClick={() => setConfigDialogOpen(false)}>
+//                 Cancel
+//               </Button>
+//               <Button onClick={handleSaveConfig}>Save Configuration</Button>
+//             </div>
+//           </div>
+//         </DialogContent>
+//       </Dialog>
+//     </div>
+//   )
+// }
+return (
+  <div className="h-screen flex flex-col bg-background">
+    {/* Header */}
+    <div className="border-b bg-card flex-shrink-0">
+      <div className="max-w-7xl mx-auto px-6 py-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Link href="/automations">
+              <Button variant="ghost" size="sm">
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back
+              </Button>
+            </Link>
+            <div>
+              <h1 className="text-2xl font-semibold text-foreground">Edit Automation</h1>
+              <p className="text-sm text-muted-foreground">Modify your automation workflow</p>
             </div>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setShowDetailsDialog(true)}>
+              Details
+            </Button>
             <Button onClick={handleSave} disabled={isSaving} size="lg">
               <Save className="w-4 h-4 mr-2" />
               {isSaving ? "Saving..." : "Update Automation"}
@@ -972,58 +1074,72 @@ function EditAutomationPageContent() {
           </div>
         </div>
       </div>
+    </div>
 
-      <div className="max-w-7xl mx-auto px-6 py-8 space-y-6">
-        <Card className="p-6">
-          <h3 className="font-semibold text-foreground mb-4">Automation Details</h3>
-          <div className="grid gap-4 md:grid-cols-2">
-            <div>
-              <Label htmlFor="name">Name</Label>
-              <Input
-                id="name"
-                placeholder="Welcome new followers"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-              />
-            </div>
-            <div>
-              <Label htmlFor="account">Instagram Account</Label>
-              <Select value={instagramAccountId} onValueChange={setInstagramAccountId}>
-                <SelectTrigger id="account">
-                  <SelectValue placeholder="Select account" />
-                </SelectTrigger>
-                <SelectContent>
-                  {instagramAccounts.map((account) => (
-                    <SelectItem key={account.id} value={account.id}>
-                      @{account.username}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="md:col-span-2">
-              <Label htmlFor="description">Description (Optional)</Label>
-              <Textarea
-                id="description"
-                placeholder="Describe what this automation does..."
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                rows={2}
-              />
-            </div>
+    {/* Canvas - Takes remaining height */}
+    <div className="flex-1 overflow-hidden">
+      <AutomationFlowCanvas
+        initialTrigger={trigger || undefined}
+        initialActions={actions}
+        onNodesChange={handleNodesChange}
+        onConfigureNode={handleConfigureNode}
+      />
+    </div>
+
+    {/* Details Dialog */}
+    <Dialog open={showDetailsDialog} onOpenChange={setShowDetailsDialog}>
+      <DialogContent className="sm:max-w-[600px]">
+        <DialogHeader>
+          <DialogTitle>Automation Details</DialogTitle>
+          <DialogDescription>Configure your automation settings</DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4 py-4">
+          <div>
+            <Label htmlFor="name">Name</Label>
+            <Input
+              id="name"
+              placeholder="Welcome new followers"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
           </div>
-        </Card>
+          <div>
+            <Label htmlFor="account">Instagram Account</Label>
+            <Select value={instagramAccountId} onValueChange={setInstagramAccountId}>
+              <SelectTrigger id="account">
+                <SelectValue placeholder="Select account" />
+              </SelectTrigger>
+              <SelectContent>
+                {instagramAccounts.map((account) => (
+                  <SelectItem key={account.id} value={account.id}>
+                    @{account.username}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label htmlFor="description">Description (Optional)</Label>
+            <Textarea
+              id="description"
+              placeholder="Describe what this automation does..."
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              rows={2}
+            />
+          </div>
+        </div>
+        <div className="flex justify-end gap-2 pt-4 border-t">
+          <Button variant="outline" onClick={() => setShowDetailsDialog(false)}>
+            Cancel
+          </Button>
+          <Button onClick={() => setShowDetailsDialog(false)}>Save Details</Button>
+        </div>
+      </DialogContent>
+    </Dialog>
 
-        <Card className="p-6">
-          <AutomationFlowCanvas
-            initialTrigger={trigger || undefined}
-            initialActions={actions}
-            onNodesChange={handleNodesChange}
-            onConfigureNode={handleConfigureNode}
-          />
-        </Card>
-      </div>
-
+    {/* Config Dialog stays the same */}
+    
       <Dialog open={configDialogOpen} onOpenChange={setConfigDialogOpen}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
