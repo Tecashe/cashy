@@ -1,4 +1,4 @@
-# InstaFlow - Instagram Automation Platform
+# Yazzil - Instagram Automation Platform
 
 A powerful Instagram DM automation and content creation platform built with Next.js 16, featuring AI-powered content generation, visual automation builders, and real-time messaging.
 
@@ -57,7 +57,7 @@ A powerful Instagram DM automation and content creation platform built with Next
 1. Clone the repository:
 \`\`\`bash
 git clone <your-repo-url>
-cd instaflow
+cd yazzil
 \`\`\`
 
 2. Install dependencies:
@@ -261,7 +261,7 @@ This project is licensed under the MIT License.
 
 ## Support
 
-For support, email support@instaflow.app or join our Discord community.
+For support, email support@yazzil.app or join our Discord community.
 
 ## Roadmap
 

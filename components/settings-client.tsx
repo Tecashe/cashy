@@ -244,7 +244,7 @@ export function SettingsClient({ initialSettings }: SettingsClientProps) {
                 <div className="rounded-lg border p-4">
                   <h4 className="mb-2 font-semibold">Required Permissions</h4>
                   <p className="mb-3 text-sm text-slate-600 dark:text-slate-400">
-                    InstaFlow will request the following permissions:
+                    Yazzil will request the following permissions:
                   </p>
                   <div className="space-y-2 text-sm">
                     <div className="flex items-start gap-2">

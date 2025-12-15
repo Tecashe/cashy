@@ -38,7 +38,7 @@
 //           <Instagram className="h-6 w-6 text-white" />
 //         </div>
 //         <span className="text-xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-//           InstaFlow
+//           Yazzil
 //         </span>
 //       </div>
 
@@ -222,7 +222,7 @@ export function Sidebar() {
               <Instagram className="h-5 w-5 text-background" />
             </div>
             <div className="flex flex-col">
-              <span className="text-lg font-bold tracking-tight text-foreground">InstaFlow</span>
+              <span className="text-lg font-bold tracking-tight text-foreground">Yazzil</span>
               <span className="text-[10px] font-medium text-muted-foreground">Professional</span>
             </div>
           </Link>
