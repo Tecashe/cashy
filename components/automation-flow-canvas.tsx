@@ -1358,7 +1358,7 @@
 
 import type React from "react"
 
-import { useCallback, useState, useEffect, useMemo } from "react"
+import { useCallback, useState, useEffect, useMemo, useRef } from "react"
 import {
   ReactFlow,
   MiniMap,
@@ -1547,7 +1547,7 @@ function ActionNode({ data }: { data: FlowNodeData }) {
       ai: "from-purple-50 to-pink-50 dark:from-purple-950 dark:to-pink-950",
       organization: "from-teal-50 to-cyan-50 dark:from-teal-950 dark:to-cyan-950",
       moderation: "from-yellow-50 to-orange-50 dark:from-yellow-950 dark:to-orange-950",
-      flow: "from-gray-50 to-slate-50 dark:from-gray-950 dark:to-slate-950",
+      flow: "from-gray-50 to-slate-50 dark:from-gray-900 dark:to-slate-900",
       handoff: "from-rose-50 to-red-50 dark:from-rose-950 dark:to-red-950",
       integration: "from-violet-50 to-purple-50 dark:from-violet-950 dark:to-purple-950",
     }
@@ -1831,16 +1831,177 @@ export function AutomationFlowCanvas({
 }: AutomationFlowCanvasProps) {
   const [nodes, setNodes, onNodesChangeHandler] = useNodesState<Node<FlowNodeData>>([])
   const [edges, setEdges, onEdgesChangeHandler] = useEdgesState<Edge>([])
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null)
   const [showTriggerDialog, setShowTriggerDialog] = useState(false)
+  const [isDragging, setIsDragging] = useState(false)
   const isMobile = useMobile()
-  const isTablet = isMobile
-  const [userHasDragged, setUserHasDragged] = useState(false)
+  const isTablet = false
+
+
+  const prevTriggerRef = useRef<string | undefined>(undefined)
+  const prevActionsRef = useRef<string | undefined>(undefined)
+
+  useEffect(() => {
+    // Only compare the actual data (type and config), not functions
+    const triggerKey = initialTrigger 
+      ? JSON.stringify({ type: initialTrigger.type, config: initialTrigger.config })
+      : "none"
+    const actionsKey = JSON.stringify(
+      initialActions.map(a => ({ type: a.type, config: a.config, order: a.order }))
+    )
+
+    if (prevTriggerRef.current === triggerKey && prevActionsRef.current === actionsKey) {
+      return
+    }
+
+    prevTriggerRef.current = triggerKey
+    prevActionsRef.current = actionsKey
+
+  // const prevTriggerRef = useRef<string>()
+  // const prevActionsRef = useRef<string>()
+
+  // useEffect(() => {
+  //   const triggerKey = initialTrigger ? JSON.stringify(initialTrigger) : "none"
+  //   const actionsKey = JSON.stringify(initialActions)
+
+  //   if (prevTriggerRef.current === triggerKey && prevActionsRef.current === actionsKey) {
+  //     return
+  //   }
+
+  //   prevTriggerRef.current = triggerKey
+  //   prevActionsRef.current = actionsKey
+
+    const newNodes: Node<FlowNodeData>[] = []
+    const newEdges: Edge[] = []
+
+    const baseX = 50
+    const nodeSpacing = isMobile ? 200 : isTablet ? 220 : 250
+
+    if (initialTrigger === undefined || initialTrigger === null) {
+      const selectorNode: Node<FlowNodeData> = {
+        id: "trigger-selector",
+        type: "triggerSelector",
+        position: { x: isMobile ? 20 : baseX, y: 50 },
+        data: {
+          label: "Select Trigger",
+          type: "trigger-selector" as NodeType,
+          onSelectTrigger: onSelectTrigger,
+        },
+        draggable: false,
+      }
+      newNodes.push(selectorNode)
+
+      const addButtonX = isMobile ? 20 : baseX
+      const addButtonNode: Node<FlowNodeData> = {
+        id: "add-button",
+        type: "addButton",
+        position: { x: addButtonX, y: 50 + nodeSpacing },
+        data: {
+          label: "Add Action",
+          type: "add-button" as NodeType,
+          onAddAction: handleAddAction,
+        },
+        draggable: false,
+      }
+      newNodes.push(addButtonNode)
+
+      const edgeToAdd: Edge = {
+        id: "edge-to-selector",
+        source: "trigger-selector",
+        target: "add-button",
+        type: "smoothstep",
+        animated: false,
+        style: {
+          stroke: "#cbd5e1",
+          strokeWidth: isMobile ? 4 : 3,
+          strokeDasharray: "8,8",
+        },
+      }
+      newEdges.push(edgeToAdd)
+    } else {
+      const triggerNode: Node<FlowNodeData> = {
+        id: "trigger",
+        type: "trigger",
+        position: { x: isMobile ? 20 : baseX, y: 50 },
+        data: {
+          label: TRIGGER_TYPES[initialTrigger.type]?.label || "Trigger",
+          type: "trigger" as NodeType,
+          actionType: initialTrigger.type,
+          config: initialTrigger.config,
+          isConfigured: !!initialTrigger.config && Object.keys(initialTrigger.config).length > 0,
+          onConfigure: () => onConfigureNode("trigger", "trigger", initialTrigger.type),
+          onChangeTrigger: () => setShowTriggerDialog(true),
+        },
+        draggable: !isMobile,
+      }
+      newNodes.push(triggerNode)
+
+      initialActions
+        .sort((a, b) => a.order - b.order)
+        .forEach((action, index) => {
+          const actionNode: Node<FlowNodeData> = {
+            id: `action-${index}`,
+            type: "action",
+            position: { x: isMobile ? 20 : baseX, y: 50 + nodeSpacing * (index + 1) },
+            data: {
+              label: ACTION_TYPES[action.type]?.label || "Action",
+              type: "action" as NodeType,
+              actionType: action.type,
+              config: action.config,
+              isConfigured: !!action.config && Object.keys(action.config).length > 0,
+              onConfigure: () => onConfigureNode(`action-${index}`, "action", action.type),
+              onDelete: () => handleDeleteAction(index),
+            },
+            draggable: !isMobile,
+          }
+          newNodes.push(actionNode)
+        })
+
+      const lastNodeId = initialActions.length > 0 ? `action-${initialActions.length - 1}` : "trigger"
+
+      const finalAddButton: Node<FlowNodeData> = {
+        id: `add-button-final`,
+        type: "addButton",
+        position: { x: isMobile ? 20 : baseX, y: 50 + nodeSpacing * (initialActions.length + 1) },
+        data: {
+          label: "Add Action",
+          type: "add-button" as NodeType,
+          onAddAction: handleAddAction,
+        },
+        draggable: false,
+      }
+      newNodes.push(finalAddButton)
+
+      const edgeToFinalAdd: Edge = {
+        id: `edge-to-final-add`,
+        source: lastNodeId,
+        target: `add-button-final`,
+        type: "smoothstep",
+        animated: false,
+        style: {
+          stroke: "#cbd5e1",
+          strokeWidth: isMobile ? 4 : 3,
+          strokeDasharray: "8,8",
+        },
+      }
+      newEdges.push(edgeToFinalAdd)
+    }
+
+    setNodes(newNodes)
+    setEdges(newEdges)
+  }, [
+    initialTrigger,
+    JSON.stringify(initialActions.map((a) => ({ type: a.type, order: a.order }))),
+    isMobile,
+    isTablet,
+    onSelectTrigger,
+    onConfigureNode,
+  ])
 
   const handleDeleteAction = useCallback(
     (nodeIdOrIndex: string | number) => {
-      const nodeId = typeof nodeIdOrIndex === "number" ? `action-${nodeIdOrIndex}` : nodeIdOrIndex
       setNodes((nds) => {
-        const updatedNodes = nds.filter((node) => node.id !== nodeId && node.type !== "addButton")
+        const updatedNodes = nds.filter((node) => node.id !== `action-${nodeIdOrIndex}` && node.type !== "addButton")
         const triggerNode = updatedNodes.find((n) => n.type === "trigger")
         const actionNodes = updatedNodes.filter((n) => n.type === "action")
 
@@ -2008,168 +2169,6 @@ export function AutomationFlowCanvas({
     [onConfigureNode, isMobile, isTablet, onNodesChange, handleDeleteAction, rebuildEdges, setNodes],
   )
 
-  useEffect(() => {
-    console.log("[v0] Canvas useEffect triggered")
-    console.log("[v0] initialTrigger:", initialTrigger)
-    console.log("[v0] initialActions:", initialActions)
-
-    const newNodes: Node<FlowNodeData>[] = []
-    const newEdges: Edge[] = []
-
-    const baseX = 50
-    const nodeSpacing = isMobile ? 200 : isTablet ? 220 : 250
-
-    if (initialTrigger === undefined || initialTrigger === null) {
-      console.log("[v0] No trigger - showing selector")
-      const selectorNode: Node<FlowNodeData> = {
-        id: "trigger-selector",
-        type: "triggerSelector",
-        position: { x: isMobile ? 20 : baseX, y: 50 },
-        data: {
-          label: "Select Trigger",
-          type: "trigger-selector" as NodeType,
-          onSelectTrigger: onSelectTrigger,
-        },
-        draggable: false,
-      }
-      newNodes.push(selectorNode)
-
-      const addButtonX = isMobile ? 20 : baseX
-      const addButtonNode: Node<FlowNodeData> = {
-        id: "add-button",
-        type: "addButton",
-        position: { x: addButtonX, y: 50 + nodeSpacing },
-        data: {
-          label: "Add Action",
-          type: "add-button" as NodeType,
-          onAddAction: handleAddAction,
-        },
-        draggable: false,
-      }
-      newNodes.push(addButtonNode)
-
-      const edgeToAdd: Edge = {
-        id: "edge-to-selector",
-        source: "trigger-selector",
-        target: "add-button",
-        type: "smoothstep",
-        animated: false,
-        style: {
-          stroke: "#cbd5e1",
-          strokeWidth: isMobile ? 4 : 3,
-          strokeDasharray: "8,8",
-        },
-      }
-      newEdges.push(edgeToAdd)
-    } else {
-      console.log("[v0] Has trigger - rendering nodes")
-      const triggerNode: Node<FlowNodeData> = {
-        id: "trigger",
-        type: "trigger",
-        position: { x: isMobile ? 20 : baseX, y: 50 },
-        data: {
-          label: TRIGGER_TYPES[initialTrigger.type]?.label || "Trigger",
-          type: "trigger" as NodeType,
-          actionType: initialTrigger.type,
-          config: initialTrigger.config,
-          isConfigured: !!initialTrigger.config && Object.keys(initialTrigger.config).length > 0,
-          onConfigure: () => onConfigureNode("trigger", "trigger", initialTrigger.type),
-          onChangeTrigger: () => setShowTriggerDialog(true),
-        },
-        draggable: !isMobile,
-      }
-      newNodes.push(triggerNode)
-
-      initialActions
-        .sort((a, b) => a.order - b.order)
-        .forEach((action, index) => {
-          const actionNode: Node<FlowNodeData> = {
-            id: `action-${index}`,
-            type: "action",
-            position: { x: isMobile ? 20 : baseX, y: 50 + nodeSpacing * (index + 1) },
-            data: {
-              label: ACTION_TYPES[action.type]?.label || "Action",
-              type: "action" as NodeType,
-              actionType: action.type,
-              config: action.config,
-              isConfigured: !!action.config && Object.keys(action.config).length > 0,
-              onConfigure: () => onConfigureNode(`action-${index}`, "action", action.type),
-              onDelete: () => handleDeleteAction(index),
-            },
-            draggable: !isMobile,
-          }
-          newNodes.push(actionNode)
-        })
-    }
-
-    if (newNodes.length > 0) {
-      for (let i = 0; i < newNodes.length - 1; i++) {
-        newEdges.push({
-          id: `edge-${i}`,
-          source: newNodes[i].id,
-          target: newNodes[i + 1].id,
-          type: "smoothstep",
-          animated: true,
-          style: {
-            stroke: "url(#edge-gradient)",
-            strokeWidth: isMobile ? 4 : 3,
-          },
-          markerEnd: {
-            type: MarkerType.ArrowClosed,
-            color: "#8b5cf6",
-            width: isMobile ? 24 : 20,
-            height: isMobile ? 24 : 20,
-          },
-        })
-      }
-
-      const lastNode = newNodes[newNodes.length - 1]
-      const addButtonX = isMobile ? 20 : baseX
-      const addButtonNode: Node<FlowNodeData> = {
-        id: "add-button",
-        type: "addButton",
-        position: { x: addButtonX, y: lastNode.position.y + nodeSpacing },
-        data: {
-          label: "Add Action",
-          type: "add-button" as NodeType,
-          onAddAction: handleAddAction,
-        },
-        draggable: false,
-      }
-      newNodes.push(addButtonNode)
-
-      const edgeToAdd: Edge = {
-        id: "edge-to-add",
-        source: lastNode.id,
-        target: "add-button",
-        type: "smoothstep",
-        animated: false,
-        style: {
-          stroke: "#cbd5e1",
-          strokeWidth: isMobile ? 4 : 3,
-          strokeDasharray: "8,8",
-        },
-      }
-      newEdges.push(edgeToAdd)
-    }
-
-    console.log("[v0] Setting nodes:", newNodes.length)
-    console.log("[v0] Setting edges:", newEdges.length)
-    setNodes(newNodes)
-    setEdges(newEdges)
-  }, [
-    initialTrigger,
-    initialActions,
-    isMobile,
-    isTablet,
-    handleAddAction,
-    handleDeleteAction,
-    onConfigureNode,
-    onSelectTrigger,
-    setNodes,
-    setEdges,
-  ])
-
   const onNodesChangeHandlerWrapper = useCallback(
     (changes: NodeChange[]) => {
       onNodesChangeHandler(changes as NodeChange<Node<FlowNodeData>>[])
@@ -2219,103 +2218,101 @@ export function AutomationFlowCanvas({
   )
 
   const onNodeDragStart = useCallback(() => {
-    setUserHasDragged(true)
+    setIsDragging(true)
   }, [])
 
   const onConnect = useCallback((connection: Connection) => {
-    // Connections are disabled, but we keep the handler for potential future use
     console.log("[v0] Connection attempt:", connection)
   }, [])
 
   return (
     <>
-      <div className="h-full w-full rounded-2xl border-2 border-border overflow-hidden shadow-2xl relative">
-        <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-indigo-50/30 to-purple-50/30 dark:from-slate-950 dark:via-indigo-950/30 dark:to-purple-950/30" />
-        <div className="absolute inset-0 bg-grid-slate-200/50 dark:bg-grid-slate-800/50 [mask-image:radial-gradient(ellipse_at_center,transparent_20%,black)]" />
-
-        <ReactFlow
-          nodes={nodes}
-          edges={edges}
-          onNodesChange={onNodesChangeHandlerWrapper}
-          onEdgesChange={onEdgesChangeHandlerWrapper}
-          onEdgesDelete={onEdgesDelete}
-          onNodeDragStart={onNodeDragStart}
-          onNodeDragStop={onNodeDragStop}
-          onConnect={onConnect}
-          nodeTypes={nodeTypes}
-          fitView
-          fitViewOptions={{ padding: 0.3 }}
-          minZoom={isMobile ? 0.3 : 0.1}
-          maxZoom={isMobile ? 1.2 : 1.5}
-          defaultViewport={{ x: 0, y: 0, zoom: isMobile ? 0.7 : 0.65 }}
-          connectionLineStyle={{ stroke: "#8b5cf6", strokeWidth: isMobile ? 5 : 4 }}
-          connectionLineType={ConnectionLineType.SmoothStep}
-          nodesDraggable={true}
-          nodesConnectable={false}
-          edgesFocusable={true}
-          edgesReconnectable={false}
-          translateExtent={[
-            [-2000, -2000],
-            [2000, 4000],
-          ]}
-          nodeExtent={[
-            [-1500, -1500],
-            [1500, 3500],
-          ]}
-          selectNodesOnDrag={false}
-          panOnDrag={[1, 2]}
-          selectionOnDrag={false}
-          className="relative z-10"
-        >
-          <svg style={{ position: "absolute", width: 0, height: 0 }}>
-            <defs>
-              <linearGradient id="edge-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" stopColor="#8b5cf6" />
-                <stop offset="50%" stopColor="#a78bfa" />
-                <stop offset="100%" stopColor="#8b5cf6" />
-              </linearGradient>
-            </defs>
-          </svg>
-
-          {!isMobile && (
-            <Controls
-              className="!bg-card/80 backdrop-blur-xl !border-2 !border-border !rounded-2xl !shadow-2xl !left-6 !bottom-6"
-              showInteractive={false}
-            />
-          )}
-
-          {!isMobile && !isTablet && (
-            <MiniMap
-              className="!bg-card/80 backdrop-blur-xl !border-2 !border-border !rounded-2xl !shadow-2xl !right-6 !bottom-6"
-              nodeColor={(node) => {
-                if (node.type === "trigger") return "#8b5cf6"
-                if (node.type === "addButton") return "#cbd5e1"
-                if (node.type === "triggerSelector") return "#a78bfa"
-                return "#6366f1"
-              }}
-              maskColor="rgba(0, 0, 0, 0.1)"
-            />
-          )}
-
-          <Background color="#94a3b8" gap={isMobile ? 20 : 16} size={isMobile ? 1.5 : 1} />
-
-          <Panel
-            position="top-left"
-            className="bg-card/80 backdrop-blur-xl border-2 border-border rounded-xl shadow-xl p-3 m-4"
+      <div className="relative w-full h-full">
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-violet-50/30 to-purple-50/40 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+          <ReactFlow
+            nodes={nodes}
+            edges={edges}
+            onNodesChange={onNodesChangeHandlerWrapper}
+            onEdgesChange={onEdgesChangeHandlerWrapper}
+            onEdgesDelete={onEdgesDelete}
+            onNodeDragStart={onNodeDragStart}
+            onNodeDragStop={onNodeDragStop}
+            onConnect={onConnect}
+            nodeTypes={nodeTypes}
+            fitView
+            fitViewOptions={{ padding: 0.3, maxZoom: isMobile ? 0.7 : 0.8 }}
+            minZoom={isMobile ? 0.3 : 0.1}
+            maxZoom={isMobile ? 1.2 : 1.5}
+            defaultViewport={{ x: 0, y: 0, zoom: isMobile ? 0.7 : 0.65 }}
+            connectionLineStyle={{ stroke: "#8b5cf6", strokeWidth: isMobile ? 5 : 4 }}
+            connectionLineType={ConnectionLineType.SmoothStep}
+            nodesDraggable={true}
+            nodesConnectable={false}
+            edgesFocusable={true}
+            edgesReconnectable={false}
+            translateExtent={[
+              [-2000, -2000],
+              [2000, 4000],
+            ]}
+            nodeExtent={[
+              [-1500, -1500],
+              [1500, 3500],
+            ]}
+            selectNodesOnDrag={false}
+            panOnDrag={[1, 2]}
+            selectionOnDrag={false}
+            className="relative z-10"
           >
-            <div className="flex items-center gap-3 text-sm">
-              <div className="flex items-center gap-1.5">
-                <div className="w-3 h-3 rounded-full bg-violet-500 animate-pulse" />
-                <span className="font-medium">{initialTrigger ? 1 : 0} Trigger</span>
+            <svg style={{ position: "absolute", width: 0, height: 0 }}>
+              <defs>
+                <linearGradient id="edge-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stopColor="#8b5cf6" />
+                  <stop offset="50%" stopColor="#a78bfa" />
+                  <stop offset="100%" stopColor="#8b5cf6" />
+                </linearGradient>
+              </defs>
+            </svg>
+
+            {!isMobile && (
+              <Controls
+                className="!bg-card/80 backdrop-blur-xl !border-2 !border-border !rounded-2xl !shadow-2xl !left-6 !bottom-6"
+                showInteractive={false}
+              />
+            )}
+
+            {!isMobile && !isTablet && (
+              <MiniMap
+                className="!bg-card/80 backdrop-blur-xl !border-2 !border-border !rounded-2xl !shadow-2xl !right-6 !bottom-6"
+                nodeColor={(node) => {
+                  if (node.type === "trigger") return "#8b5cf6"
+                  if (node.type === "addButton") return "#cbd5e1"
+                  if (node.type === "triggerSelector") return "#a78bfa"
+                  return "#6366f1"
+                }}
+                maskColor="rgba(0, 0, 0, 0.1)"
+              />
+            )}
+
+            <Background color="#94a3b8" gap={isMobile ? 20 : 16} size={isMobile ? 1.5 : 1} />
+
+            <Panel
+              position="top-left"
+              className="bg-card/80 backdrop-blur-xl border-2 border-border rounded-xl shadow-xl p-3 m-4"
+            >
+              <div className="flex items-center gap-3 text-sm">
+                <div className="flex items-center gap-1.5">
+                  <div className="w-3 h-3 rounded-full bg-violet-500 animate-pulse" />
+                  <span className="font-medium">{initialTrigger ? 1 : 0} Trigger</span>
+                </div>
+                <div className="w-px h-4 bg-border" />
+                <div className="flex items-center gap-1.5">
+                  <div className="w-3 h-3 rounded-full bg-indigo-500 animate-pulse" />
+                  <span className="font-medium">{initialActions.length} Actions</span>
+                </div>
               </div>
-              <div className="w-px h-4 bg-border" />
-              <div className="flex items-center gap-1.5">
-                <div className="w-3 h-3 rounded-full bg-indigo-500 animate-pulse" />
-                <span className="font-medium">{initialActions.length} Actions</span>
-              </div>
-            </div>
-          </Panel>
-        </ReactFlow>
+            </Panel>
+          </ReactFlow>
+        </div>
       </div>
 
       {showTriggerDialog && (
