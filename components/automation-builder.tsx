@@ -2916,3 +2916,881 @@ export function AutomationBuilder({ automation, instagramAccounts }: AutomationB
     </div>
   )
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//BETTER FROM CLAUDE
+
+
+// "use client"
+
+// import { useState, useCallback, useEffect } from "react"
+// import {
+//   ReactFlow,
+//   Controls,
+//   Background,
+//   addEdge,
+//   type Connection,
+//   type Node,
+//   type Edge,
+//   MarkerType,
+//   BackgroundVariant,
+//   type NodeChange,
+//   type EdgeChange,
+//   applyNodeChanges,
+//   applyEdgeChanges,
+//   Handle,
+//   Position,
+//   ConnectionLineType,
+// } from "@xyflow/react"
+// import "@xyflow/react/dist/style.css"
+// import { Card } from "@/components/ui/card"
+// import { Button } from "@/components/ui/button"
+// import { Input } from "@/components/ui/input"
+// import { Label } from "@/components/ui/label"
+// import { Textarea } from "@/components/ui/textarea"
+// import { Badge } from "@/components/ui/badge"
+// import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+// import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+// import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+// import { Switch } from "@/components/ui/switch"
+// import { Slider } from "@/components/ui/slider"
+// import { Alert, AlertDescription } from "@/components/ui/alert"
+// import {
+//   MessageCircle,
+//   Hash,
+//   Image as ImageIcon,
+//   AtSign,
+//   Sparkles,
+//   Send,
+//   Bot,
+//   Tag,
+//   Timer,
+//   GitBranch,
+//   User,
+//   Link2,
+//   Plus,
+//   Trash2,
+//   Save,
+//   ArrowLeft,
+//   Settings,
+//   Play,
+//   Info,
+//   CheckCircle2,
+//   AlertCircle,
+//   Zap,
+//   Eye,
+//   ChevronRight,
+//   Layers,
+// } from "lucide-react"
+
+// const TRIGGERS = [
+//   { id: "DM_RECEIVED", label: "Direct Message", icon: MessageCircle, color: "bg-blue-500", description: "Any DM received" },
+//   { id: "STORY_REPLY", label: "Story Reply", icon: ImageIcon, color: "bg-purple-500", description: "Reply to your story" },
+//   { id: "COMMENT", label: "Comment", icon: Hash, color: "bg-green-500", description: "Comment on posts" },
+//   { id: "MENTION", label: "Mention", icon: AtSign, color: "bg-orange-500", description: "Tagged in story/post" },
+//   { id: "KEYWORD", label: "Keyword", icon: Sparkles, color: "bg-pink-500", description: "Specific words detected" },
+//   { id: "FIRST_MESSAGE", label: "First Message", icon: Sparkles, color: "bg-cyan-500", description: "New conversation" },
+// ]
+
+// const ACTIONS = [
+//   { id: "SEND_MESSAGE", label: "Send Message", icon: Send, color: "bg-blue-500", description: "Send a text response" },
+//   { id: "AI_RESPONSE", label: "AI Response", icon: Bot, color: "bg-purple-500", description: "AI-generated reply" },
+//   { id: "ADD_TAG", label: "Add Tag", icon: Tag, color: "bg-green-500", description: "Organize contacts" },
+//   { id: "DELAY", label: "Wait", icon: Timer, color: "bg-yellow-500", description: "Add time delay" },
+//   { id: "CONDITION", label: "Condition", icon: GitBranch, color: "bg-orange-500", description: "If/then logic" },
+//   { id: "SEND_TO_HUMAN", label: "Human Handoff", icon: User, color: "bg-red-500", description: "Route to team" },
+//   { id: "WEBHOOK", label: "Webhook", icon: Link2, color: "bg-gray-500", description: "External integration" },
+// ]
+
+// function CustomNode({ data }: { data: any }) {
+//   const isTrigger = data.nodeType === "trigger"
+//   const typeConfig = isTrigger
+//     ? TRIGGERS.find((t) => t.id === data.actionType)
+//     : ACTIONS.find((a) => a.id === data.actionType)
+//   const Icon = typeConfig?.icon
+
+//   return (
+//     <div className="relative group">
+//       {!isTrigger && (
+//         <Handle
+//           type="target"
+//           position={Position.Top}
+//           className="!w-3 !h-3 !bg-indigo-500 !border-2 !border-white !shadow-lg"
+//           style={{ top: -6 }}
+//         />
+//       )}
+
+//       <Card
+//         className={`min-w-[280px] shadow-lg transition-all ${
+//           isTrigger
+//             ? "bg-gradient-to-br from-indigo-50 to-white border-2 border-indigo-400"
+//             : "bg-white border-2 border-slate-200 hover:border-indigo-300"
+//         }`}
+//       >
+//         <div className="p-4">
+//           <div className="flex items-start justify-between gap-3 mb-3">
+//             <div className="flex items-center gap-3 flex-1">
+//               <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${typeConfig?.color} shadow-sm`}>
+//                 {Icon && <Icon className="w-5 h-5 text-white" />}
+//               </div>
+//               <div className="flex-1 min-w-0">
+//                 <h4 className="font-semibold text-sm truncate">{typeConfig?.label}</h4>
+//                 {data.isConfigured ? (
+//                   <Badge variant="secondary" className="bg-green-100 text-green-700 text-xs mt-1">
+//                     <CheckCircle2 className="w-3 h-3 mr-1" />
+//                     Configured
+//                   </Badge>
+//                 ) : (
+//                   <Badge variant="secondary" className="bg-amber-100 text-amber-700 text-xs mt-1">
+//                     <AlertCircle className="w-3 h-3 mr-1" />
+//                     Setup Required
+//                   </Badge>
+//                 )}
+//               </div>
+//             </div>
+//             {!isTrigger && (
+//               <Button
+//                 variant="ghost"
+//                 size="sm"
+//                 onClick={(e) => {
+//                   e.stopPropagation()
+//                   data.onDelete()
+//                 }}
+//                 className="h-7 w-7 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+//               >
+//                 <Trash2 className="h-3.5 w-3.5 text-red-500" />
+//               </Button>
+//             )}
+//           </div>
+//           {data.isConfigured && data.preview && (
+//             <div className="text-xs text-muted-foreground mb-3 line-clamp-2 bg-slate-50 p-2 rounded">
+//               {data.preview}
+//             </div>
+//           )}
+//           <Button
+//             variant="outline"
+//             size="sm"
+//             onClick={(e) => {
+//               e.stopPropagation()
+//               data.onConfigure()
+//             }}
+//             className="w-full"
+//           >
+//             <Settings className="w-3.5 h-3.5 mr-2" />
+//             {data.isConfigured ? "Edit" : "Configure"}
+//           </Button>
+//         </div>
+//       </Card>
+
+//       <Handle
+//         type="source"
+//         position={Position.Bottom}
+//         className="!w-3 !h-3 !bg-indigo-500 !border-2 !border-white !shadow-lg"
+//         style={{ bottom: -6 }}
+//       />
+
+//       {/* Add Action Button */}
+//       <div className="absolute -bottom-12 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+//         <Button
+//           size="sm"
+//           onClick={(e) => {
+//             e.stopPropagation()
+//             data.onAddBelow()
+//           }}
+//           className="rounded-full h-8 w-8 p-0 shadow-lg bg-indigo-500 hover:bg-indigo-600"
+//         >
+//           <Plus className="w-4 h-4" />
+//         </Button>
+//       </div>
+//     </div>
+//   )
+// }
+
+// const nodeTypes = { custom: CustomNode }
+
+// export function AutomationBuilder() {
+//   const [nodes, setNodes] = useState<Node[]>([])
+//   const [edges, setEdges] = useState<Edge[]>([])
+//   const [automationName, setAutomationName] = useState("My Automation")
+//   const [automationDescription, setAutomationDescription] = useState("")
+//   const [selectedAccount, setSelectedAccount] = useState("")
+  
+//   const [showTriggerDialog, setShowTriggerDialog] = useState(true)
+//   const [showActionDialog, setShowActionDialog] = useState(false)
+//   const [showConfigDialog, setShowConfigDialog] = useState(false)
+//   const [showDetailsDialog, setShowDetailsDialog] = useState(false)
+  
+//   const [selectedNodeForConfig, setSelectedNodeForConfig] = useState<string | null>(null)
+//   const [pendingAddBelowNode, setPendingAddBelowNode] = useState<string | null>(null)
+//   const [currentConfig, setCurrentConfig] = useState<any>({})
+
+//   const onNodesChange = useCallback((changes: NodeChange[]) => {
+//     setNodes((nds) => applyNodeChanges(changes, nds))
+//   }, [])
+
+//   const onEdgesChange = useCallback((changes: EdgeChange[]) => {
+//     setEdges((eds) => applyEdgeChanges(changes, eds))
+//   }, [])
+
+//   const onConnect = useCallback((params: Connection) => {
+//     const newEdge = {
+//       ...params,
+//       type: "smoothstep",
+//       animated: true,
+//       style: { stroke: "#6366f1", strokeWidth: 2 },
+//       markerEnd: { type: MarkerType.ArrowClosed, color: "#6366f1" },
+//     }
+//     setEdges((eds) => addEdge(newEdge, eds))
+//   }, [])
+
+//   const addTriggerNode = (triggerId: string) => {
+//     const trigger = TRIGGERS.find((t) => t.id === triggerId)
+//     if (!trigger) return
+
+//     const triggerNode: Node = {
+//       id: "trigger-0",
+//       type: "custom",
+//       position: { x: 400, y: 100 },
+//       data: {
+//         nodeType: "trigger",
+//         actionType: triggerId,
+//         isConfigured: triggerId !== "KEYWORD",
+//         onConfigure: () => handleConfigureNode("trigger-0"),
+//         onAddBelow: () => handleAddBelow("trigger-0"),
+//         preview: trigger.description,
+//       },
+//     }
+
+//     setNodes([triggerNode])
+//     setShowTriggerDialog(false)
+//   }
+
+//   const handleAddBelow = (nodeId: string) => {
+//     setPendingAddBelowNode(nodeId)
+//     setShowActionDialog(true)
+//   }
+
+//   const addActionNode = (actionId: string) => {
+//     const action = ACTIONS.find((a) => a.id === actionId)
+//     if (!action) return
+
+//     const sourceNode = nodes.find((n) => n.id === pendingAddBelowNode)
+//     if (!sourceNode) return
+
+//     const existingActions = nodes.filter((n) => n.data.nodeType === "action")
+//     const newNodeId = `action-${existingActions.length + 1}`
+    
+//     const yPosition = sourceNode.position.y + 200
+
+//     const newNode: Node = {
+//       id: newNodeId,
+//       type: "custom",
+//       position: { x: sourceNode.position.x, y: yPosition },
+//       data: {
+//         nodeType: "action",
+//         actionType: actionId,
+//         isConfigured: false,
+//         config: {},
+//         onConfigure: () => handleConfigureNode(newNodeId),
+//         onDelete: () => handleDeleteNode(newNodeId),
+//         onAddBelow: () => handleAddBelow(newNodeId),
+//       },
+//     }
+
+//     setNodes((nds) => [...nds, newNode])
+
+//     const newEdge: Edge = {
+//       id: `edge-${sourceNode.id}-${newNodeId}`,
+//       source: sourceNode.id,
+//       target: newNodeId,
+//       type: "smoothstep",
+//       animated: true,
+//       style: { stroke: "#6366f1", strokeWidth: 2 },
+//       markerEnd: { type: MarkerType.ArrowClosed, color: "#6366f1" },
+//     }
+//     setEdges((eds) => [...eds, newEdge])
+
+//     setShowActionDialog(false)
+//     setPendingAddBelowNode(null)
+    
+//     // Auto-open config dialog
+//     setTimeout(() => handleConfigureNode(newNodeId), 100)
+//   }
+
+//   const handleDeleteNode = (nodeId: string) => {
+//     setNodes((nds) => nds.filter((node) => node.id !== nodeId))
+//     setEdges((eds) => eds.filter((edge) => edge.source !== nodeId && edge.target !== nodeId))
+//   }
+
+//   const handleConfigureNode = (nodeId: string) => {
+//     const node = nodes.find((n) => n.id === nodeId)
+//     if (!node) return
+
+//     setSelectedNodeForConfig(nodeId)
+//     setCurrentConfig(node.data.config || {})
+//     setShowConfigDialog(true)
+//   }
+
+//   const handleSaveConfig = (config: any) => {
+//     if (!selectedNodeForConfig) return
+
+//     setNodes((nds) =>
+//       nds.map((node) => {
+//         if (node.id === selectedNodeForConfig) {
+//           const preview = getConfigPreview(node.data.actionType as string, config)
+//           return {
+//             ...node,
+//             data: {
+//               ...node.data,
+//               config,
+//               isConfigured: Object.keys(config).length > 0,
+//               preview,
+//             },
+//           }
+//         }
+//         return node
+//       })
+//     )
+
+//     setShowConfigDialog(false)
+//     setSelectedNodeForConfig(null)
+//     setCurrentConfig({})
+//   }
+
+//   const getConfigPreview = (actionType: string, config: any) => {
+//     switch (actionType) {
+//       case "SEND_MESSAGE":
+//         return config.message ? `"${config.message.substring(0, 60)}..."` : ""
+//       case "AI_RESPONSE":
+//         return "AI will generate contextual response"
+//       case "ADD_TAG":
+//         return config.tagName ? `Tag: ${config.tagName}` : ""
+//       case "DELAY":
+//         return config.delayAmount ? `Wait ${config.delayAmount} ${config.delayUnit}` : ""
+//       case "KEYWORD":
+//         return config.keywords?.length ? `Keywords: ${config.keywords.join(", ")}` : ""
+//       default:
+//         return ""
+//     }
+//   }
+
+//   const renderConfigForm = () => {
+//     const node = nodes.find((n) => n.id === selectedNodeForConfig)
+//     if (!node) return null
+
+//     const actionType = node.data.actionType
+//     const isTrigger = node.data.nodeType === "trigger"
+
+//     if (isTrigger && actionType === "KEYWORD") {
+//       return (
+//         <div className="space-y-4">
+//           <div className="space-y-2">
+//             <Label>Keywords (one per line)</Label>
+//             <Textarea
+//               placeholder="price&#10;pricing&#10;cost&#10;how much"
+//               value={(currentConfig.keywords || []).join("\n")}
+//               onChange={(e) =>
+//                 setCurrentConfig({
+//                   ...currentConfig,
+//                   keywords: e.target.value.split("\n").filter(Boolean),
+//                 })
+//               }
+//               className="min-h-[120px] font-mono"
+//             />
+//           </div>
+//           <div className="space-y-2">
+//             <Label>Match Type</Label>
+//             <Select
+//               value={currentConfig.matchType || "contains"}
+//               onValueChange={(v) => setCurrentConfig({ ...currentConfig, matchType: v })}
+//             >
+//               <SelectTrigger>
+//                 <SelectValue />
+//               </SelectTrigger>
+//               <SelectContent>
+//                 <SelectItem value="contains">Contains keyword</SelectItem>
+//                 <SelectItem value="exact">Exact match</SelectItem>
+//                 <SelectItem value="starts_with">Starts with</SelectItem>
+//               </SelectContent>
+//             </Select>
+//           </div>
+//         </div>
+//       )
+//     }
+
+//     switch (actionType) {
+//       case "SEND_MESSAGE":
+//         return (
+//           <div className="space-y-4">
+//             <div className="space-y-2">
+//               <Label>Message Template</Label>
+//               <Textarea
+//                 placeholder="Hi {name}! Thanks for reaching out..."
+//                 value={currentConfig.message || ""}
+//                 onChange={(e) => setCurrentConfig({ ...currentConfig, message: e.target.value })}
+//                 className="min-h-[150px]"
+//               />
+//               <div className="flex flex-wrap gap-2">
+//                 <Badge variant="secondary" className="text-xs">{"{name}"}</Badge>
+//                 <Badge variant="secondary" className="text-xs">{"{username}"}</Badge>
+//                 <Badge variant="secondary" className="text-xs">{"{first_name}"}</Badge>
+//               </div>
+//             </div>
+//           </div>
+//         )
+
+//       case "AI_RESPONSE":
+//         return (
+//           <Tabs defaultValue="instructions" className="w-full">
+//             <TabsList className="grid w-full grid-cols-2">
+//               <TabsTrigger value="instructions">Instructions</TabsTrigger>
+//               <TabsTrigger value="advanced">Advanced</TabsTrigger>
+//             </TabsList>
+//             <TabsContent value="instructions" className="space-y-4">
+//               <div className="space-y-2">
+//                 <Label>AI Instructions</Label>
+//                 <Textarea
+//                   placeholder="You are a friendly customer service assistant..."
+//                   value={currentConfig.aiInstructions || ""}
+//                   onChange={(e) => setCurrentConfig({ ...currentConfig, aiInstructions: e.target.value })}
+//                   className="min-h-[150px]"
+//                 />
+//               </div>
+//             </TabsContent>
+//             <TabsContent value="advanced" className="space-y-4">
+//               <div className="space-y-2">
+//                 <Label>Tone</Label>
+//                 <Select
+//                   value={currentConfig.aiTone || "friendly"}
+//                   onValueChange={(v) => setCurrentConfig({ ...currentConfig, aiTone: v })}
+//                 >
+//                   <SelectTrigger>
+//                     <SelectValue />
+//                   </SelectTrigger>
+//                   <SelectContent>
+//                     <SelectItem value="friendly">Friendly</SelectItem>
+//                     <SelectItem value="professional">Professional</SelectItem>
+//                     <SelectItem value="casual">Casual</SelectItem>
+//                   </SelectContent>
+//                 </Select>
+//               </div>
+//               <div className="space-y-2">
+//                 <Label>Creativity: {currentConfig.temperature || 0.7}</Label>
+//                 <Slider
+//                   min={0}
+//                   max={1}
+//                   step={0.1}
+//                   value={[currentConfig.temperature || 0.7]}
+//                   onValueChange={(v) => setCurrentConfig({ ...currentConfig, temperature: v[0] })}
+//                 />
+//               </div>
+//             </TabsContent>
+//           </Tabs>
+//         )
+
+//       case "ADD_TAG":
+//         return (
+//           <div className="space-y-4">
+//             <div className="space-y-2">
+//               <Label>Tag Name</Label>
+//               <Input
+//                 placeholder="e.g., Hot Lead, VIP Customer"
+//                 value={currentConfig.tagName || ""}
+//                 onChange={(e) => setCurrentConfig({ ...currentConfig, tagName: e.target.value })}
+//               />
+//             </div>
+//           </div>
+//         )
+
+//       case "DELAY":
+//         return (
+//           <div className="space-y-4">
+//             <div className="space-y-2">
+//               <Label>Delay Duration</Label>
+//               <div className="flex gap-2">
+//                 <Input
+//                   type="number"
+//                   min="1"
+//                   placeholder="5"
+//                   value={currentConfig.delayAmount || ""}
+//                   onChange={(e) => setCurrentConfig({ ...currentConfig, delayAmount: e.target.value })}
+//                 />
+//                 <Select
+//                   value={currentConfig.delayUnit || "minutes"}
+//                   onValueChange={(v) => setCurrentConfig({ ...currentConfig, delayUnit: v })}
+//                 >
+//                   <SelectTrigger className="w-32">
+//                     <SelectValue />
+//                   </SelectTrigger>
+//                   <SelectContent>
+//                     <SelectItem value="seconds">Seconds</SelectItem>
+//                     <SelectItem value="minutes">Minutes</SelectItem>
+//                     <SelectItem value="hours">Hours</SelectItem>
+//                     <SelectItem value="days">Days</SelectItem>
+//                   </SelectContent>
+//                 </Select>
+//               </div>
+//             </div>
+//           </div>
+//         )
+
+//       case "CONDITION":
+//         return (
+//           <div className="space-y-4">
+//             <div className="space-y-2">
+//               <Label>Field</Label>
+//               <Select
+//                 value={currentConfig.field || "message"}
+//                 onValueChange={(v) => setCurrentConfig({ ...currentConfig, field: v })}
+//               >
+//                 <SelectTrigger>
+//                   <SelectValue />
+//                   </SelectTrigger>
+//                 <SelectContent>
+//                   <SelectItem value="message">Message Content</SelectItem>
+//                   <SelectItem value="username">Username</SelectItem>
+//                   <SelectItem value="follower_count">Follower Count</SelectItem>
+//                 </SelectContent>
+//               </Select>
+//             </div>
+//             <div className="space-y-2">
+//               <Label>Operator</Label>
+//               <Select
+//                 value={currentConfig.operator || "contains"}
+//                 onValueChange={(v) => setCurrentConfig({ ...currentConfig, operator: v })}
+//               >
+//                 <SelectTrigger>
+//                   <SelectValue />
+//                 </SelectTrigger>
+//                 <SelectContent>
+//                   <SelectItem value="contains">Contains</SelectItem>
+//                   <SelectItem value="equals">Equals</SelectItem>
+//                   <SelectItem value="greater_than">Greater than</SelectItem>
+//                   <SelectItem value="less_than">Less than</SelectItem>
+//                 </SelectContent>
+//               </Select>
+//             </div>
+//             <div className="space-y-2">
+//               <Label>Value</Label>
+//               <Input
+//                 placeholder="Enter value..."
+//                 value={currentConfig.value || ""}
+//                 onChange={(e) => setCurrentConfig({ ...currentConfig, value: e.target.value })}
+//               />
+//             </div>
+//           </div>
+//         )
+
+//       case "SEND_TO_HUMAN":
+//         return (
+//           <div className="space-y-4">
+//             <div className="space-y-2">
+//               <Label>Handoff Reason</Label>
+//               <Textarea
+//                 placeholder="Add context for the human agent..."
+//                 value={currentConfig.reason || ""}
+//                 onChange={(e) => setCurrentConfig({ ...currentConfig, reason: e.target.value })}
+//                 className="min-h-[100px]"
+//               />
+//             </div>
+//           </div>
+//         )
+
+//       case "WEBHOOK":
+//         return (
+//           <div className="space-y-4">
+//             <div className="space-y-2">
+//               <Label>Webhook URL</Label>
+//               <Input
+//                 type="url"
+//                 placeholder="https://example.com/webhook"
+//                 value={currentConfig.webhookUrl || ""}
+//                 onChange={(e) => setCurrentConfig({ ...currentConfig, webhookUrl: e.target.value })}
+//               />
+//             </div>
+//             <div className="space-y-2">
+//               <Label>Method</Label>
+//               <Select
+//                 value={currentConfig.webhookMethod || "POST"}
+//                 onValueChange={(v) => setCurrentConfig({ ...currentConfig, webhookMethod: v })}
+//               >
+//                 <SelectTrigger>
+//                   <SelectValue />
+//                 </SelectTrigger>
+//                 <SelectContent>
+//                   <SelectItem value="POST">POST</SelectItem>
+//                   <SelectItem value="GET">GET</SelectItem>
+//                   <SelectItem value="PUT">PUT</SelectItem>
+//                 </SelectContent>
+//               </Select>
+//             </div>
+//           </div>
+//         )
+
+//       default:
+//         return null
+//     }
+//   }
+
+//   const selectedNodeData = selectedNodeForConfig ? nodes.find((n) => n.id === selectedNodeForConfig)?.data : null
+//   const selectedTypeConfig = selectedNodeData
+//     ? selectedNodeData.nodeType === "trigger"
+//       ? TRIGGERS.find((t) => t.id === selectedNodeData.actionType)
+//       : ACTIONS.find((a) => a.id === selectedNodeData.actionType)
+//     : null
+
+//   return (
+//     <div className="h-screen flex flex-col bg-slate-50">
+//       {/* Minimal Top Bar */}
+//       <div className="border-b bg-white shadow-sm z-50">
+//         <div className="px-6 py-3 flex items-center justify-between">
+//           <div className="flex items-center gap-4">
+//             <Button variant="ghost" size="sm">
+//               <ArrowLeft className="w-4 h-4 mr-2" />
+//               Back
+//             </Button>
+//             <div className="h-6 w-px bg-border" />
+//             <Input
+//               value={automationName}
+//               onChange={(e) => setAutomationName(e.target.value)}
+//               className="border-none shadow-none font-semibold text-lg w-64 h-8 px-2"
+//               placeholder="Automation Name"
+//             />
+//             <Badge variant="secondary" className="gap-1.5">
+//               <div className="w-2 h-2 rounded-full bg-yellow-500 animate-pulse" />
+//               Draft
+//             </Badge>
+//           </div>
+//           <div className="flex items-center gap-2">
+//             <Button variant="outline" size="sm" onClick={() => setShowDetailsDialog(true)}>
+//               <Settings className="w-4 h-4 mr-2" />
+//               Details
+//             </Button>
+//             <Button variant="outline" size="sm">
+//               <Play className="w-4 h-4 mr-2" />
+//               Test
+//             </Button>
+//             <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700">
+//               <Save className="w-4 h-4 mr-2" />
+//               Save & Activate
+//             </Button>
+//           </div>
+//         </div>
+//       </div>
+
+//       {/* Full Canvas */}
+//       <div className="flex-1 relative">
+//         <ReactFlow
+//           nodes={nodes}
+//           edges={edges}
+//           onNodesChange={onNodesChange}
+//           onEdgesChange={onEdgesChange}
+//           onConnect={onConnect}
+//           nodeTypes={nodeTypes}
+//           fitView
+//           minZoom={0.5}
+//           maxZoom={1.5}
+//           defaultViewport={{ x: 0, y: 0, zoom: 0.9 }}
+//           connectionLineStyle={{ stroke: "#6366f1", strokeWidth: 3 }}
+//           connectionLineType={ConnectionLineType.SmoothStep}
+//           className="bg-slate-50"
+//         >
+//           <Controls className="bg-white border border-slate-200 rounded-lg shadow-lg" />
+//           <Background variant={BackgroundVariant.Dots} gap={20} size={1} className="bg-slate-50" />
+          
+//           {nodes.length === 0 && (
+//             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+//               <div className="text-center max-w-md">
+//                 <div className="w-20 h-20 rounded-full bg-indigo-100 mx-auto flex items-center justify-center mb-4">
+//                   <Zap className="w-10 h-10 text-indigo-500" />
+//                 </div>
+//                 <h3 className="text-2xl font-bold mb-2">Choose Your Trigger</h3>
+//                 <p className="text-muted-foreground mb-6">
+//                   Select what event should start your automation
+//                 </p>
+//                 <Button 
+//                   onClick={() => setShowTriggerDialog(true)}
+//                   size="lg"
+//                   className="pointer-events-auto bg-indigo-600 hover:bg-indigo-700"
+//                 >
+//                   <Plus className="w-5 h-5 mr-2" />
+//                   Select Trigger
+//                 </Button>
+//               </div>
+//             </div>
+//           )}
+//         </ReactFlow>
+//       </div>
+
+//       {/* Trigger Selection Dialog */}
+//       <Dialog open={showTriggerDialog} onOpenChange={setShowTriggerDialog}>
+//         <DialogContent className="max-w-3xl">
+//           <DialogHeader>
+//             <DialogTitle className="text-2xl flex items-center gap-2">
+//               <Zap className="w-6 h-6 text-indigo-500" />
+//               Choose a Trigger
+//             </DialogTitle>
+//             <DialogDescription>Select what event should start this automation</DialogDescription>
+//           </DialogHeader>
+//           <div className="grid grid-cols-2 gap-3 mt-4">
+//             {TRIGGERS.map((trigger) => {
+//               const Icon = trigger.icon
+//               return (
+//                 <Card
+//                   key={trigger.id}
+//                   className="p-4 cursor-pointer hover:border-indigo-500 hover:shadow-md transition-all group"
+//                   onClick={() => addTriggerNode(trigger.id)}
+//                 >
+//                   <div className="flex items-start gap-3">
+//                     <div className={`w-12 h-12 rounded-lg ${trigger.color} flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform`}>
+//                       <Icon className="w-6 h-6 text-white" />
+//                     </div>
+//                     <div className="flex-1">
+//                       <h4 className="font-semibold mb-1">{trigger.label}</h4>
+//                       <p className="text-sm text-muted-foreground">{trigger.description}</p>
+//                     </div>
+//                     <ChevronRight className="w-5 h-5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+//                   </div>
+//                 </Card>
+//               )
+//             })}
+//           </div>
+//         </DialogContent>
+//       </Dialog>
+
+//       {/* Action Selection Dialog */}
+//       <Dialog open={showActionDialog} onOpenChange={setShowActionDialog}>
+//         <DialogContent className="max-w-3xl">
+//           <DialogHeader>
+//             <DialogTitle className="text-2xl flex items-center gap-2">
+//               <Layers className="w-6 h-6 text-indigo-500" />
+//               Add an Action
+//             </DialogTitle>
+//             <DialogDescription>What should happen next?</DialogDescription>
+//           </DialogHeader>
+//           <div className="grid grid-cols-2 gap-3 mt-4">
+//             {ACTIONS.map((action) => {
+//               const Icon = action.icon
+//               return (
+//                 <Card
+//                   key={action.id}
+//                   className="p-4 cursor-pointer hover:border-indigo-500 hover:shadow-md transition-all group"
+//                   onClick={() => addActionNode(action.id)}
+//                 >
+//                   <div className="flex items-start gap-3">
+//                     <div className={`w-12 h-12 rounded-lg ${action.color} flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform`}>
+//                       <Icon className="w-6 h-6 text-white" />
+//                     </div>
+//                     <div className="flex-1">
+//                       <h4 className="font-semibold mb-1">{action.label}</h4>
+//                       <p className="text-sm text-muted-foreground">{action.description}</p>
+//                     </div>
+//                     <ChevronRight className="w-5 h-5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+//                   </div>
+//                 </Card>
+//               )
+//             })}
+//           </div>
+//         </DialogContent>
+//       </Dialog>
+
+//       {/* Configuration Dialog */}
+//       <Dialog open={showConfigDialog} onOpenChange={setShowConfigDialog}>
+//         <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+//           <DialogHeader>
+//             <div className="flex items-center gap-3">
+//               {selectedTypeConfig?.icon && (
+//                 <div className={`w-12 h-12 rounded-lg ${selectedTypeConfig.color} flex items-center justify-center`}>
+//                   <selectedTypeConfig.icon className="w-6 h-6 text-white" />
+//                 </div>
+//               )}
+//               <div>
+//                 <DialogTitle className="text-xl">{selectedTypeConfig?.label}</DialogTitle>
+//                 <DialogDescription>{selectedTypeConfig?.description}</DialogDescription>
+//               </div>
+//             </div>
+//           </DialogHeader>
+//           <div className="py-4">
+//             {renderConfigForm()}
+//           </div>
+//           <div className="flex justify-end gap-2 pt-4 border-t">
+//             <Button variant="outline" onClick={() => setShowConfigDialog(false)}>
+//               Cancel
+//             </Button>
+//             <Button onClick={() => handleSaveConfig(currentConfig)} className="bg-indigo-600 hover:bg-indigo-700">
+//               <Save className="w-4 h-4 mr-2" />
+//               Save Configuration
+//             </Button>
+//           </div>
+//         </DialogContent>
+//       </Dialog>
+
+//       {/* Details Dialog */}
+//       <Dialog open={showDetailsDialog} onOpenChange={setShowDetailsDialog}>
+//         <DialogContent className="max-w-xl">
+//           <DialogHeader>
+//             <DialogTitle>Automation Details</DialogTitle>
+//             <DialogDescription>Configure your automation settings</DialogDescription>
+//           </DialogHeader>
+//           <div className="space-y-4 py-4">
+//             <div className="space-y-2">
+//               <Label>Automation Name</Label>
+//               <Input
+//                 value={automationName}
+//                 onChange={(e) => setAutomationName(e.target.value)}
+//                 placeholder="e.g., Welcome New Followers"
+//               />
+//             </div>
+//             <div className="space-y-2">
+//               <Label>Description (Optional)</Label>
+//               <Textarea
+//                 value={automationDescription}
+//                 onChange={(e) => setAutomationDescription(e.target.value)}
+//                 placeholder="Describe what this automation does..."
+//                 rows={3}
+//               />
+//             </div>
+//             <div className="space-y-2">
+//               <Label>Instagram Account</Label>
+//               <Select value={selectedAccount} onValueChange={setSelectedAccount}>
+//                 <SelectTrigger>
+//                   <SelectValue placeholder="Select an account" />
+//                 </SelectTrigger>
+//                 <SelectContent>
+//                   <SelectItem value="account1">@myaccount</SelectItem>
+//                   <SelectItem value="account2">@mybusiness</SelectItem>
+//                 </SelectContent>
+//               </Select>
+//             </div>
+//           </div>
+//           <div className="flex justify-end gap-2 pt-4 border-t">
+//             <Button variant="outline" onClick={() => setShowDetailsDialog(false)}>
+//               Cancel
+//             </Button>
+//             <Button onClick={() => setShowDetailsDialog(false)} className="bg-indigo-600 hover:bg-indigo-700">
+//               Save Details
+//             </Button>
+//           </div>
+//         </DialogContent>
+//       </Dialog>
+//     </div>
+//   )
+// }
