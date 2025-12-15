@@ -1,13 +1,35 @@
 "use client"
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { useState } from "react"
-import { automationTemplates, type AutomationTemplate } from "@/lib/automation-templates"
-import { Search, Sparkles } from "lucide-react"
+import { automationTemplates } from "@/lib/automation-templates"
+import {
+  Search,
+  Sparkles,
+  MessageSquare,
+  DollarSign,
+  Camera,
+  Target,
+  Ticket,
+  Calendar,
+  HelpCircle,
+  Gift,
+} from "lucide-react"
 import Link from "next/link"
+
+const ICON_MAP: Record<string, any> = {
+  wave: MessageSquare,
+  dollar: DollarSign,
+  camera: Camera,
+  target: Target,
+  ticket: Ticket,
+  calendar: Calendar,
+  question: HelpCircle,
+  celebration: Gift,
+}
 
 export function AutomationTemplateSelector() {
   const [search, setSearch] = useState("")
@@ -32,7 +54,6 @@ export function AutomationTemplateSelector() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold">Choose a Template</h2>
@@ -46,7 +67,6 @@ export function AutomationTemplateSelector() {
         </Link>
       </div>
 
-      {/* Search and Filters */}
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -72,41 +92,45 @@ export function AutomationTemplateSelector() {
         </div>
       </div>
 
-      {/* Templates Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {filteredTemplates.map((template) => (
-          <Link key={template.id} href={`/automations/new?template=${template.id}`}>
-            <Card className="h-full cursor-pointer hover:border-primary transition-all hover:shadow-lg">
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="text-4xl">{template.icon}</div>
-                    <div>
-                      <CardTitle className="text-lg">{template.name}</CardTitle>
-                      <Badge variant="outline" className="mt-1 capitalize">
-                        {template.category}
-                      </Badge>
+        {filteredTemplates.map((template) => {
+          const IconComponent = ICON_MAP[template.icon] || MessageSquare
+          return (
+            <Link key={template.id} href={`/automations/new?template=${template.id}`}>
+              <Card className="h-full cursor-pointer hover:border-primary transition-all hover:shadow-lg">
+                <CardHeader>
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                        <IconComponent className="w-5 h-5 text-primary" />
+                      </div>
+                      <div>
+                        <CardTitle className="text-lg">{template.name}</CardTitle>
+                        <Badge variant="outline" className="mt-1 capitalize">
+                          {template.category}
+                        </Badge>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <p className="text-sm text-muted-foreground line-clamp-2">{template.description}</p>
-                <div className="flex items-center gap-2">
-                  <Badge variant="secondary" className="text-xs">
-                    {template.actions.length} actions
-                  </Badge>
-                  {template.actions.some((a) => a.type === "AI_RESPONSE") && (
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <p className="text-sm text-muted-foreground line-clamp-2">{template.description}</p>
+                  <div className="flex items-center gap-2">
                     <Badge variant="secondary" className="text-xs">
-                      <Sparkles className="h-3 w-3 mr-1" />
-                      AI
+                      {template.actions.length} actions
                     </Badge>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </Link>
-        ))}
+                    {template.actions.some((a) => a.type === "AI_RESPONSE") && (
+                      <Badge variant="secondary" className="text-xs">
+                        <Sparkles className="h-3 w-3 mr-1" />
+                        AI
+                      </Badge>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+          )
+        })}
       </div>
 
       {filteredTemplates.length === 0 && (

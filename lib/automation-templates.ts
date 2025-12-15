@@ -19,7 +19,7 @@ export const automationTemplates: AutomationTemplate[] = [
     name: "Welcome New Followers",
     description: "Automatically greet new followers when they send their first message",
     category: "welcome",
-    icon: "👋",
+    icon: "wave",
     triggerType: "FIRST_MESSAGE",
     triggerConditions: {},
     actions: [
@@ -27,7 +27,7 @@ export const automationTemplates: AutomationTemplate[] = [
         type: "SEND_MESSAGE",
         order: 0,
         content: {
-          message: "Hey {name}! 👋 Thanks for following us! How can we help you today?",
+          message: "Hey {name}! Thanks for following us! How can we help you today?",
         },
       },
       {
@@ -44,7 +44,7 @@ export const automationTemplates: AutomationTemplate[] = [
     name: "Pricing Inquiry Handler",
     description: "Respond to pricing questions with product information",
     category: "sales",
-    icon: "💰",
+    icon: "dollar",
     triggerType: "KEYWORD",
     triggerConditions: {
       keywords: ["price", "pricing", "cost", "how much"],
@@ -55,7 +55,8 @@ export const automationTemplates: AutomationTemplate[] = [
         type: "SEND_MESSAGE",
         order: 0,
         content: {
-          message: "Thanks for your interest! 💫 I'd love to share our pricing with you. What product are you interested in?",
+          message:
+            "Thanks for your interest! I'd love to share our pricing with you. What product are you interested in?",
         },
       },
       {
@@ -77,7 +78,7 @@ export const automationTemplates: AutomationTemplate[] = [
         type: "SEND_MESSAGE",
         order: 3,
         content: {
-          message: "Still have questions? Feel free to ask! Our team is here to help. 😊",
+          message: "Still have questions? Feel free to ask! Our team is here to help.",
         },
       },
     ],
@@ -87,7 +88,7 @@ export const automationTemplates: AutomationTemplate[] = [
     name: "Story Reply Engagement",
     description: "Engage with people who reply to your stories",
     category: "engagement",
-    icon: "📸",
+    icon: "camera",
     triggerType: "STORY_REPLY",
     triggerConditions: {},
     actions: [
@@ -95,7 +96,7 @@ export const automationTemplates: AutomationTemplate[] = [
         type: "SEND_MESSAGE",
         order: 0,
         content: {
-          message: "Thanks for the reply, {name}! 🙌 Glad you enjoyed our story!",
+          message: "Thanks for the reply, {name}! Glad you enjoyed our story!",
         },
       },
       {
@@ -112,7 +113,7 @@ export const automationTemplates: AutomationTemplate[] = [
     name: "Lead Qualification Bot",
     description: "Qualify leads with AI-powered responses",
     category: "sales",
-    icon: "🎯",
+    icon: "target",
     triggerType: "KEYWORD",
     triggerConditions: {
       keywords: ["interested", "learn more", "info", "information"],
@@ -155,7 +156,7 @@ export const automationTemplates: AutomationTemplate[] = [
     name: "Support Ticket System",
     description: "Create support tickets for customer issues",
     category: "support",
-    icon: "🎫",
+    icon: "ticket",
     triggerType: "KEYWORD",
     triggerConditions: {
       keywords: ["help", "problem", "issue", "bug", "error"],
@@ -166,7 +167,7 @@ export const automationTemplates: AutomationTemplate[] = [
         type: "SEND_MESSAGE",
         order: 0,
         content: {
-          message: "I'm sorry you're experiencing an issue, {name}! 😔 Let me help you with that.",
+          message: "I'm sorry you're experiencing an issue, {name}! Let me help you with that.",
         },
       },
       {
@@ -180,7 +181,8 @@ export const automationTemplates: AutomationTemplate[] = [
         type: "AI_RESPONSE",
         order: 2,
         content: {
-          customInstructions: "Gather information about the issue. Ask clarifying questions to understand the problem better.",
+          customInstructions:
+            "Gather information about the issue. Ask clarifying questions to understand the problem better.",
         },
       },
       {
@@ -197,7 +199,7 @@ export const automationTemplates: AutomationTemplate[] = [
     name: "Appointment Scheduler",
     description: "Help customers book appointments or consultations",
     category: "sales",
-    icon: "📅",
+    icon: "calendar",
     triggerType: "KEYWORD",
     triggerConditions: {
       keywords: ["appointment", "schedule", "booking", "consultation", "meet"],
@@ -208,7 +210,7 @@ export const automationTemplates: AutomationTemplate[] = [
         type: "SEND_MESSAGE",
         order: 0,
         content: {
-          message: "Great! I'd love to help you schedule an appointment. 📅 What day works best for you?",
+          message: "Great! I'd love to help you schedule an appointment. What day works best for you?",
         },
       },
       {
@@ -232,7 +234,7 @@ export const automationTemplates: AutomationTemplate[] = [
     name: "FAQ Auto-Responder",
     description: "Answer common questions automatically with AI",
     category: "support",
-    icon: "❓",
+    icon: "question",
     triggerType: "DM_RECEIVED",
     triggerConditions: {},
     actions: [
@@ -250,16 +252,6 @@ export const automationTemplates: AutomationTemplate[] = [
           field: "confidence",
           operator: "less_than",
           value: "0.7",
-          trueActions: [
-            {
-              type: "SEND_TO_HUMAN",
-              order: 0,
-              content: {
-                reason: "AI couldn't confidently answer - needs human review",
-              },
-            },
-          ],
-          falseActions: [],
         },
       },
     ],
@@ -269,7 +261,7 @@ export const automationTemplates: AutomationTemplate[] = [
     name: "Post-Purchase Thank You",
     description: "Thank customers after they make a purchase",
     category: "engagement",
-    icon: "🎉",
+    icon: "celebration",
     triggerType: "KEYWORD",
     triggerConditions: {
       keywords: ["purchased", "bought", "ordered"],
@@ -288,7 +280,8 @@ export const automationTemplates: AutomationTemplate[] = [
         type: "SEND_MESSAGE",
         order: 1,
         content: {
-          message: "Thank you so much for your purchase, {name}! 🎉 We hope you love it! If you have any questions, we're here to help.",
+          message:
+            "Thank you so much for your purchase, {name}! We hope you love it! If you have any questions, we're here to help.",
         },
       },
       {
@@ -310,7 +303,7 @@ export const automationTemplates: AutomationTemplate[] = [
         type: "SEND_MESSAGE",
         order: 4,
         content: {
-          message: "Hey {name}! How are you enjoying your purchase? We'd love to hear your feedback! ⭐",
+          message: "Hey {name}! How are you enjoying your purchase? We'd love to hear your feedback!",
         },
       },
     ],

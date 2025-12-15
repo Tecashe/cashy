@@ -1,197 +1,7 @@
-// import { AutomationBuilder } from "@/components/automation-builder"
-// import { getInstagramAccounts } from "@/lib/actions/instagram-account-actions"
-// import { Button } from "@/components/ui/button"
-// import { ArrowLeft } from "lucide-react"
-// import Link from "next/link"
-// //
-// export default async function NewAutomationPage() {
-//   const instagramAccounts = await getInstagramAccounts()
-
-//   return (
-//     <div className="container mx-auto py-8 px-4">
-//       <Link href="/automations">
-//         <Button variant="ghost" size="sm" className="mb-6">
-//           <ArrowLeft className="mr-2 h-4 w-4" />
-//           Back to Automations
-//         </Button>
-//       </Link>
-
-//       <div className="mb-8">
-//         <h1 className="text-3xl font-bold tracking-tight">Create Automation</h1>
-//         <p className="text-muted-foreground mt-2">Build an intelligent workflow to automate your Instagram responses</p>
-//       </div>
-
-//       <AutomationBuilder instagramAccounts={instagramAccounts} />
-//     </div>
-//   )
-// // }
-
-// import { AutomationBuilder } from "@/components/automation-builder"
-// import { AutomationTemplateSelector } from "@/components/automation-template-selector"
-// import { getInstagramAccounts } from "@/lib/actions/instagram-account-actions"
-// import { getTemplateById } from "@/lib/automation-templates"
-// import { Button } from "@/components/ui/button"
-// import { ArrowLeft } from "lucide-react"
-// import Link from "next/link"
-
-// export default async function NewAutomationPage({
-//   searchParams,
-// }: {
-//   searchParams: { template?: string; from?: string }
-// }) {
-//   const instagramAccounts = await getInstagramAccounts()
-
-//   // If no template or from parameter, show template selector
-//   if (!searchParams.template && !searchParams.from) {
-//     return (
-//       <div className="container mx-auto py-8 px-4">
-//         <Link href="/automations">
-//           <Button variant="ghost" size="sm" className="mb-6">
-//             <ArrowLeft className="mr-2 h-4 w-4" />
-//             Back to Automations
-//           </Button>
-//         </Link>
-//         <AutomationTemplateSelector />
-//       </div>
-//     )
-//   }
-
-//   // Load template if specified
-//   let automation = null
-//   if (searchParams.template) {
-//     const template = getTemplateById(searchParams.template)
-//     if (template) {
-//       automation = {
-//         name: template.name,
-//         description: template.description,
-//         triggers: [
-//           {
-//             type: template.triggerType,
-//             conditions: template.triggerConditions,
-//           },
-//         ],
-//         actions: template.actions.map((a, i) => ({
-//           id: `action-${i}`,
-//           type: a.type,
-//           order: a.order,
-//           content: a.content,
-//         })),
-//       }
-//     }
-//   }
-
-//   return (
-//     <div className="container mx-auto py-8 px-4 max-w-7xl">
-//       <Link href="/automations">
-//         <Button variant="ghost" size="sm" className="mb-6">
-//           <ArrowLeft className="mr-2 h-4 w-4" />
-//           Back to Automations
-//         </Button>
-//       </Link>
-
-//       <div className="mb-8">
-//         <h1 className="text-3xl font-bold tracking-tight">
-//           {searchParams.template ? "Customize Template" : "Create Automation"}
-//         </h1>
-//         <p className="text-muted-foreground mt-2">
-//           {searchParams.template
-//             ? "Customize this template to fit your needs"
-//             : "Build an intelligent workflow to automate your Instagram responses"}
-//         </p>
-//       </div>
-
-//       <AutomationBuilder automation={automation} instagramAccounts={instagramAccounts} />
-//     </div>
-//   )
-// }
-
-// import { AutomationBuilder } from "@/components/automation-builder"
-// import { AutomationTemplateSelector } from "@/components/automation-template-selector"
-// import { getInstagramAccounts } from "@/lib/actions/instagram-account-actions"
-// import { getTemplateById } from "@/lib/automation-templates"
-// import { Button } from "@/components/ui/button"
-// import { ArrowLeft } from "lucide-react"
-// import Link from "next/link"
-
-// export default async function NewAutomationPage({
-//   searchParams,
-// }: {
-//   searchParams: { template?: string; from?: string }
-// }) {
-//   const instagramAccounts = await getInstagramAccounts()
-
-//   // If no template or from parameter, show template selector
-//   if (!searchParams.template && !searchParams.from) {
-//     return (
-//       <div className="space-y-6">
-//         <div className="flex items-center gap-4">
-//           <Link href="/automations">
-//             <Button variant="ghost" size="sm" className="hover:bg-accent shadow-md hover:shadow-lg transition-all">
-//               <ArrowLeft className="mr-2 h-4 w-4" />
-//               Back
-//             </Button>
-//           </Link>
-//         </div>
-//         <AutomationTemplateSelector />
-//       </div>
-//     )
-//   }
-
-//   // Load template if specified
-//   let automation = null
-//   if (searchParams.template) {
-//     const template = getTemplateById(searchParams.template)
-//     if (template) {
-//       automation = {
-//         name: template.name,
-//         description: template.description,
-//         triggers: [
-//           {
-//             type: template.triggerType,
-//             conditions: template.triggerConditions,
-//           },
-//         ],
-//         actions: template.actions.map((a, i) => ({
-//           id: `action-${i}`,
-//           type: a.type,
-//           order: a.order,
-//           content: a.content,
-//         })),
-//       }
-//     }
-//   }
-
-//   return (
-//     <div className="space-y-6">
-//       <div className="flex items-center gap-4">
-//         <Link href="/automations">
-//           <Button variant="ghost" size="sm" className="hover:bg-accent shadow-md hover:shadow-lg transition-all">
-//             <ArrowLeft className="mr-2 h-4 w-4" />
-//             Back
-//           </Button>
-//         </Link>
-//       </div>
-
-//       <div className="space-y-2">
-//         <h1 className="text-3xl font-bold tracking-tight text-foreground">
-//           {searchParams.template ? "Customize Template" : "Create Automation"}
-//         </h1>
-//         <p className="text-muted-foreground">
-//           {searchParams.template
-//             ? "Customize this template to fit your needs"
-//             : "Build an intelligent workflow to automate your Instagram responses"}
-//         </p>
-//       </div>
-
-//       <AutomationBuilder automation={automation} instagramAccounts={instagramAccounts} />
-//     </div>
-//   )
-// }
-
 "use client"
 
 import { useState, useEffect, Suspense } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useRouter, useParams } from "next/navigation"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -200,12 +10,9 @@ import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { AutomationFlowCanvas } from "@/components/automation-flow-canvas"
-import { AutomationTemplateSelector } from "@/components/automation-template-selector"
-import { createAutomation } from "@/lib/actions/automation-actions"
+import { updateAutomation, getAutomation } from "@/lib/actions/automation-actions"
 import { getInstagramAccounts } from "@/lib/actions/instagram-account-actions"
-import { getTemplateById } from "@/lib/automation-templates"
-
-import { ArrowLeft, Save } from "lucide-react"
+import { ArrowLeft, Loader2, Save } from "lucide-react"
 import Link from "next/link"
 import { toast } from "sonner"
 
@@ -213,37 +20,27 @@ type TriggerType = "DM_RECEIVED" | "STORY_REPLY" | "COMMENT" | "MENTION" | "KEYW
 type ActionType = "SEND_MESSAGE" | "AI_RESPONSE" | "ADD_TAG" | "DELAY" | "CONDITION" | "SEND_TO_HUMAN" | "WEBHOOK"
 
 interface NodeConfig {
-  // SEND_MESSAGE
   message?: string
-  // AI_RESPONSE
   customInstructions?: string
   tone?: string
-  // ADD_TAG
   tagName?: string
-  // DELAY
   delayAmount?: string
   delayUnit?: string
-  // CONDITION
   field?: string
   operator?: string
   value?: string
-  // SEND_TO_HUMAN
   reason?: string
-  // WEBHOOK
   webhookUrl?: string
   webhookMethod?: string
-  // KEYWORD (trigger)
   keywords?: string[]
   matchType?: string
 }
 
-function CreateAutomationPageContent() {
+function EditAutomationPageContent() {
   const router = useRouter()
-  const searchParams = useSearchParams()
-  const templateId = searchParams.get("template")
-  const fromScratch = searchParams.get("from") === "scratch"
+  const params = useParams()
+  const automationId = params.id as string
 
-  const [showTemplates, setShowTemplates] = useState(!templateId && !fromScratch)
   const [name, setName] = useState("")
   const [description, setDescription] = useState("")
   const [instagramAccountId, setInstagramAccountId] = useState<string>("")
@@ -251,6 +48,7 @@ function CreateAutomationPageContent() {
   const [trigger, setTrigger] = useState<{ type: TriggerType; config: any } | null>(null)
   const [actions, setActions] = useState<Array<{ type: ActionType; config: any; order: number }>>([])
   const [isSaving, setIsSaving] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
   const [configDialogOpen, setConfigDialogOpen] = useState(false)
   const [currentConfigNode, setCurrentConfigNode] = useState<{
     id: string
@@ -260,37 +58,41 @@ function CreateAutomationPageContent() {
   const [currentConfig, setCurrentConfig] = useState<NodeConfig>({})
 
   useEffect(() => {
-    async function loadAccounts() {
-      const accounts = await getInstagramAccounts()
-      setInstagramAccounts(accounts)
-      if (accounts.length === 1) {
-        setInstagramAccountId(accounts[0].id)
-      }
-    }
-    loadAccounts()
-  }, [])
+    async function loadData() {
+      try {
+        const [automation, accounts] = await Promise.all([getAutomation(automationId), getInstagramAccounts()])
 
-  useEffect(() => {
-    if (templateId) {
-      const template = getTemplateById(templateId)
-      if (template) {
-        setName(template.name)
-        setDescription(template.description)
-        setTrigger({ type: template.triggerType as TriggerType, config: template.triggerConditions })
-        setActions(
-          template.actions.map((action) => ({
-            type: action.type as ActionType,
-            config: action.content,
-            order: action.order,
-          })),
-        )
-        setShowTemplates(false)
+        setName(automation.name)
+        setDescription(automation.description || "")
+        setInstagramAccountId(automation.instagramAccountId || "")
+        setInstagramAccounts(accounts)
+
+        if (automation.triggers && automation.triggers.length > 0) {
+          const triggerData = automation.triggers[0]
+          setTrigger({
+            type: triggerData.type as TriggerType,
+            config: triggerData.conditions,
+          })
+        }
+
+        if (automation.actions && automation.actions.length > 0) {
+          setActions(
+            automation.actions.map((action: any) => ({
+              type: action.type as ActionType,
+              config: action.content,
+              order: action.order,
+            })),
+          )
+        }
+      } catch (error) {
+        console.error("[v0] Failed to load automation:", error)
+        toast.error("Failed to load automation")
+      } finally {
+        setIsLoading(false)
       }
-    } else if (fromScratch) {
-      setTrigger({ type: "DM_RECEIVED", config: {} })
-      setShowTemplates(false)
     }
-  }, [templateId, fromScratch])
+    loadData()
+  }, [automationId])
 
   const handleNodesChange = (
     newTrigger: { type: TriggerType; config: any } | null,
@@ -306,7 +108,8 @@ function CreateAutomationPageContent() {
     if (nodeType === "trigger" && trigger) {
       setCurrentConfig(trigger.config || {})
     } else if (nodeType === "action") {
-      const actionNode = actions.find((_, index) => `action-${index + 1}` === nodeId)
+      const actionIndex = Number.parseInt(nodeId.replace("action-", "")) - 1
+      const actionNode = actions[actionIndex]
       setCurrentConfig(actionNode?.config || {})
     }
 
@@ -337,7 +140,6 @@ function CreateAutomationPageContent() {
 
     const actionType = currentConfigNode.actionType
 
-    // Trigger configurations
     if (currentConfigNode.type === "trigger") {
       if (actionType === "KEYWORD") {
         return (
@@ -379,7 +181,6 @@ function CreateAutomationPageContent() {
       )
     }
 
-    // Action configurations
     switch (actionType) {
       case "SEND_MESSAGE":
         return (
@@ -587,7 +388,7 @@ function CreateAutomationPageContent() {
 
     setIsSaving(true)
     try {
-      await createAutomation({
+      await updateAutomation(automationId, {
         name,
         description,
         instagramAccountId,
@@ -599,34 +400,20 @@ function CreateAutomationPageContent() {
           order: action.order,
         })),
       })
-      toast.success("Automation created successfully!")
+      toast.success("Automation updated successfully!")
       router.push("/automations")
     } catch (error) {
-      console.error("[v0] Failed to create automation:", error)
-      toast.error("Failed to create automation")
+      console.error("[v0] Failed to update automation:", error)
+      toast.error("Failed to update automation")
     } finally {
       setIsSaving(false)
     }
   }
 
-  if (showTemplates) {
+  if (isLoading) {
     return (
-      <div className="min-h-screen bg-background">
-        <div className="border-b bg-card">
-          <div className="max-w-7xl mx-auto px-6 py-4">
-            <div className="flex items-center gap-4">
-              <Link href="/automations">
-                <Button variant="ghost" size="sm">
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  Back
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </div>
-        <div className="max-w-7xl mx-auto px-6 py-8">
-          <AutomationTemplateSelector />
-        </div>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     )
   }
@@ -644,13 +431,13 @@ function CreateAutomationPageContent() {
                 </Button>
               </Link>
               <div>
-                <h1 className="text-2xl font-semibold text-foreground">Create Automation</h1>
-                <p className="text-sm text-muted-foreground">Build intelligent workflows for Instagram</p>
+                <h1 className="text-2xl font-semibold text-foreground">Edit Automation</h1>
+                <p className="text-sm text-muted-foreground">Modify your automation workflow</p>
               </div>
             </div>
             <Button onClick={handleSave} disabled={isSaving} size="lg">
               <Save className="w-4 h-4 mr-2" />
-              {isSaving ? "Saving..." : "Create Automation"}
+              {isSaving ? "Saving..." : "Update Automation"}
             </Button>
           </div>
         </div>
@@ -728,10 +515,16 @@ function CreateAutomationPageContent() {
   )
 }
 
-export default function CreateAutomationPage() {
+export default function EditAutomationPage() {
   return (
-    <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
-      <CreateAutomationPageContent />
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center min-h-screen">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      }
+    >
+      <EditAutomationPageContent />
     </Suspense>
   )
 }
