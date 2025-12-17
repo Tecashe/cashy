@@ -882,7 +882,7 @@ export async function GET(request: NextRequest) {
     // Step 1: Exchange authorization code for short-lived access token
     console.log("[Instagram Callback] Exchanging code for short-lived token...")
     
-    // Use form data format (not URLSearchParams) to avoid encoding issues
+    // Use form data format (not URLSearchParams)to avoid encoding issues
     const formData = new FormData()
     formData.append('client_id', process.env.INSTAGRAM_APP_ID || '')
     formData.append('client_secret', process.env.INSTAGRAM_CLIENT_SECRET || '')
