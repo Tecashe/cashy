@@ -37,7 +37,7 @@ export default function PrivacyPage() {
                 Privacy Policy
               </Badge>
               <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none">
-                Your Privacy Matters to Us
+                Privacy Policy
               </h1>
               <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl">
                 We&apos;re committed to protecting your privacy and being transparent about how we collect, use, and protect
