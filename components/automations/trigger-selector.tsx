@@ -2,7 +2,7 @@
 
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
-import { TRIGGER_TYPES } from "@/lib/automation-constants"
+import { TRIGGER_TYPES } from "@/lib/constants/utomation-constants"
 import type { TriggerType } from "@/lib/types/automation"
 
 interface TriggerSelectorProps {

@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
-import { ACTION_TYPES, ACTION_CATEGORIES } from "@/lib/automation-constants"
+import { ACTION_TYPES, ACTION_CATEGORIES } from "@/lib/constants/utomation-constants"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import type { ActionType } from "@/lib/types/automation"
 
