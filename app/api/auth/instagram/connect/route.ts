@@ -58,7 +58,7 @@ export async function GET(request: NextRequest) {
       "instagram_manage_insights",
       "pages_show_list",
       "pages_read_engagement",
-      "pages_manage_metadata", // Required for webhooks
+      "pages_manage_metadata", // Required for webhooks 
     ].join(",")
 
     // Use Facebook OAuth with Instagram permissions
