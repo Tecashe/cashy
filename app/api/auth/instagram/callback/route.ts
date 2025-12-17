@@ -105,10 +105,103 @@
 //   }
 // }
 
+// import { type NextRequest, NextResponse } from "next/server"
+// import { auth } from "@clerk/nextjs/server"
+// import { prisma } from "@/lib/db"
+// import { exchangeTokenForLongLived } from "@/lib/instagram-api"
+
+// export async function GET(request: NextRequest) {
+//   const searchParams = request.nextUrl.searchParams
+//   const code = searchParams.get("code")
+//   const state = searchParams.get("state")
+//   const error = searchParams.get("error")
+
+//   if (error) {
+//     console.error("[Instagram OAuth] Error:", error)
+//     return NextResponse.redirect(new URL("/settings/instagram?error=access_denied", request.url))
+//   }
+
+//   if (!code) {
+//     return NextResponse.redirect(new URL("/settings/instagram?error=no_code", request.url))
+//   }
+
+//   const { userId: clerkUserId } = await auth()
+
+//   if (!clerkUserId || clerkUserId !== state) {
+//     return NextResponse.redirect(new URL("/settings/instagram?error=unauthorized", request.url))
+//   }
+
+//   try {
+//     const tokenResponse = await fetch("https://api.instagram.com/oauth/access_token", {
+//       method: "POST",
+//       headers: { "Content-Type": "application/x-www-form-urlencoded" },
+//       body: new URLSearchParams({
+//         client_id: process.env.INSTAGRAM_APP_ID || "",
+//         client_secret: process.env.INSTAGRAM_CLIENT_SECRET || "",
+//         grant_type: "authorization_code",
+//         redirect_uri: `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/instagram/callback`,
+//         code,
+//       }),
+//     })
+
+//     if (!tokenResponse.ok) {
+//       const errorData = await tokenResponse.json()
+//       console.error("[Instagram OAuth] Token exchange failed:", errorData)
+//       return NextResponse.redirect(new URL("/settings/instagram?error=token_exchange_failed", request.url))
+//     }
+
+//     const tokenData = await tokenResponse.json()
+//     const shortLivedToken = tokenData.access_token
+//     const instagramUserId = tokenData.user_id
+
+//     const longLivedData = await exchangeTokenForLongLived(shortLivedToken)
+
+//     const profileResponse = await fetch(
+//       `https://graph.instagram.com/${instagramUserId}?fields=id,username,account_type,profile_picture_url&access_token=${longLivedData.access_token}`,
+//     )
+
+//     const profileData = await profileResponse.json()
+
+//     const user = await prisma.user.findUnique({
+//       where: { clerkId: clerkUserId },
+//     })
+
+//     if (!user) {
+//       return NextResponse.redirect(new URL("/settings/instagram?error=user_not_found", request.url))
+//     }
+
+//     await prisma.instagramAccount.upsert({
+//       where: { instagramId: instagramUserId },
+//       create: {
+//         userId: user.id,
+//         instagramId: instagramUserId,
+//         username: profileData.username,
+//         profilePicUrl: profileData.profile_picture_url,
+//         accessToken: longLivedData.access_token,
+//         tokenExpiry: new Date(Date.now() + longLivedData.expires_in * 1000),
+//         isConnected: true,
+//       },
+//       update: {
+//         accessToken: longLivedData.access_token,
+//         tokenExpiry: new Date(Date.now() + longLivedData.expires_in * 1000),
+//         isConnected: true,
+//         username: profileData.username,
+//         profilePicUrl: profileData.profile_picture_url,
+//       },
+//     })
+
+//     return NextResponse.redirect(new URL("/settings/instagram?success=true", request.url))
+//   } catch (error) {
+//     console.error("[Instagram OAuth] Error:", error)
+//     return NextResponse.redirect(new URL("/settings/instagram?error=unknown", request.url))
+//   }
+// }
+// app/api/auth/instagram/callback/route.ts
+
+// app/api/auth/instagram/callback/route.ts
 import { type NextRequest, NextResponse } from "next/server"
 import { auth } from "@clerk/nextjs/server"
 import { prisma } from "@/lib/db"
-import { exchangeTokenForLongLived } from "@/lib/instagram-api"
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams
@@ -118,81 +211,129 @@ export async function GET(request: NextRequest) {
 
   if (error) {
     console.error("[Instagram OAuth] Error:", error)
-    return NextResponse.redirect(new URL("/settings/instagram?error=access_denied", request.url))
+    return NextResponse.redirect(new URL("/accounts?error=access_denied", request.url))
   }
 
   if (!code) {
-    return NextResponse.redirect(new URL("/settings/instagram?error=no_code", request.url))
+    return NextResponse.redirect(new URL("/accounts?error=no_code", request.url))
   }
 
   const { userId: clerkUserId } = await auth()
 
   if (!clerkUserId || clerkUserId !== state) {
-    return NextResponse.redirect(new URL("/settings/instagram?error=unauthorized", request.url))
+    return NextResponse.redirect(new URL("/accounts?error=unauthorized", request.url))
   }
 
   try {
-    const tokenResponse = await fetch("https://api.instagram.com/oauth/access_token", {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({
-        client_id: process.env.INSTAGRAM_APP_ID || "",
-        client_secret: process.env.INSTAGRAM_CLIENT_SECRET || "",
-        grant_type: "authorization_code",
-        redirect_uri: `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/instagram/callback`,
-        code,
-      }),
-    })
+    // Step 1: Exchange code for short-lived token
+    const tokenResponse = await fetch(
+      `https://graph.facebook.com/v21.0/oauth/access_token?` +
+      `client_id=${process.env.INSTAGRAM_APP_ID}&` +
+      `client_secret=${process.env.INSTAGRAM_CLIENT_SECRET}&` +
+      `code=${code}&` +
+      `redirect_uri=${process.env.NEXT_PUBLIC_APP_URL}/api/auth/instagram/callback`
+    )
 
     if (!tokenResponse.ok) {
       const errorData = await tokenResponse.json()
       console.error("[Instagram OAuth] Token exchange failed:", errorData)
-      return NextResponse.redirect(new URL("/settings/instagram?error=token_exchange_failed", request.url))
+      return NextResponse.redirect(new URL("/accounts?error=token_exchange_failed", request.url))
     }
 
-    const tokenData = await tokenResponse.json()
-    const shortLivedToken = tokenData.access_token
-    const instagramUserId = tokenData.user_id
+    const { access_token: shortLivedToken } = await tokenResponse.json()
 
-    const longLivedData = await exchangeTokenForLongLived(shortLivedToken)
-
-    const profileResponse = await fetch(
-      `https://graph.instagram.com/${instagramUserId}?fields=id,username,account_type,profile_picture_url&access_token=${longLivedData.access_token}`,
+    // Step 2: Get Facebook Pages connected to the user
+    const pagesResponse = await fetch(
+      `https://graph.facebook.com/v21.0/me/accounts?access_token=${shortLivedToken}`
     )
 
-    const profileData = await profileResponse.json()
+    const pagesData = await pagesResponse.json()
 
+    if (!pagesData.data || pagesData.data.length === 0) {
+      return NextResponse.redirect(new URL("/accounts?error=no_pages", request.url))
+    }
+
+    // Step 3: For each page, get Instagram Business Account
     const user = await prisma.user.findUnique({
       where: { clerkId: clerkUserId },
     })
 
     if (!user) {
-      return NextResponse.redirect(new URL("/settings/instagram?error=user_not_found", request.url))
+      return NextResponse.redirect(new URL("/accounts?error=user_not_found", request.url))
     }
 
-    await prisma.instagramAccount.upsert({
-      where: { instagramId: instagramUserId },
-      create: {
-        userId: user.id,
-        instagramId: instagramUserId,
-        username: profileData.username,
-        profilePicUrl: profileData.profile_picture_url,
-        accessToken: longLivedData.access_token,
-        tokenExpiry: new Date(Date.now() + longLivedData.expires_in * 1000),
-        isConnected: true,
-      },
-      update: {
-        accessToken: longLivedData.access_token,
-        tokenExpiry: new Date(Date.now() + longLivedData.expires_in * 1000),
-        isConnected: true,
-        username: profileData.username,
-        profilePicUrl: profileData.profile_picture_url,
-      },
-    })
+    let connectedCount = 0
 
-    return NextResponse.redirect(new URL("/settings/instagram?success=true", request.url))
+    for (const page of pagesData.data) {
+      try {
+        // Get Instagram Business Account ID linked to this page
+        const igAccountResponse = await fetch(
+          `https://graph.facebook.com/v21.0/${page.id}?fields=instagram_business_account&access_token=${page.access_token}`
+        )
+
+        const igAccountData = await igAccountResponse.json()
+
+        if (!igAccountData.instagram_business_account) {
+          continue // Skip pages without Instagram Business Account
+        }
+
+        const instagramId = igAccountData.instagram_business_account.id
+
+        // Step 4: Exchange page token for long-lived token
+        const longLivedResponse = await fetch(
+          `https://graph.facebook.com/v21.0/oauth/access_token?` +
+          `grant_type=fb_exchange_token&` +
+          `client_id=${process.env.INSTAGRAM_APP_ID}&` +
+          `client_secret=${process.env.INSTAGRAM_CLIENT_SECRET}&` +
+          `fb_exchange_token=${page.access_token}`
+        )
+
+        const longLivedData = await longLivedResponse.json()
+
+        // Step 5: Get Instagram profile info
+        const profileResponse = await fetch(
+          `https://graph.instagram.com/v21.0/${instagramId}?fields=id,username,name,profile_picture_url,followers_count,follows_count,media_count&access_token=${longLivedData.access_token}`
+        )
+
+        const profileData = await profileResponse.json()
+
+        // Step 6: Store in database
+        await prisma.instagramAccount.upsert({
+          where: { instagramId: instagramId },
+          create: {
+            userId: user.id,
+            instagramId: instagramId,
+            username: profileData.username,
+            profilePicUrl: profileData.profile_picture_url,
+            followerCount: profileData.followers_count || 0,
+            accessToken: longLivedData.access_token,
+            tokenExpiry: new Date(Date.now() + (longLivedData.expires_in || 5184000) * 1000), // 60 days default
+            isConnected: true,
+          },
+          update: {
+            accessToken: longLivedData.access_token,
+            tokenExpiry: new Date(Date.now() + (longLivedData.expires_in || 5184000) * 1000),
+            isConnected: true,
+            username: profileData.username,
+            profilePicUrl: profileData.profile_picture_url,
+            followerCount: profileData.followers_count || 0,
+          },
+        })
+
+        connectedCount++
+      } catch (error) {
+        console.error(`[Instagram OAuth] Error processing page ${page.id}:`, error)
+        // Continue to next page
+      }
+    }
+
+    if (connectedCount === 0) {
+      return NextResponse.redirect(new URL("/accounts?error=no_instagram_accounts", request.url))
+    }
+
+    return NextResponse.redirect(new URL("/accounts?success=true", request.url))
   } catch (error) {
     console.error("[Instagram OAuth] Error:", error)
-    return NextResponse.redirect(new URL("/settings/instagram?error=unknown", request.url))
+    return NextResponse.redirect(new URL("/accounts?error=unknown", request.url))
   }
 }

@@ -124,6 +124,7 @@ model AutomationExecution {
   @@index([executedAt])
 }
 
+
 model MessageQueue {
   id             String   @id @default(cuid())
   conversationId String

@@ -55,13 +55,16 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       })
     }
 
-    // Trigger the automation with test data
+    // Trigger the automation with test dat
     await processAutomationTriggers({
-      messageContent: testMessage,
-      senderId: "test_user_id",
+      messageContent: testMessage || "Test message",
+      senderId: testConversation.participantId,
+      senderUsername: testConversation.participantUsername,
+      senderName: testConversation.participantName,
       conversationId: testConversation.id,
       messageType: "DM",
       isFirstMessage: false,
+      instagramAccountId: "1234587",
     })
 
     // Get the messages that were sent as part of the automation
