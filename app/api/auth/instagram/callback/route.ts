@@ -1026,203 +1026,6 @@
 // This file handles the OAuth callback from Instagram
 // Now simplified since user sync happens in dashboard layout
 
-// import { type NextRequest, NextResponse } from "next/server"
-// import { auth } from "@clerk/nextjs/server"
-// import { prisma } from "@/lib/db"
-// import { ensureUserExists } from "@/lib/actions/user-sync"
-// import axios from "axios"
-
-// export async function GET(request: NextRequest) {
-//   const searchParams = request.nextUrl.searchParams
-//   const code = searchParams.get("code")
-//   const error = searchParams.get("error")
-//   const errorReason = searchParams.get("error_reason")
-//   const errorDescription = searchParams.get("error_description")
-
-//   console.log("[Instagram Callback] Received callback with params:", {
-//     hasCode: !!code,
-//     error,
-//     errorReason,
-//     errorDescription
-//   })
-
-//   // Handle OAuth errors
-//   if (error) {
-//     console.error("[Instagram Callback] OAuth Error:", {
-//       error,
-//       reason: errorReason,
-//       description: errorDescription
-//     })
-//     return NextResponse.redirect(
-//       new URL(`/accounts?error=${error}&reason=${errorReason}`, request.url)
-//     )
-//   }
-
-//   // Check for authorization code
-//   if (!code) {
-//     console.error("[Instagram Callback] No authorization code received")
-//     return NextResponse.redirect(new URL("/accounts?error=no_code", request.url))
-//   }
-
-//   // Verify user is authenticated
-//   const { userId: clerkUserId } = await auth()
-
-//   if (!clerkUserId) {
-//     console.error("[Instagram Callback] User not authenticated")
-//     return NextResponse.redirect(new URL("/accounts?error=unauthorized", request.url))
-//   }
-
-//   try {
-//     console.log("[Instagram Callback] Starting token exchange process...")
-    
-//     // Build the redirect URI - must match EXACTLY what was sent in the OAuth request
-//     const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/instagram/callback`
-    
-//     console.log("[Instagram Callback] Using redirect_uri:", redirectUri)
-//     console.log("[Instagram Callback] App ID:", process.env.INSTAGRAM_APP_ID)
-    
-//     // Step 1: Exchange authorization code for short-lived access token
-//     console.log("[Instagram Callback] Exchanging code for short-lived token...")
-    
-//     // Use form data format to avoid encoding issues
-//     const formData = new FormData()
-//     formData.append('client_id', process.env.INSTAGRAM_APP_ID || '')
-//     formData.append('client_secret', process.env.INSTAGRAM_CLIENT_SECRET || '')
-//     formData.append('grant_type', 'authorization_code')
-//     formData.append('redirect_uri', redirectUri)
-//     formData.append('code', code)
-    
-//     const tokenResponse = await axios.post(
-//       "https://api.instagram.com/oauth/access_token",
-//       formData,
-//       {
-//         headers: {
-//           "Content-Type": "multipart/form-data",
-//         },
-//       }
-//     )
-
-//     console.log("[Instagram Callback] Short-lived token received:", {
-//       hasAccessToken: !!tokenResponse.data.access_token,
-//       userId: tokenResponse.data.user_id,
-//     })
-
-//     const { access_token: shortLivedToken, user_id: instagramUserId } = tokenResponse.data
-
-//     // Step 2: Exchange short-lived token for long-lived token (60 days)
-//     console.log("[Instagram Callback] Exchanging for long-lived token...")
-    
-//     const longLivedResponse = await axios.get(
-//       `https://graph.instagram.com/access_token?` +
-//       `grant_type=ig_exchange_token&` +
-//       `client_secret=${process.env.INSTAGRAM_CLIENT_SECRET}&` +
-//       `access_token=${shortLivedToken}`
-//     )
-
-//     console.log("[Instagram Callback] Long-lived token received:", {
-//       expiresIn: longLivedResponse.data.expires_in,
-//       tokenType: longLivedResponse.data.token_type,
-//     })
-
-//     const { 
-//       access_token: longLivedToken, 
-//       expires_in: expiresIn 
-//     } = longLivedResponse.data
-
-//     // Step 3: Get Instagram profile data using the long-lived token
-//     console.log("[Instagram Callback] Fetching Instagram profile data...")
-    
-//     const profileResponse = await axios.get(
-//       `https://graph.instagram.com/me?` +
-//       `fields=id,username,account_type,media_count,followers_count,follows_count,profile_picture_url&` +
-//       `access_token=${longLivedToken}`
-//     )
-
-//     console.log("[Instagram Callback] Profile data received:", {
-//       id: profileResponse.data.id,
-//       username: profileResponse.data.username,
-//       accountType: profileResponse.data.account_type,
-//       followersCount: profileResponse.data.followers_count,
-//     })
-
-//     const profileData = profileResponse.data
-
-//     // Step 4: Ensure user exists in database (sync from Clerk if needed)
-//     const user = await ensureUserExists(clerkUserId)
-
-//     if (!user) {
-//       console.error("[Instagram Callback] Failed to sync user to database")
-//       return NextResponse.redirect(new URL("/accounts?error=user_sync_failed", request.url))
-//     }
-
-//     console.log("[Instagram Callback] User found/created:", user.id)
-
-//     // Step 5: Calculate token expiry date
-//     // Long-lived tokens last 60 days
-//     const tokenExpiry = new Date()
-//     tokenExpiry.setDate(tokenExpiry.getDate() + 60)
-
-//     console.log("[Instagram Callback] Saving Instagram account to database...", {
-//       userId: user.id,
-//       instagramId: profileData.id,
-//       username: profileData.username,
-//       tokenExpiry: tokenExpiry.toISOString(),
-//     })
-
-//     // Step 6: Create or update Instagram account in database
-//     await prisma.instagramAccount.upsert({
-//       where: { instagramId: profileData.id },
-//       create: {
-//         userId: user.id,
-//         instagramId: profileData.id,
-//         username: profileData.username,
-//         profilePicUrl: profileData.profile_picture_url || null,
-//         followerCount: profileData.followers_count || 0,
-//         accessToken: longLivedToken,
-//         tokenExpiry: tokenExpiry,
-//         isConnected: true,
-//       },
-//       update: {
-//         accessToken: longLivedToken,
-//         tokenExpiry: tokenExpiry,
-//         isConnected: true,
-//         username: profileData.username,
-//         profilePicUrl: profileData.profile_picture_url || null,
-//         followerCount: profileData.followers_count || 0,
-//       },
-//     })
-
-//     console.log("[Instagram Callback] Instagram account saved successfully")
-
-//     // Success! Redirect to accounts page with success message
-//     return NextResponse.redirect(new URL("/accounts?success=true", request.url))
-    
-//   } catch (error: any) {
-//     console.error("[Instagram Callback] Error during OAuth flow:", error)
-    
-//     // Log detailed error information for debugging
-//     if (axios.isAxiosError(error)) {
-//       console.error("[Instagram Callback] API Error Details:", {
-//         status: error.response?.status,
-//         statusText: error.response?.statusText,
-//         data: error.response?.data,
-//         message: error.message,
-//         config: {
-//           url: error.config?.url,
-//           method: error.config?.method,
-//           data: error.config?.data,
-//         }
-//       })
-//     }
-
-//     // Redirect to accounts page with error
-//     return NextResponse.redirect(
-//       new URL("/accounts?error=connection_failed", request.url)
-//     )
-//   }
-// }
-
-
 import { type NextRequest, NextResponse } from "next/server"
 import { auth } from "@clerk/nextjs/server"
 import { prisma } from "@/lib/db"
@@ -1326,56 +1129,25 @@ export async function GET(request: NextRequest) {
       expires_in: expiresIn 
     } = longLivedResponse.data
 
-    // Step 3: Get Instagram Business Account ID
-    // This is the ID that will be used in webhooks!
-    console.log("[Instagram Callback] Fetching Instagram Business Account ID...")
-    
-    const accountsResponse = await axios.get(
-      `https://graph.facebook.com/v21.0/me/accounts?` +
-      `fields=instagram_business_account&` +
-      `access_token=${longLivedToken}`
-    )
-
-    console.log("[Instagram Callback] Facebook Pages response:", accountsResponse.data)
-
-    // Find the Instagram Business Account ID
-    let instagramBusinessAccountId = null
-    
-    for (const page of accountsResponse.data.data || []) {
-      if (page.instagram_business_account?.id) {
-        instagramBusinessAccountId = page.instagram_business_account.id
-        break
-      }
-    }
-
-    if (!instagramBusinessAccountId) {
-      console.error("[Instagram Callback] No Instagram Business Account found")
-      console.error("[Instagram Callback] Make sure your Instagram account is converted to a Business/Creator account and linked to a Facebook Page")
-      return NextResponse.redirect(
-        new URL("/accounts?error=no_business_account", request.url)
-      )
-    }
-
-    console.log("[Instagram Callback] Instagram Business Account ID:", instagramBusinessAccountId)
-
-    // Step 4: Get Instagram profile data using the Business Account ID
+    // Step 3: Get Instagram profile data using the long-lived token
     console.log("[Instagram Callback] Fetching Instagram profile data...")
     
     const profileResponse = await axios.get(
-      `https://graph.instagram.com/${instagramBusinessAccountId}?` +
-      `fields=id,username,name,profile_picture_url,followers_count,follows_count,media_count&` +
+      `https://graph.instagram.com/me?` +
+      `fields=id,username,account_type,media_count,followers_count,follows_count,profile_picture_url&` +
       `access_token=${longLivedToken}`
     )
 
     console.log("[Instagram Callback] Profile data received:", {
       id: profileResponse.data.id,
       username: profileResponse.data.username,
+      accountType: profileResponse.data.account_type,
       followersCount: profileResponse.data.followers_count,
     })
 
     const profileData = profileResponse.data
 
-    // Step 5: Ensure user exists in database (sync from Clerk if needed)
+    // Step 4: Ensure user exists in database (sync from Clerk if needed)
     const user = await ensureUserExists(clerkUserId)
 
     if (!user) {
@@ -1385,24 +1157,24 @@ export async function GET(request: NextRequest) {
 
     console.log("[Instagram Callback] User found/created:", user.id)
 
-    // Step 6: Calculate token expiry date
+    // Step 5: Calculate token expiry date
     // Long-lived tokens last 60 days
     const tokenExpiry = new Date()
     tokenExpiry.setDate(tokenExpiry.getDate() + 60)
 
     console.log("[Instagram Callback] Saving Instagram account to database...", {
       userId: user.id,
-      instagramId: profileData.id, // This is now the Business Account ID
+      instagramId: profileData.id,
       username: profileData.username,
       tokenExpiry: tokenExpiry.toISOString(),
     })
 
-    // Step 7: Create or update Instagram account in database
+    // Step 6: Create or update Instagram account in database
     await prisma.instagramAccount.upsert({
       where: { instagramId: profileData.id },
       create: {
         userId: user.id,
-        instagramId: profileData.id, // Business Account ID for webhooks
+        instagramId: profileData.id,
         username: profileData.username,
         profilePicUrl: profileData.profile_picture_url || null,
         followerCount: profileData.followers_count || 0,
