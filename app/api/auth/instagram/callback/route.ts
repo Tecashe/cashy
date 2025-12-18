@@ -1833,208 +1833,6 @@
 //   }
 // }
 
-// import { type NextRequest, NextResponse } from "next/server"
-// import { auth } from "@clerk/nextjs/server"
-// import { prisma } from "@/lib/db"
-// import { ensureUserExists } from "@/lib/actions/user-sync"
-// import axios from "axios"
-
-// export async function GET(request: NextRequest) {
-//   const searchParams = request.nextUrl.searchParams
-//   const code = searchParams.get("code")
-//   const error = searchParams.get("error")
-//   const errorReason = searchParams.get("error_reason")
-//   const errorDescription = searchParams.get("error_description")
-
-//   console.log("[Instagram Callback] Received callback")
-
-//   if (error) {
-//     console.error("[Instagram Callback] OAuth Error:", { error, reason: errorReason })
-//     return NextResponse.redirect(new URL(`/accounts?error=${error}&reason=${errorReason}`, request.url))
-//   }
-
-//   if (!code) {
-//     console.error("[Instagram Callback] No authorization code")
-//     return NextResponse.redirect(new URL("/accounts?error=no_code", request.url))
-//   }
-
-//   const { userId: clerkUserId } = await auth()
-
-//   if (!clerkUserId) {
-//     console.error("[Instagram Callback] User not authenticated")
-//     return NextResponse.redirect(new URL("/accounts?error=unauthorized", request.url))
-//   }
-
-//   try {
-//     console.log("[Instagram Callback] Starting OAuth flow...")
-    
-//     const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/instagram/callback`
-    
-//     // Step 1: Exchange code for short-lived token
-//     console.log("[Instagram Callback] Step 1: Getting short-lived token...")
-    
-//     const formData = new FormData()
-//     formData.append('client_id', process.env.INSTAGRAM_APP_ID || '')
-//     formData.append('client_secret', process.env.INSTAGRAM_CLIENT_SECRET || '')
-//     formData.append('grant_type', 'authorization_code')
-//     formData.append('redirect_uri', redirectUri)
-//     formData.append('code', code)
-    
-//     const tokenResponse = await axios.post(
-//       "https://api.instagram.com/oauth/access_token",
-//       formData,
-//       { headers: { "Content-Type": "multipart/form-data" } }
-//     )
-
-//     console.log("[Instagram Callback] ✅ Short-lived token received")
-//     console.log("[Instagram Callback] User ID from token:", tokenResponse.data.user_id)
-
-//     const { access_token: shortLivedToken, user_id: instagramUserId } = tokenResponse.data
-
-//     // Step 2: Exchange for long-lived token
-//     console.log("[Instagram Callback] Step 2: Getting long-lived token...")
-    
-//     const longLivedResponse = await axios.get(
-//       `https://graph.instagram.com/access_token?` +
-//       `grant_type=ig_exchange_token&` +
-//       `client_secret=${process.env.INSTAGRAM_CLIENT_SECRET}&` +
-//       `access_token=${shortLivedToken}`
-//     )
-
-//     console.log("[Instagram Callback] ✅ Long-lived token received (expires in", longLivedResponse.data.expires_in, "seconds)")
-
-//     const { access_token: longLivedToken } = longLivedResponse.data
-
-//     // Step 3: Get profile data
-//     console.log("[Instagram Callback] Step 3: Getting profile data...")
-    
-//     const profileResponse = await axios.get(
-//       `https://graph.instagram.com/me?` +
-//       `fields=id,username,account_type,media_count,followers_count,follows_count,profile_picture_url&` +
-//       `access_token=${longLivedToken}`
-//     )
-
-//     const profileData = profileResponse.data
-    
-//     console.log("[Instagram Callback] ✅ Profile data received:")
-//     console.log("[Instagram Callback]   - User ID:", profileData.id)
-//     console.log("[Instagram Callback]   - Username:", profileData.username)
-//     console.log("[Instagram Callback]   - Account Type:", profileData.account_type)
-
-//     // Step 4: Get Instagram Business Account ID (Page ID used by webhooks)
-//     console.log("[Instagram Callback] Step 4: Getting Instagram Business Account ID...")
-    
-//     let instagramPageId = null
-    
-//     try {
-//       // Method 1: Try to get business account info
-//       const businessResponse = await axios.get(
-//         `https://graph.facebook.com/v18.0/me/accounts?` +
-//         `fields=instagram_business_account{id}&` +
-//         `access_token=${longLivedToken}`
-//       )
-      
-//       console.log("[Instagram Callback] Business response:", JSON.stringify(businessResponse.data, null, 2))
-      
-//       if (businessResponse.data.data?.[0]?.instagram_business_account?.id) {
-//         instagramPageId = businessResponse.data.data[0].instagram_business_account.id
-//         console.log("[Instagram Callback] ✅ Found Page ID from business account:", instagramPageId)
-//       }
-//     } catch (error) {
-//       console.log("[Instagram Callback] Method 1 failed, trying method 2...")
-//     }
-    
-//     // Method 2: Try direct business account endpoint
-//     if (!instagramPageId) {
-//       try {
-//         const igBusinessResponse = await axios.get(
-//           `https://graph.instagram.com/${profileData.id}?` +
-//           `fields=id,username,ig_id&` +
-//           `access_token=${longLivedToken}`
-//         )
-        
-//         console.log("[Instagram Callback] IG Business response:", JSON.stringify(igBusinessResponse.data, null, 2))
-        
-//         if (igBusinessResponse.data.ig_id) {
-//           instagramPageId = igBusinessResponse.data.ig_id
-//           console.log("[Instagram Callback] ✅ Found Page ID from ig_id:", instagramPageId)
-//         }
-//       } catch (error) {
-//         console.log("[Instagram Callback] Method 2 failed")
-//       }
-//     }
-    
-//     // Method 3: Use the user ID as fallback
-//     if (!instagramPageId) {
-//       console.log("[Instagram Callback] ⚠️ Could not find separate Page ID, using User ID as fallback")
-//       instagramPageId = profileData.id
-//     }
-    
-//     console.log("[Instagram Callback] Final IDs:")
-//     console.log("[Instagram Callback]   - User ID (for API):", profileData.id)
-//     console.log("[Instagram Callback]   - Page ID (for webhooks):", instagramPageId)
-
-//     // Step 5: Ensure user exists
-//     console.log("[Instagram Callback] Step 5: Ensuring user exists in database...")
-    
-//     const user = await ensureUserExists(clerkUserId)
-
-//     if (!user) {
-//       console.error("[Instagram Callback] Failed to sync user")
-//       return NextResponse.redirect(new URL("/accounts?error=user_sync_failed", request.url))
-//     }
-
-//     console.log("[Instagram Callback] ✅ User found/created:", user.id)
-
-//     // Step 6: Save Instagram account with BOTH IDs
-//     console.log("[Instagram Callback] Step 6: Saving Instagram account...")
-    
-//     const tokenExpiry = new Date()
-//     tokenExpiry.setDate(tokenExpiry.getDate() + 60)
-
-//     await prisma.instagramAccount.upsert({
-//       where: { instagramId: profileData.id },
-//       create: {
-//         userId: user.id,
-//         instagramId: profileData.id,          // User ID for API calls
-//         instagramPageId: instagramPageId,      // Page ID for webhooks
-//         username: profileData.username,
-//         profilePicUrl: profileData.profile_picture_url || null,
-//         followerCount: profileData.followers_count || 0,
-//         accessToken: longLivedToken,
-//         tokenExpiry: tokenExpiry,
-//         isConnected: true,
-//       },
-//       update: {
-//         accessToken: longLivedToken,
-//         tokenExpiry: tokenExpiry,
-//         instagramPageId: instagramPageId,      // Update Page ID too
-//         isConnected: true,
-//         username: profileData.username,
-//         profilePicUrl: profileData.profile_picture_url || null,
-//         followerCount: profileData.followers_count || 0,
-//       },
-//     })
-
-//     console.log("[Instagram Callback] ✅ Instagram account saved with both IDs")
-//     console.log("[Instagram Callback] ✅ OAuth flow complete!")
-
-//     return NextResponse.redirect(new URL("/accounts?success=true", request.url))
-    
-//   } catch (error: any) {
-//     console.error("[Instagram Callback] ❌ Error:", error)
-    
-//     if (axios.isAxiosError(error)) {
-//       console.error("[Instagram Callback] API Error:", {
-//         status: error.response?.status,
-//         data: error.response?.data,
-//       })
-//     }
-
-//     return NextResponse.redirect(new URL("/accounts?error=connection_failed", request.url))
-//   }
-// }
-
 import { type NextRequest, NextResponse } from "next/server"
 import { auth } from "@clerk/nextjs/server"
 import { prisma } from "@/lib/db"
@@ -2094,18 +1892,13 @@ export async function GET(request: NextRequest) {
     const { access_token: shortLivedToken, user_id: instagramUserId } = tokenResponse.data
 
     // Step 2: Exchange for long-lived token
-    // ← FIX: Use POST instead of GET
     console.log("[Instagram Callback] Step 2: Getting long-lived token...")
     
-    const longLivedFormData = new FormData()
-    longLivedFormData.append('grant_type', 'ig_exchange_token')
-    longLivedFormData.append('client_secret', process.env.INSTAGRAM_CLIENT_SECRET || '')
-    longLivedFormData.append('access_token', shortLivedToken)
-    
-    const longLivedResponse = await axios.post(
-      "https://graph.instagram.com/access_token",
-      longLivedFormData,
-      { headers: { "Content-Type": "multipart/form-data" } }
+    const longLivedResponse = await axios.get(
+      `https://graph.instagram.com/access_token?` +
+      `grant_type=ig_exchange_token&` +
+      `client_secret=${process.env.INSTAGRAM_CLIENT_SECRET}&` +
+      `access_token=${shortLivedToken}`
     )
 
     console.log("[Instagram Callback] ✅ Long-lived token received (expires in", longLivedResponse.data.expires_in, "seconds)")
@@ -2128,8 +1921,61 @@ export async function GET(request: NextRequest) {
     console.log("[Instagram Callback]   - Username:", profileData.username)
     console.log("[Instagram Callback]   - Account Type:", profileData.account_type)
 
-    // Step 4: Ensure user exists
-    console.log("[Instagram Callback] Step 4: Ensuring user exists...")
+    // Step 4: Get Instagram Business Account ID (Page ID used by webhooks)
+    console.log("[Instagram Callback] Step 4: Getting Instagram Business Account ID...")
+    
+    let instagramPageId = null
+    
+    try {
+      // Method 1: Try to get business account info
+      const businessResponse = await axios.get(
+        `https://graph.facebook.com/v18.0/me/accounts?` +
+        `fields=instagram_business_account{id}&` +
+        `access_token=${longLivedToken}`
+      )
+      
+      console.log("[Instagram Callback] Business response:", JSON.stringify(businessResponse.data, null, 2))
+      
+      if (businessResponse.data.data?.[0]?.instagram_business_account?.id) {
+        instagramPageId = businessResponse.data.data[0].instagram_business_account.id
+        console.log("[Instagram Callback] ✅ Found Page ID from business account:", instagramPageId)
+      }
+    } catch (error) {
+      console.log("[Instagram Callback] Method 1 failed, trying method 2...")
+    }
+    
+    // Method 2: Try direct business account endpoint
+    if (!instagramPageId) {
+      try {
+        const igBusinessResponse = await axios.get(
+          `https://graph.instagram.com/${profileData.id}?` +
+          `fields=id,username,ig_id&` +
+          `access_token=${longLivedToken}`
+        )
+        
+        console.log("[Instagram Callback] IG Business response:", JSON.stringify(igBusinessResponse.data, null, 2))
+        
+        if (igBusinessResponse.data.ig_id) {
+          instagramPageId = igBusinessResponse.data.ig_id
+          console.log("[Instagram Callback] ✅ Found Page ID from ig_id:", instagramPageId)
+        }
+      } catch (error) {
+        console.log("[Instagram Callback] Method 2 failed")
+      }
+    }
+    
+    // Method 3: Use the user ID as fallback
+    if (!instagramPageId) {
+      console.log("[Instagram Callback] ⚠️ Could not find separate Page ID, using User ID as fallback")
+      instagramPageId = profileData.id
+    }
+    
+    console.log("[Instagram Callback] Final IDs:")
+    console.log("[Instagram Callback]   - User ID (for API):", profileData.id)
+    console.log("[Instagram Callback]   - Page ID (for webhooks):", instagramPageId)
+
+    // Step 5: Ensure user exists
+    console.log("[Instagram Callback] Step 5: Ensuring user exists in database...")
     
     const user = await ensureUserExists(clerkUserId)
 
@@ -2140,11 +1986,8 @@ export async function GET(request: NextRequest) {
 
     console.log("[Instagram Callback] ✅ User found/created:", user.id)
 
-    // Step 5: Save Instagram account
-    // Note: We store the OAuth User ID here
-    // The webhook will send a different Page ID on first message
-    // Our webhook handler will auto-update instagramPageId when it arrives
-    console.log("[Instagram Callback] Step 5: Saving Instagram account...")
+    // Step 6: Save Instagram account with BOTH IDs
+    console.log("[Instagram Callback] Step 6: Saving Instagram account...")
     
     const tokenExpiry = new Date()
     tokenExpiry.setDate(tokenExpiry.getDate() + 60)
@@ -2153,8 +1996,8 @@ export async function GET(request: NextRequest) {
       where: { instagramId: profileData.id },
       create: {
         userId: user.id,
-        instagramId: profileData.id,          // OAuth User ID
-        instagramPageId: null,                 // Will be set by webhook
+        instagramId: profileData.id,          // User ID for API calls
+        instagramPageId: instagramPageId,      // Page ID for webhooks
         username: profileData.username,
         profilePicUrl: profileData.profile_picture_url || null,
         followerCount: profileData.followers_count || 0,
@@ -2165,6 +2008,7 @@ export async function GET(request: NextRequest) {
       update: {
         accessToken: longLivedToken,
         tokenExpiry: tokenExpiry,
+        instagramPageId: instagramPageId,      // Update Page ID too
         isConnected: true,
         username: profileData.username,
         profilePicUrl: profileData.profile_picture_url || null,
@@ -2172,9 +2016,8 @@ export async function GET(request: NextRequest) {
       },
     })
 
-    console.log("[Instagram Callback] ✅ Instagram account saved")
+    console.log("[Instagram Callback] ✅ Instagram account saved with both IDs")
     console.log("[Instagram Callback] ✅ OAuth flow complete!")
-    console.log("[Instagram Callback] 💡 The webhook will set instagramPageId on first message")
 
     return NextResponse.redirect(new URL("/accounts?success=true", request.url))
     
@@ -2184,10 +2027,7 @@ export async function GET(request: NextRequest) {
     if (axios.isAxiosError(error)) {
       console.error("[Instagram Callback] API Error:", {
         status: error.response?.status,
-        statusText: error.response?.statusText,
         data: error.response?.data,
-        url: error.config?.url,
-        method: error.config?.method,
       })
     }
 
