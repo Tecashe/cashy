@@ -43,6 +43,7 @@ model InstagramAccount {
   id            String   @id @default(cuid())
   userId        String
   instagramId   String   @unique
+  instagramPageId String? @unique
   username      String
   profilePicUrl String?
   followerCount Int      @default(0)
