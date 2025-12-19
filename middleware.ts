@@ -52,7 +52,7 @@ const isPublicRoute = createRouteMatcher([
   "/sign-in(.*)", 
   "/sign-up(.*)",
   "/",
-  "/api/webhooks/instagram",  // Add this
+  "/api(.*)",  // Add this
   "/privacy",           // Add this for your privacy policy issue
   "/terms",         // Add this if you have one
 ])
