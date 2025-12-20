@@ -1,6 +1,6 @@
 import { auth } from "@clerk/nextjs/server"
 import { redirect, notFound } from "next/navigation"
-import { getConversation, getTags } from "@/actions/conversation-actions"
+import { getConversation } from "@/actions/conversation-actions"
 import { ConversationHeader } from "@/components/inbox/conversation-header"
 import { MessageThread } from "@/components/inbox/message-thread"
 import { MessageInput } from "@/components/inbox/message-input"
@@ -22,23 +22,18 @@ export default async function ConversationPage({
 
   if (!user) redirect("/sign-in")
 
-  const [conversationResult, tagsResult] = await Promise.all([getConversation(conversationId), getTags(user.id)])
+  const conversationResult = await getConversation(conversationId)
 
   if (!conversationResult.success || !conversationResult.conversation) {
     notFound()
   }
 
   const conversation = conversationResult.conversation
-  const tags = tagsResult.success ? tagsResult.tags || [] : []
 
   return (
     <div className="flex flex-col h-screen bg-background">
-      <ConversationHeader conversation={conversation} availableTags={tags} />
-      <MessageThread
-        messages={conversation.messages}
-        customerName={conversation.participantName || conversation.participantUsername}
-        igUsername={conversation.participantUsername}
-      />
+      <ConversationHeader conversation={conversation} />
+      <MessageThread messages={conversation.messages} />
       <MessageInput conversationId={conversationId} />
     </div>
   )

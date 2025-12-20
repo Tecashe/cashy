@@ -4,8 +4,7 @@ import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Star, Mail } from "lucide-react"
-import Link from "next/link"
+import { Star, Circle } from "lucide-react"
 
 type Message = {
   id: string
@@ -36,6 +35,7 @@ interface ConversationListProps {
   selectionMode?: boolean
   selectedIds?: string[]
   onSelectionChange?: (ids: string[]) => void
+  onSelect?: (id: string) => void
 }
 
 export function ConversationList({
@@ -44,6 +44,7 @@ export function ConversationList({
   selectionMode = false,
   selectedIds = [],
   onSelectionChange,
+  onSelect,
 }: ConversationListProps) {
   const handleSelect = (id: string) => {
     if (!onSelectionChange) return
@@ -67,10 +68,14 @@ export function ConversationList({
   return (
     <div className="flex flex-col">
       {conversations.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-12 text-center">
-          <Mail className="h-12 w-12 text-muted-foreground mb-4" />
-          <h3 className="text-lg font-medium">No conversations found</h3>
-          <p className="text-sm text-muted-foreground mt-1">Start a conversation to see it here</p>
+        <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
+          <div className="bg-muted rounded-full p-4 mb-3">
+            <Circle className="h-8 w-8 text-muted-foreground" />
+          </div>
+          <h3 className="font-medium mb-1">No conversations</h3>
+          <p className="text-sm text-muted-foreground">
+            Your conversations will appear here when customers message you
+          </p>
         </div>
       ) : (
         conversations.map((conversation) => {
@@ -80,13 +85,13 @@ export function ConversationList({
           const tags = conversation.conversationTags.map((ct) => ct.tag)
 
           return (
-            <Link
+            <button
               key={conversation.id}
-              href={`/inbox/${conversation.id}`}
+              onClick={() => onSelect?.(conversation.id)}
               className={cn(
-                "flex items-start gap-3 p-4 border-b border-border hover:bg-accent/50 transition-colors",
-                isActive && "bg-accent",
-                !conversation.isRead && "bg-muted/30",
+                "flex items-start gap-3 p-4 border-b border-border hover:bg-accent/50 transition-colors text-left w-full",
+                isActive && "bg-accent border-l-4 border-l-primary",
+                !conversation.isRead && "bg-primary/5",
               )}
             >
               {selectionMode && (
@@ -97,23 +102,28 @@ export function ConversationList({
                 />
               )}
 
-              <Avatar className="h-10 w-10 mt-1">
-                <AvatarImage
-                  src={`https://avatar.vercel.sh/${conversation.participantUsername}`}
-                  alt={conversation.participantName || conversation.participantUsername}
-                />
-                <AvatarFallback>
-                  {getInitials(conversation.participantName || conversation.participantUsername)}
-                </AvatarFallback>
-              </Avatar>
+              <div className="relative">
+                <Avatar className="h-12 w-12">
+                  <AvatarImage
+                    src={`https://avatar.vercel.sh/${conversation.participantUsername}`}
+                    alt={conversation.participantName || conversation.participantUsername}
+                  />
+                  <AvatarFallback className="font-semibold">
+                    {getInitials(conversation.participantName || conversation.participantUsername)}
+                  </AvatarFallback>
+                </Avatar>
+                {!conversation.isRead && (
+                  <div className="absolute -top-1 -right-1 h-3 w-3 bg-primary rounded-full border-2 border-card" />
+                )}
+              </div>
 
               <div className="flex-1 min-w-0">
                 <div className="flex items-start justify-between gap-2 mb-1">
-                  <div className="flex items-center gap-2 min-w-0">
+                  <div className="flex items-center gap-2 min-w-0 flex-1">
                     <h3 className={cn("font-medium truncate", !conversation.isRead && "font-semibold")}>
                       {conversation.participantName || conversation.participantUsername}
                     </h3>
-                    {conversation.starred && <Star className="h-4 w-4 fill-yellow-400 text-yellow-400 shrink-0" />}
+                    {conversation.starred && <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400 shrink-0" />}
                   </div>
                   <time className="text-xs text-muted-foreground shrink-0">
                     {formatDistanceToNow(new Date(conversation.lastMessageAt), {
@@ -122,52 +132,44 @@ export function ConversationList({
                   </time>
                 </div>
 
-                <p className="text-sm text-muted-foreground mb-2">@{conversation.participantUsername}</p>
+                <p className="text-xs text-muted-foreground mb-2">@{conversation.participantUsername}</p>
 
                 {lastMessage && (
                   <p
                     className={cn(
-                      "text-sm truncate",
+                      "text-sm truncate mb-2",
                       !conversation.isRead ? "text-foreground font-medium" : "text-muted-foreground",
                     )}
                   >
-                    {lastMessage.isFromUser ? "Them: " : "You: "}
+                    <span className="font-medium">{lastMessage.isFromUser ? "" : "You: "}</span>
                     {lastMessage.content}
                   </p>
                 )}
 
-                {tags.length > 0 && (
-                  <div className="flex flex-wrap gap-1 mt-2">
-                    {tags.map((tag) => (
-                      <Badge
-                        key={tag.id}
-                        variant="secondary"
-                        className="text-xs"
-                        style={{
-                          backgroundColor: `${tag.color}20`,
-                          color: tag.color,
-                          borderColor: `${tag.color}40`,
-                        }}
-                      >
-                        {tag.name}
-                      </Badge>
-                    ))}
-                  </div>
-                )}
-
-                <div className="flex items-center gap-2 mt-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   {!conversation.isRead && (
-                    <Badge variant="default" className="text-xs">
-                      Unread
+                    <Badge variant="default" className="text-xs h-5">
+                      New
                     </Badge>
                   )}
-                  <Badge variant={conversation.isAuto ? "secondary" : "outline"} className="text-xs">
-                    {conversation.isAuto ? "Auto" : "Manual"}
-                  </Badge>
-                  <span className="text-xs text-muted-foreground">{conversation._count.messages} messages</span>
+                  {tags.slice(0, 2).map((tag) => (
+                    <Badge
+                      key={tag.id}
+                      variant="outline"
+                      className="text-xs h-5"
+                      style={{
+                        backgroundColor: `${tag.color}10`,
+                        borderColor: tag.color,
+                        color: tag.color,
+                      }}
+                    >
+                      {tag.name}
+                    </Badge>
+                  ))}
+                  {tags.length > 2 && <span className="text-xs text-muted-foreground">+{tags.length - 2}</span>}
                 </div>
               </div>
-            </Link>
+            </button>
           )
         })
       )}

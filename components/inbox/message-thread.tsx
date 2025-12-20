@@ -1,74 +1,132 @@
 "use client"
 
 import { useEffect, useRef } from "react"
-import { formatDistanceToNow } from "date-fns"
+import { format, isToday, isYesterday } from "date-fns"
 import { cn } from "@/lib/utils"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { CheckCheck, Check } from "lucide-react"
 
 type Message = {
   id: string
   content: string
   createdAt: Date
   isFromUser: boolean
+  isRead: boolean
 }
 
 interface MessageThreadProps {
   messages: Message[]
-  customerName: string
-  igUsername: string
 }
 
-export function MessageThread({ messages, customerName, igUsername }: MessageThreadProps) {
+export function MessageThread({ messages }: MessageThreadProps) {
   const bottomRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [messages])
 
-  const getInitials = (name: string) => {
-    return name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase()
-      .slice(0, 2)
+  // Group messages by date
+  const groupedMessages = messages.reduce(
+    (groups, message) => {
+      const date = format(new Date(message.createdAt), "yyyy-MM-dd")
+      if (!groups[date]) {
+        groups[date] = []
+      }
+      groups[date].push(message)
+      return groups
+    },
+    {} as Record<string, typeof messages>,
+  )
+
+  const formatDateLabel = (dateString: string) => {
+    const date = new Date(dateString)
+    if (isToday(date)) return "Today"
+    if (isYesterday(date)) return "Yesterday"
+    return format(date, "MMMM d, yyyy")
   }
 
   return (
-    <div className="flex-1 overflow-y-auto p-4 space-y-4">
-      {messages.map((message) => (
-        <div key={message.id} className={cn("flex gap-3", !message.isFromUser && "flex-row-reverse")}>
-          <Avatar className="h-8 w-8">
-            {message.isFromUser ? (
-              <>
-                <AvatarImage src={`https://avatar.vercel.sh/${igUsername}`} alt={customerName || igUsername} />
-                <AvatarFallback>{getInitials(customerName || igUsername)}</AvatarFallback>
-              </>
-            ) : (
-              <>
-                <AvatarFallback className="bg-primary text-primary-foreground">You</AvatarFallback>
-              </>
-            )}
-          </Avatar>
-
-          <div className={cn("flex flex-col gap-1", !message.isFromUser && "items-end")}>
-            <div
-              className={cn(
-                "rounded-lg px-4 py-2 max-w-[70%]",
-                message.isFromUser ? "bg-muted text-foreground" : "bg-primary text-primary-foreground",
-              )}
-            >
-              <p className="text-sm leading-relaxed">{message.content}</p>
+    <div className="flex-1 overflow-y-auto px-6 py-4">
+      <div className="space-y-6 max-w-4xl mx-auto">
+        {Object.entries(groupedMessages).map(([date, msgs]) => (
+          <div key={date}>
+            {/* Date divider */}
+            <div className="flex items-center gap-4 mb-6">
+              <div className="flex-1 h-px bg-border" />
+              <span className="text-xs text-muted-foreground font-medium px-3 py-1.5 bg-muted/50 rounded-full">
+                {formatDateLabel(date)}
+              </span>
+              <div className="flex-1 h-px bg-border" />
             </div>
-            <time className="text-xs text-muted-foreground">
-              {formatDistanceToNow(new Date(message.createdAt), {
-                addSuffix: true,
+
+            {/* Messages */}
+            <div className="space-y-3">
+              {msgs.map((message, index) => {
+                const showAvatar = index === 0 || msgs[index - 1].isFromUser !== message.isFromUser
+                const isConsecutive = index > 0 && msgs[index - 1].isFromUser === message.isFromUser
+
+                return (
+                  <div
+                    key={message.id}
+                    className={cn(
+                      "flex gap-3 items-end group transition-opacity hover:opacity-100",
+                      !message.isFromUser && "flex-row-reverse",
+                      isConsecutive && "opacity-90",
+                    )}
+                  >
+                    {/* Avatar */}
+                    {showAvatar ? (
+                      <Avatar className="h-8 w-8 shadow-sm">
+                        {message.isFromUser ? (
+                          <AvatarFallback className="bg-gradient-to-br from-pink-500 to-orange-400 text-white text-xs font-medium">
+                            CU
+                          </AvatarFallback>
+                        ) : (
+                          <AvatarFallback className="bg-primary text-primary-foreground text-xs font-medium">
+                            YO
+                          </AvatarFallback>
+                        )}
+                      </Avatar>
+                    ) : (
+                      <div className="h-8 w-8" />
+                    )}
+
+                    <div className={cn("flex flex-col gap-1 max-w-[65%]", !message.isFromUser && "items-end")}>
+                      <div
+                        className={cn(
+                          "rounded-2xl px-4 py-2.5 shadow-sm transition-all",
+                          message.isFromUser
+                            ? "bg-muted text-foreground rounded-bl-sm"
+                            : "bg-primary text-primary-foreground rounded-br-sm",
+                          showAvatar && message.isFromUser && "rounded-tl-2xl",
+                          showAvatar && !message.isFromUser && "rounded-tr-2xl",
+                        )}
+                      >
+                        <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">{message.content}</p>
+                      </div>
+                      <div className="flex items-center gap-1.5 px-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <time className="text-xs text-muted-foreground">
+                          {format(new Date(message.createdAt), "h:mm a")}
+                        </time>
+                        {!message.isFromUser && (
+                          <span className="text-muted-foreground">
+                            {message.isRead ? (
+                              <CheckCheck className="h-3 w-3 text-primary" />
+                            ) : (
+                              <Check className="h-3 w-3" />
+                            )}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )
               })}
-            </time>
+            </div>
           </div>
-        </div>
-      ))}
-      <div ref={bottomRef} />
+        ))}
+        <div ref={bottomRef} />
+      </div>
     </div>
   )
 }
