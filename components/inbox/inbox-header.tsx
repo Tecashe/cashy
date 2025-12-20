@@ -53,16 +53,13 @@ import { Badge } from "@/components/ui/badge"
 import { Inbox, RefreshCw } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
-import { FixConversationsButton } from "@/components/inbox/fix-conversations-button"
 
 interface InboxHeaderProps {
   unreadCount: number
   totalCount: number
-  userId?: string
-  instagramAccountId?: string
 }
 
-export function InboxHeader({ unreadCount, totalCount, userId, instagramAccountId }: InboxHeaderProps) {
+export function InboxHeader({ unreadCount, totalCount }: InboxHeaderProps) {
   const router = useRouter()
   const [isRefreshing, setIsRefreshing] = useState(false)
 
@@ -90,9 +87,6 @@ export function InboxHeader({ unreadCount, totalCount, userId, instagramAccountI
           </div>
         </div>
         <div className="flex items-center gap-2">
-          {userId && instagramAccountId && (
-            <FixConversationsButton userId={userId} instagramAccountId={instagramAccountId} />
-          )}
           <Button variant="outline" size="sm" onClick={handleRefresh} disabled={isRefreshing}>
             <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? "animate-spin" : ""}`} />
             Refresh

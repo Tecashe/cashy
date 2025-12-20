@@ -3014,6 +3014,675 @@
 
 
 
+// import { type NextRequest, NextResponse } from "next/server"
+// import { prisma } from "@/lib/db"
+// import { InstagramAPI } from "@/lib/instagram-api"
+// import { AutomationExecutor } from "@/lib/automation-executor"
+// import { enqueueMessage } from "@/lib/automation-queue"
+
+// // GET - Webhook verification
+// export async function GET(request: NextRequest) {
+//   const searchParams = request.nextUrl.searchParams
+//   const mode = searchParams.get("hub.mode")
+//   const token = searchParams.get("hub.verify_token")
+//   const challenge = searchParams.get("hub.challenge")
+  
+//   if (mode === "subscribe" && token === process.env.INSTAGRAM_WEBHOOK_VERIFY_TOKEN) {
+//     console.log("[Instagram Webhook] ✅ Verified successfully")
+//     return new NextResponse(challenge, { status: 200 })
+//   }
+  
+//   console.error("[Instagram Webhook] ❌ Verification failed")
+//   return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+// }
+
+// // POST - Webhook events
+// export async function POST(request: NextRequest) {
+//   try {
+//     const body = await request.json()
+    
+//     console.log("[Instagram Webhook] 📨 Received webhook:", JSON.stringify(body, null, 2))
+    
+//     if (body.object === "instagram") {
+//       for (const entry of body.entry || []) {
+//         const webhookPageId = entry.id
+        
+//         console.log("[Instagram Webhook] Processing entry:", {
+//           webhookPageId,
+//           time: entry.time,
+//           hasMessaging: !!entry.messaging,
+//           hasChanges: !!entry.changes,
+//         })
+        
+//         // Handle messaging events (DMs, story replies)
+//         if (entry.messaging) {
+//           for (const messagingEvent of entry.messaging) {
+//             await processMessagingEvent(messagingEvent, webhookPageId)
+//           }
+//         }
+        
+//         // Handle changes (comments, mentions)
+//         if (entry.changes) {
+//           for (const change of entry.changes) {
+//             await processChangeEvent(change, webhookPageId)
+//           }
+//         }
+//       }
+//     }
+    
+//     return NextResponse.json({ success: true }, { status: 200 })
+//   } catch (error) {
+//     console.error("[Instagram Webhook] ❌ Error:", error)
+//     return NextResponse.json({ success: true }, { status: 200 })
+//   }
+// }
+
+// // Handle direct messages and story replies
+// async function processMessagingEvent(messagingEvent: any, webhookPageId: string) {
+//   try {
+//     const senderId = messagingEvent.sender?.id
+//     const message = messagingEvent.message
+    
+//     console.log("[Instagram Webhook] 💬 Processing message:", {
+//       senderId,
+//       webhookPageId,
+//       messageText: message?.text,
+//     })
+    
+//     if (!senderId || !message || message.is_echo) {
+//       console.log("[Instagram Webhook] ⚠️ Skipping (missing data or echo)")
+//       return
+//     }
+    
+//     // Find Instagram account - match by webhookPageId OR update if found by other means
+//     let instagramAccount = await prisma.instagramAccount.findFirst({
+//       where: {
+//         OR: [
+//           { instagramPageId: webhookPageId },
+//           { instagramId: webhookPageId },
+//         ]
+//       },
+//       include: { user: true }
+//     })
+    
+//     // If not found, try to find ANY connected account and update it
+//     if (!instagramAccount) {
+//       console.log("[Instagram Webhook] No account found by webhook ID")
+//       console.log("[Instagram Webhook] Searching for recently connected accounts...")
+      
+//       instagramAccount = await prisma.instagramAccount.findFirst({
+//         where: { 
+//           isConnected: true,
+//           createdAt: {
+//             gte: new Date(Date.now() - 24 * 60 * 60 * 1000)
+//           }
+//         },
+//         orderBy: { createdAt: 'desc' },
+//         include: { user: true }
+//       })
+      
+//       if (instagramAccount) {
+//         console.log("[Instagram Webhook] ✅ Found recent account:", instagramAccount.username)
+//         console.log("[Instagram Webhook] Updating with webhook Page ID:", webhookPageId)
+        
+//         instagramAccount = await prisma.instagramAccount.update({
+//           where: { id: instagramAccount.id },
+//           data: { instagramPageId: webhookPageId },
+//           include: { user: true }
+//         })
+        
+//         console.log("[Instagram Webhook] ✅ Account updated with webhook ID")
+//       } else {
+//         console.log("[Instagram Webhook] ⚠️ No matching account found")
+//         const allAccounts = await prisma.instagramAccount.findMany({
+//           select: { id: true, instagramId: true, instagramPageId: true, username: true, createdAt: true }
+//         })
+//         console.log("[Instagram Webhook] All accounts:", allAccounts)
+//         return
+//       }
+//     }
+    
+//     console.log("[Instagram Webhook] ✅ Using account:", instagramAccount.username)
+    
+//     // Find or create conversation
+//     let conversation = await prisma.conversation.findFirst({
+//       where: {
+//         instagramAccountId: instagramAccount.id,
+//         participantId: senderId,
+//       },
+//     })
+    
+//     const isFirstMessage = !conversation
+    
+//     if (!conversation) {
+//       console.log("[Instagram Webhook] Creating new conversation...")
+//       conversation = await prisma.conversation.create({
+//         data: {
+//           instagramAccountId: instagramAccount.id,
+//           userId: instagramAccount.userId,
+//           participantId: senderId,
+//           participantName: messagingEvent.sender.username || "Unknown",
+//           participantUsername: messagingEvent.sender.username || "unknown",
+//           participantAvatar: null,
+//           lastMessageText: message.text || "[Media]",
+//           lastMessageAt: new Date(messagingEvent.timestamp || Date.now()),
+//           unreadCount: 1,
+//         },
+//       })
+//     } else {
+//       await prisma.conversation.update({
+//         where: { id: conversation.id },
+//         data: {
+//           lastMessageText: message.text || "[Media]",
+//           lastMessageAt: new Date(messagingEvent.timestamp || Date.now()),
+//           unreadCount: { increment: 1 },
+//         },
+//       })
+//     }
+    
+//     // Save message
+//     await prisma.message.create({
+//       data: {
+//         conversationId: conversation.id,
+//         content: message.text || "[Media]",
+//         sender: "participant",
+//         isRead: false,
+//         messageType: message.is_story_reply ? "story_reply" : "text",
+//       },
+//     })
+    
+//     console.log("[Instagram Webhook] ✅ Message saved")
+    
+//     // Process automation triggers
+//     const messageType = message.is_story_reply ? "STORY_REPLY" : "DM"
+    
+//     await processAutomationTriggers({
+//       conversationId: conversation.id,
+//       messageContent: message.text,
+//       senderId: senderId,
+//       senderUsername: messagingEvent.sender.username || "unknown",
+//       senderName: messagingEvent.sender.username || "Unknown",
+//       messageType,
+//       isFirstMessage,
+//       instagramAccountId: instagramAccount.id,
+//       webhookPageId: webhookPageId,
+//       accessToken: instagramAccount.accessToken,
+//     })
+    
+//   } catch (error) {
+//     console.error("[Instagram Webhook] ❌ Error processing message:", error)
+//   }
+// }
+
+// // Handle comments and mentions
+// async function processChangeEvent(change: any, webhookPageId: string) {
+//   try {
+//     const { field, value } = change
+    
+//     console.log("[Instagram Webhook] 🔄 Processing change:", field)
+    
+//     if (field === "comments") {
+//       await processComment(value, webhookPageId)
+//     } else if (field === "mentions") {
+//       await processMention(value, webhookPageId)
+//     }
+//   } catch (error) {
+//     console.error("[Instagram Webhook] ❌ Error processing change:", error)
+//   }
+// }
+
+// async function processComment(value: any, webhookPageId: string) {
+//   try {
+//     const { id: commentId, text, from, media } = value
+    
+//     if (!from || !text) {
+//       console.log("[Instagram Webhook] ⚠️ Comment missing data")
+//       return
+//     }
+    
+//     // Find account by webhook Page ID
+//     const instagramAccount = await prisma.instagramAccount.findFirst({
+//       where: {
+//         OR: [
+//           { instagramPageId: webhookPageId },
+//           { instagramId: webhookPageId },
+//         ]
+//       },
+//       include: { user: true }
+//     })
+    
+//     if (!instagramAccount) {
+//       console.log("[Instagram Webhook] ⚠️ No account for comment")
+//       return
+//     }
+    
+//     // Find or create conversation
+//     let conversation = await prisma.conversation.findFirst({
+//       where: {
+//         instagramAccountId: instagramAccount.id,
+//         participantId: from.id,
+//       },
+//     })
+    
+//     if (!conversation) {
+//       conversation = await prisma.conversation.create({
+//         data: {
+//           instagramAccountId: instagramAccount.id,
+//           userId: instagramAccount.userId,
+//           participantId: from.id,
+//           participantName: from.username || "Unknown",
+//           participantUsername: from.username || "unknown",
+//           participantAvatar: null,
+//           lastMessageText: `Commented: ${text}`,
+//           lastMessageAt: new Date(),
+//           unreadCount: 0,
+//         },
+//       })
+//     }
+    
+//     // Detect if comment contains mentions
+//     const hasMention = /@\w+/.test(text)
+//     const mentionMatches = text.match(/@(\w+)/g) || []
+//     const mentionedUsernames = mentionMatches.map((m: string) => m.substring(1))
+    
+//     console.log("[Instagram Webhook] 💬 Comment details:", {
+//       text,
+//       hasMention,
+//       mentionedUsernames,
+//       commentId
+//     })
+    
+//     // Determine message type based on whether it has mentions
+//     const messageType = hasMention ? "COMMENT_MENTION" : "COMMENT"
+    
+//     await processAutomationTriggers({
+//       conversationId: conversation.id,
+//       messageContent: text,
+//       senderId: from.id,
+//       senderUsername: from.username || "unknown",
+//       senderName: from.username || "Unknown",
+//       messageType: messageType as any,
+//       isFirstMessage: false,
+//       instagramAccountId: instagramAccount.id,
+//       webhookPageId: webhookPageId,
+//       accessToken: instagramAccount.accessToken,
+//       triggerData: { 
+//         commentId, 
+//         mediaId: media?.id,
+//         hasMention,
+//         mentionedUsernames 
+//       }
+//     })
+    
+//   } catch (error) {
+//     console.error("[Instagram Webhook] ❌ Error processing comment:", error)
+//   }
+// }
+
+// async function processMention(value: any, webhookPageId: string) {
+//   try {
+//     const { comment_id, media_id, from } = value
+    
+//     if (!from) return
+    
+//     const instagramAccount = await prisma.instagramAccount.findFirst({
+//       where: {
+//         OR: [
+//           { instagramPageId: webhookPageId },
+//           { instagramId: webhookPageId },
+//         ]
+//       },
+//       include: { user: true }
+//     })
+    
+//     if (!instagramAccount) return
+    
+//     let conversation = await prisma.conversation.findFirst({
+//       where: {
+//         instagramAccountId: instagramAccount.id,
+//         participantId: from.id,
+//       },
+//     })
+    
+//     if (!conversation) {
+//       conversation = await prisma.conversation.create({
+//         data: {
+//           instagramAccountId: instagramAccount.id,
+//           userId: instagramAccount.userId,
+//           participantId: from.id,
+//           participantName: from.username || "Unknown",
+//           participantUsername: from.username || "unknown",
+//           participantAvatar: null,
+//           lastMessageText: "Mentioned you",
+//           lastMessageAt: new Date(),
+//           unreadCount: 0,
+//         },
+//       })
+//     }
+    
+//     await processAutomationTriggers({
+//       conversationId: conversation.id,
+//       messageContent: "",
+//       senderId: from.id,
+//       senderUsername: from.username || "unknown",
+//       senderName: from.username || "Unknown",
+//       messageType: "MENTION",
+//       isFirstMessage: false,
+//       instagramAccountId: instagramAccount.id,
+//       webhookPageId: webhookPageId,
+//       accessToken: instagramAccount.accessToken,
+//       triggerData: { commentId: comment_id, mediaId: media_id }
+//     })
+    
+//   } catch (error) {
+//     console.error("[Instagram Webhook] ❌ Error processing mention:", error)
+//   }
+// }
+
+// // Trigger context interface
+// interface TriggerContext {
+//   conversationId: string
+//   messageContent?: string
+//   senderId: string
+//   senderUsername: string
+//   senderName: string
+//   messageType: "DM" | "COMMENT" | "COMMENT_MENTION" | "STORY_REPLY" | "MENTION"
+//   isFirstMessage: boolean
+//   instagramAccountId: string
+//   webhookPageId: string
+//   accessToken: string
+//   triggerData?: any
+// }
+
+// // Process automation triggers
+// async function processAutomationTriggers(context: TriggerContext) {
+//   console.log("[Automation] 🔍 Checking triggers:", {
+//     messageType: context.messageType,
+//     isFirstMessage: context.isFirstMessage,
+//     hasMention: context.triggerData?.hasMention,
+//   })
+  
+//   const conversation = await prisma.conversation.findUnique({
+//     where: { id: context.conversationId },
+//     include: { 
+//       user: true,
+//       instagramAccount: true,
+//       conversationTags: { include: { tag: true } }
+//     },
+//   })
+  
+//   if (!conversation) return
+  
+//   const automations = await prisma.automation.findMany({
+//     where: {
+//       userId: conversation.userId,
+//       instagramAccountId: context.instagramAccountId,
+//       isActive: true,
+//     },
+//     include: {
+//       triggers: true,
+//       actions: { orderBy: { order: "asc" } },
+//       instagramAccount: true,
+//     },
+//   })
+  
+//   console.log("[Automation] Found automations:", automations.length)
+  
+//   for (const automation of automations) {
+//     const shouldExecute = checkAutomationTriggers(automation, context)
+    
+//     if (shouldExecute) {
+//       console.log(`[Automation] ✅ Triggering: ${automation.name}`)
+      
+//       const execution = await prisma.automationExecution.create({
+//         data: {
+//           automationId: automation.id,
+//           conversationId: context.conversationId,
+//           status: "pending",
+//           triggeredBy: `${context.messageType}_${context.senderId}`,
+//         }
+//       })
+      
+//       await executeAutomation(automation, context, conversation, execution.id)
+//       break
+//     }
+//   }
+// }
+
+// function checkAutomationTriggers(automation: any, context: TriggerContext): boolean {
+//   const { messageContent = "", messageType, isFirstMessage } = context
+  
+//   if (!automation.triggers || automation.triggers.length === 0) {
+//     console.log("[Automation] ❌ No triggers found for:", automation.name)
+//     return false
+//   }
+  
+//   console.log("[Automation] 📋 Checking triggers for:", automation.name, {
+//     triggerCount: automation.triggers.length,
+//     messageType,
+//     hasContent: !!messageContent
+//   })
+  
+//   const triggerResults = automation.triggers.map((trigger: any) => {
+//     const conditions = trigger.conditions || {}
+    
+//     console.log("[Automation] 🔍 Evaluating trigger:", {
+//       automationName: automation.name,
+//       type: trigger.type,
+//       conditions,
+//       messageType
+//     })
+    
+//     let matches = false
+    
+//     switch (trigger.type) {
+//       case "DM_RECEIVED":
+//       case "new_message":
+//         matches = messageType === "DM"
+//         break
+        
+//       case "FIRST_MESSAGE":
+//         matches = isFirstMessage && messageType === "DM"
+//         break
+        
+//       case "KEYWORD":
+//       case "keyword":
+//         if (messageType !== "DM" && messageType !== "COMMENT" && messageType !== "COMMENT_MENTION") {
+//           matches = false
+//           break
+//         }
+        
+//         const keywords = conditions.keywords || []
+//         const matchType = conditions.matchType || "contains"
+        
+//         console.log("[Automation] 🔑 Keyword check:", {
+//           keywords,
+//           matchType,
+//           messageContent
+//         })
+        
+//         if (matchType === "contains" || matchType === "any") {
+//           matches = keywords.some((keyword: string) => 
+//             messageContent.toLowerCase().includes(keyword.toLowerCase())
+//           )
+//         } else if (matchType === "exact" || matchType === "all") {
+//           matches = keywords.every((keyword: string) => 
+//             messageContent.toLowerCase().includes(keyword.toLowerCase())
+//           )
+//         } else if (matchType === "starts_with") {
+//           matches = keywords.some((keyword: string) => 
+//             messageContent.toLowerCase().startsWith(keyword.toLowerCase())
+//           )
+//         }
+//         break
+        
+//       case "STORY_REPLY":
+//         matches = messageType === "STORY_REPLY"
+//         break
+        
+//       case "COMMENT":
+//       case "COMMENT_RECEIVED":
+//         // Match both regular comments AND comment mentions
+//         matches = messageType === "COMMENT" || messageType === "COMMENT_MENTION"
+        
+//         // If conditions require a mention, check for it
+//         if (matches && conditions.requireMention) {
+//           matches = context.triggerData?.hasMention || false
+//         }
+        
+//         // If specific username must be mentioned
+//         if (matches && conditions.mentionUsername) {
+//           const mentionedUsernames = context.triggerData?.mentionedUsernames || []
+//           matches = mentionedUsernames.includes(conditions.mentionUsername)
+//         }
+//         break
+        
+//       case "COMMENT_MENTION":
+//         // Only trigger on comments with mentions
+//         matches = messageType === "COMMENT_MENTION"
+        
+//         // If specific username must be mentioned
+//         if (matches && conditions.mentionUsername) {
+//           const mentionedUsernames = context.triggerData?.mentionedUsernames || []
+//           matches = mentionedUsernames.includes(conditions.mentionUsername)
+//         }
+//         break
+        
+//       case "mention":
+//       case "MENTION":
+//       case "MENTION_RECEIVED":
+//         // Handle both comment mentions and story/feed mentions
+//         matches = messageType === "MENTION" || messageType === "COMMENT_MENTION"
+        
+//         // If specific username must be mentioned
+//         if (matches && conditions.mentionUsername) {
+//           const mentionedUsernames = context.triggerData?.mentionedUsernames || []
+//           matches = mentionedUsernames.includes(conditions.mentionUsername)
+//         }
+//         break
+        
+//       default:
+//         console.log("[Automation] ⚠️ Unknown trigger type:", trigger.type)
+//         matches = false
+//     }
+    
+//     console.log("[Automation] 📊 Trigger result:", {
+//       automationName: automation.name,
+//       triggerType: trigger.type,
+//       matches
+//     })
+    
+//     return matches
+//   })
+  
+//   const shouldExecute = triggerResults.some((result: any) => result)
+  
+//   console.log("[Automation] 🎯 Final decision for", automation.name, ":", {
+//     shouldExecute,
+//     matchedTriggers: triggerResults.filter((r: any) => r).length,
+//     totalTriggers: triggerResults.length
+//   })
+  
+//   return shouldExecute
+// }
+
+// async function executeAutomation(
+//   automation: any, 
+//   context: TriggerContext, 
+//   conversation: any,
+//   executionId: string
+// ) {
+//   try {
+//     console.log("[Automation] 🚀 Executing:", automation.name)
+    
+//     // Use webhookPageId for API calls
+//     const instagramAPI = new InstagramAPI({
+//       accessToken: context.accessToken,
+//       instagramId: context.webhookPageId,
+//     })
+    
+//     const executor = new AutomationExecutor(instagramAPI)
+    
+//     const executionContext = {
+//       userId: conversation.userId,
+//       senderId: context.senderId,
+//       messageText: context.messageContent,
+//       triggerData: {
+//         participantName: conversation.participantName,
+//         participantUsername: conversation.participantUsername,
+//         username: context.senderUsername,
+//         name: context.senderName,
+//         ...context.triggerData,
+//       },
+//       conversationHistory: [],
+//       userTags: conversation.conversationTags.map((ct: any) => ct.tag.name),
+//     }
+    
+//     for (const action of automation.actions) {
+//       try {
+//         const actionData = action.content || {}
+        
+//         if (action.type === "DELAY" || action.type === "delay") {
+//           const delayMs = calculateDelay(actionData)
+          
+//           if (delayMs > 60000) {
+//             const remainingActions = automation.actions.slice(
+//               automation.actions.indexOf(action) + 1
+//             )
+            
+//             for (const futureAction of remainingActions) {
+//               if (futureAction.type === "SEND_MESSAGE") {
+//                 await enqueueMessage({
+//                   conversationId: context.conversationId,
+//                   messageContent: futureAction.content?.message || "",
+//                   recipientId: context.senderId,
+//                   scheduledFor: new Date(Date.now() + delayMs),
+//                   metadata: { automationId: automation.id, actionId: futureAction.id }
+//                 })
+//               }
+//             }
+//             break
+//           } else {
+//             await new Promise(resolve => setTimeout(resolve, delayMs))
+//           }
+//         } else {
+//           await executor.executeAction(action.type, actionData, executionContext)
+//           await new Promise(resolve => setTimeout(resolve, 1000))
+//         }
+        
+//       } catch (error) {
+//         console.error(`[Automation] ❌ Action failed:`, error)
+//       }
+//     }
+    
+//     await prisma.automationExecution.update({
+//       where: { id: executionId },
+//       data: { status: "success", completedAt: new Date() }
+//     })
+    
+//     console.log(`[Automation] ✅ Completed: ${automation.name}`)
+    
+//   } catch (error) {
+//     console.error("[Automation] ❌ Error:", error)
+//     await prisma.automationExecution.update({
+//       where: { id: executionId },
+//       data: {
+//         status: "failed",
+//         error: error instanceof Error ? error.message : "Unknown error",
+//         completedAt: new Date(),
+//       }
+//     })
+//   }
+// }
+
+// function calculateDelay(actionData: any): number {
+//   const days = actionData.delayDays || 0
+//   const hours = actionData.delayHours || 0
+//   const minutes = actionData.delayMinutes || 0
+//   return (days * 24 * 60 + hours * 60 + minutes) * 60 * 1000
+// }
+
+
 import { type NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/db"
 import { InstagramAPI } from "@/lib/instagram-api"
@@ -3074,6 +3743,35 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("[Instagram Webhook] ❌ Error:", error)
     return NextResponse.json({ success: true }, { status: 200 })
+  }
+}
+
+// Helper function to fetch user profile from Instagram API
+async function fetchUserProfile(userId: string, accessToken: string, webhookPageId: string) {
+  try {
+    console.log("[Instagram Webhook] 📸 Fetching profile for user:", userId)
+    
+    const instagramAPI = new InstagramAPI({
+      accessToken,
+      instagramId: webhookPageId,
+    })
+    
+    const profileData = await instagramAPI.getUserProfile(userId)
+    
+    console.log("[Instagram Webhook] ✅ Profile fetched:", {
+      username: profileData.username,
+      name: profileData.name,
+      hasProfilePic: !!profileData.profile_pic
+    })
+    
+    return {
+      username: profileData.username || "unknown",
+      name: profileData.name || profileData.username || "Unknown",
+      profilePic: profileData.profile_pic || null,
+    }
+  } catch (error) {
+    console.error("[Instagram Webhook] ❌ Error fetching user profile:", error)
+    return null
   }
 }
 
@@ -3156,20 +3854,31 @@ async function processMessagingEvent(messagingEvent: any, webhookPageId: string)
     
     if (!conversation) {
       console.log("[Instagram Webhook] Creating new conversation...")
+      
+      // Fetch user profile data from Instagram API
+      const profileData = await fetchUserProfile(
+        senderId,
+        instagramAccount.accessToken,
+        webhookPageId
+      )
+      
       conversation = await prisma.conversation.create({
         data: {
           instagramAccountId: instagramAccount.id,
           userId: instagramAccount.userId,
           participantId: senderId,
-          participantName: messagingEvent.sender.username || "Unknown",
-          participantUsername: messagingEvent.sender.username || "unknown",
-          participantAvatar: null,
+          participantName: profileData?.name || messagingEvent.sender?.username || "Unknown",
+          participantUsername: profileData?.username || messagingEvent.sender?.username || "unknown",
+          participantAvatar: profileData?.profilePic || null,
           lastMessageText: message.text || "[Media]",
           lastMessageAt: new Date(messagingEvent.timestamp || Date.now()),
           unreadCount: 1,
         },
       })
+      
+      console.log("[Instagram Webhook] ✅ Conversation created with profile data")
     } else {
+      // Update existing conversation
       await prisma.conversation.update({
         where: { id: conversation.id },
         data: {
@@ -3178,6 +3887,28 @@ async function processMessagingEvent(messagingEvent: any, webhookPageId: string)
           unreadCount: { increment: 1 },
         },
       })
+      
+      // If conversation exists but doesn't have profile picture, fetch it now
+      if (!conversation.participantAvatar) {
+        console.log("[Instagram Webhook] 📸 Updating missing profile picture...")
+        const profileData = await fetchUserProfile(
+          senderId,
+          instagramAccount.accessToken,
+          webhookPageId
+        )
+        
+        if (profileData) {
+          await prisma.conversation.update({
+            where: { id: conversation.id },
+            data: {
+              participantName: profileData.name,
+              participantUsername: profileData.username,
+              participantAvatar: profileData.profilePic,
+            },
+          })
+          console.log("[Instagram Webhook] ✅ Profile picture updated")
+        }
+      }
     }
     
     // Save message
@@ -3200,8 +3931,8 @@ async function processMessagingEvent(messagingEvent: any, webhookPageId: string)
       conversationId: conversation.id,
       messageContent: message.text,
       senderId: senderId,
-      senderUsername: messagingEvent.sender.username || "unknown",
-      senderName: messagingEvent.sender.username || "Unknown",
+      senderUsername: messagingEvent.sender?.username || "unknown",
+      senderName: messagingEvent.sender?.username || "Unknown",
       messageType,
       isFirstMessage,
       instagramAccountId: instagramAccount.id,
@@ -3265,14 +3996,21 @@ async function processComment(value: any, webhookPageId: string) {
     })
     
     if (!conversation) {
+      // Fetch user profile data from Instagram API
+      const profileData = await fetchUserProfile(
+        from.id,
+        instagramAccount.accessToken,
+        webhookPageId
+      )
+      
       conversation = await prisma.conversation.create({
         data: {
           instagramAccountId: instagramAccount.id,
           userId: instagramAccount.userId,
           participantId: from.id,
-          participantName: from.username || "Unknown",
-          participantUsername: from.username || "unknown",
-          participantAvatar: null,
+          participantName: profileData?.name || from.username || "Unknown",
+          participantUsername: profileData?.username || from.username || "unknown",
+          participantAvatar: profileData?.profilePic || null,
           lastMessageText: `Commented: ${text}`,
           lastMessageAt: new Date(),
           unreadCount: 0,
@@ -3345,14 +4083,21 @@ async function processMention(value: any, webhookPageId: string) {
     })
     
     if (!conversation) {
+      // Fetch user profile data from Instagram API
+      const profileData = await fetchUserProfile(
+        from.id,
+        instagramAccount.accessToken,
+        webhookPageId
+      )
+      
       conversation = await prisma.conversation.create({
         data: {
           instagramAccountId: instagramAccount.id,
           userId: instagramAccount.userId,
           participantId: from.id,
-          participantName: from.username || "Unknown",
-          participantUsername: from.username || "unknown",
-          participantAvatar: null,
+          participantName: profileData?.name || from.username || "Unknown",
+          participantUsername: profileData?.username || from.username || "unknown",
+          participantAvatar: profileData?.profilePic || null,
           lastMessageText: "Mentioned you",
           lastMessageAt: new Date(),
           unreadCount: 0,

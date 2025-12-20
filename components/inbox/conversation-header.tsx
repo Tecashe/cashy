@@ -299,11 +299,11 @@ import {
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { useEffect } from "react"
-import { ConversationDebugButton } from "@/components/inbox/conversation-debug-button"
 
 type Conversation = {
   id: string
   userId: string
+  participantId: string
   participantUsername: string
   participantName: string | null
   participantAvatar: string | null
@@ -313,6 +313,10 @@ type Conversation = {
   isArchived: boolean
   notes: string | null
   conversationTags: { tag: { id: string; name: string; color: string } }[]
+  instagramAccount?: {
+    instagramId: string
+    username: string
+  }
 }
 
 interface ConversationHeaderProps {
@@ -393,8 +397,6 @@ export function ConversationHeader({ conversation }: ConversationHeaderProps) {
           </div>
 
           <div className="flex items-center gap-1 md:gap-2">
-            <ConversationDebugButton conversationId={conversation.id} />
-
             <Button
               variant={conversation.isAuto ? "default" : "outline"}
               size="sm"

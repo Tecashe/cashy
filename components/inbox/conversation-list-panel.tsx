@@ -154,7 +154,6 @@ import { ConversationList } from "@/components/inbox/conversation-list"
 import { AdvancedFiltersPanel } from "@/components/inbox/advanced-filters-panel"
 import { BulkActionsBar } from "@/components/inbox/bulk-actions-bar"
 import { TemplatesModal } from "@/components/inbox/templates-modal"
-import { FixConversationsButton } from "@/components/inbox/fix-conversations-button"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -262,10 +261,6 @@ export function ConversationListPanel({
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
-        </div>
-
-        <div className="mt-2">
-          <FixConversationsButton userId={userId} instagramAccountId={instagramAccountId} />
         </div>
       </div>
 
