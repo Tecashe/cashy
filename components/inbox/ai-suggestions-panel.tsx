@@ -10,6 +10,7 @@ import { UpgradePrompt } from "./upgrade-prompt"
 interface AISuggestionsPanelProps {
   conversationId: string
   userId: string
+  
   onSelectSuggestion: (text: string) => void
 }
 

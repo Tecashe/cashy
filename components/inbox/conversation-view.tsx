@@ -7,9 +7,12 @@ import { ConversationHeader } from "@/components/inbox/conversation-header"
 import { MessageThread } from "@/components/inbox/message-thread"
 import { EnhancedMessageInput } from "@/components/inbox/message-input"
 import { CustomerTimelineSidebar } from "@/components/inbox/customer-timeline-sidebar"
+import { AISuggestionsPanel } from "@/components/inbox/ai-suggestions-panel"
 import { Loader2, ArrowLeft, PanelRightClose, PanelRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useMobile } from "@/hooks/use-mobile"
+import { prisma } from "@/lib/db"
+import { hasAccess } from "@/lib/subscription"
 
 interface ConversationViewProps {
   conversationId: string
@@ -21,6 +24,8 @@ export function ConversationView({ conversationId, userId, onBack }: Conversatio
   const [conversation, setConversation] = useState<any>(null)
   const [isLoading, startTransition] = useTransition()
   const [showCustomerSidebar, setShowCustomerSidebar] = useState(false)
+  const [showAISuggestions, setShowAISuggestions] = useState(false)
+  const [userTier, setUserTier] = useState<"free" | "pro" | "enterprise">("free")
   const isMobile = useMobile()
 
   const loadConversation = () => {
@@ -41,6 +46,22 @@ export function ConversationView({ conversationId, userId, onBack }: Conversatio
     const interval = setInterval(loadConversation, 10000)
     return () => clearInterval(interval)
   }, [conversationId])
+
+  useEffect(() => {
+    const loadUserTier = async () => {
+      // Fetch user subscription tier from database
+      const user = await prisma.user.findUnique({
+        where: { clerkId: userId },
+        select: { subscriptionTier: true },
+      })
+      if (user) {
+        setUserTier((user.subscriptionTier as any) || "free")
+      }
+    }
+    loadUserTier()
+  }, [userId])
+
+  const canUseAI = hasAccess(userTier, "aiSuggestions")
 
   if (isLoading && !conversation) {
     return (
@@ -89,7 +110,34 @@ export function ConversationView({ conversationId, userId, onBack }: Conversatio
 
         <MessageThread messages={conversation.messages} />
 
+        {canUseAI && showAISuggestions && conversation.messages.length > 0 && (
+          <div className="border-t border-border/50 bg-muted/30">
+            <AISuggestionsPanel
+              conversationId={conversationId}
+              userId={userId}
+              onSelectSuggestion={(suggestion) => {
+                // Insert suggestion into message input
+                setShowAISuggestions(false)
+              }}
+            />
+          </div>
+        )}
+
         <div className="border-t border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          {canUseAI && (
+            <div className="px-4 py-2 border-b border-border/50 flex items-center justify-between">
+              <p className="text-xs text-muted-foreground">AI Smart Reply Suggestions</p>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowAISuggestions(!showAISuggestions)}
+                className="h-7 text-xs"
+              >
+                {showAISuggestions ? "Hide" : "Show"} AI Suggestions
+              </Button>
+            </div>
+          )}
+
           <EnhancedMessageInput
             conversationId={conversationId}
             userId={userId}
