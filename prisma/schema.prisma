@@ -8,24 +8,24 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  clerkId   String   @unique
-  email     String   @unique
-  firstName String?
-  lastName  String?
-  imageUrl  String?
-  subscriptionTier String  @default("free")
-  subscriptionStatus String @default("active")
-  businessName String?
-  businessDescription String? @db.Text
-  businessType String?
-  businessIndustry String?
-  aiEnabled Boolean @default(false)
-  aiInstructions String? @db.Text
-  aiTone String? @default("professional")
-  aiPersonality String? @db.Text
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                  String   @id @default(cuid())
+  clerkId             String   @unique
+  email               String   @unique
+  firstName           String?
+  lastName            String?
+  imageUrl            String?
+  subscriptionTier    String   @default("free")
+  subscriptionStatus  String   @default("active")
+  businessName        String?
+  businessDescription String?  @db.Text
+  businessType        String?
+  businessIndustry    String?
+  aiEnabled           Boolean  @default(false)
+  aiInstructions      String?  @db.Text
+  aiTone              String?  @default("professional")
+  aiPersonality       String?  @db.Text
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
 
   instagramAccounts InstagramAccount[]
   automations       Automation[]
@@ -33,6 +33,7 @@ model User {
   contentPosts      ContentPost[]
   tags              Tag[]
   analytics         Analytics[]
+  quickReplies      QuickReply[]
 
   @@index([clerkId])
   @@index([email])
@@ -40,18 +41,18 @@ model User {
 }
 
 model InstagramAccount {
-  id            String   @id @default(cuid())
-  userId        String
-  instagramId   String   @unique
-  instagramPageId String? @unique
-  username      String
-  profilePicUrl String?
-  followerCount Int      @default(0)
-  accessToken   String   @db.Text
-  tokenExpiry   DateTime?
-  isConnected   Boolean  @default(true)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id              String    @id @default(cuid())
+  userId          String
+  instagramId     String    @unique
+  instagramPageId String?   @unique
+  username        String
+  profilePicUrl   String?
+  followerCount   Int       @default(0)
+  accessToken     String    @db.Text
+  tokenExpiry     DateTime?
+  isConnected     Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
   user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   conversations Conversation[]
@@ -62,21 +63,21 @@ model InstagramAccount {
 }
 
 model Automation {
-  id          String   @id @default(cuid())
-  userId      String
+  id                 String   @id @default(cuid())
+  userId             String
   instagramAccountId String?
-  name        String
-  description String?
-  status      String   @default("draft")
-  isActive    Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  name               String
+  description        String?
+  status             String   @default("draft")
+  isActive           Boolean  @default(false)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 
-  user     User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
-  instagramAccount InstagramAccount? @relation(fields: [instagramAccountId], references: [id], onDelete: SetNull)
-  triggers AutomationTrigger[]
-  actions  AutomationAction[]
-  executions AutomationExecution[]
+  user             User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  instagramAccount InstagramAccount?     @relation(fields: [instagramAccountId], references: [id], onDelete: SetNull)
+  triggers         AutomationTrigger[]
+  actions          AutomationAction[]
+  executions       AutomationExecution[]
 
   @@index([userId])
   @@index([instagramAccountId])
@@ -109,14 +110,14 @@ model AutomationAction {
 }
 
 model AutomationExecution {
-  id            String   @id @default(cuid())
-  automationId  String
+  id             String    @id @default(cuid())
+  automationId   String
   conversationId String
-  status        String   // success, failed, pending
-  error         String?  @db.Text
-  triggeredBy   String   // message_id or event_id
-  executedAt    DateTime @default(now())
-  completedAt   DateTime?
+  status         String // success, failed, pending
+  error          String?   @db.Text
+  triggeredBy    String // message_id or event_id
+  executedAt     DateTime  @default(now())
+  completedAt    DateTime?
 
   automation Automation @relation(fields: [automationId], references: [id], onDelete: Cascade)
 
@@ -125,19 +126,18 @@ model AutomationExecution {
   @@index([executedAt])
 }
 
-
 model MessageQueue {
-  id             String   @id @default(cuid())
+  id             String    @id @default(cuid())
   conversationId String
-  messageContent String   @db.Text
+  messageContent String    @db.Text
   recipientId    String
   scheduledFor   DateTime
-  status         String   @default("pending") // pending, processing, sent, failed
-  retryCount     Int      @default(0)
-  maxRetries     Int      @default(3)
-  error          String?  @db.Text
+  status         String    @default("pending") // pending, processing, sent, failed
+  retryCount     Int       @default(0)
+  maxRetries     Int       @default(3)
+  error          String?   @db.Text
   metadata       Json?
-  createdAt      DateTime @default(now())
+  createdAt      DateTime  @default(now())
   processedAt    DateTime?
 
   @@index([status])
@@ -146,21 +146,25 @@ model MessageQueue {
 }
 
 model Conversation {
-  id                 String   @id @default(cuid())
-  instagramAccountId String
-  userId             String
-  participantId      String
-  participantName    String
+  id                  String    @id @default(cuid())
+  instagramAccountId  String
+  userId              String
+  participantId       String
+  participantName     String
   participantUsername String
-  participantAvatar  String?
-  lastMessageText    String?
-  lastMessageAt      DateTime?
-  unreadCount        Int      @default(0)
-  isArchived         Boolean  @default(false)
-  needsHumanReview   Boolean  @default(false)
-  handoffReason      String?
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+  participantAvatar   String?
+  lastMessageText     String?
+  lastMessageAt       DateTime?
+  unreadCount         Int       @default(0)
+  isRead              Boolean   @default(false)
+  isAuto              Boolean   @default(true)
+  starred             Boolean   @default(false)
+  notes               String?   @db.Text
+  isArchived          Boolean   @default(false)
+  needsHumanReview    Boolean   @default(false)
+  handoffReason       String?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
 
   instagramAccount InstagramAccount  @relation(fields: [instagramAccountId], references: [id], onDelete: Cascade)
   user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -171,22 +175,25 @@ model Conversation {
   @@index([instagramAccountId])
   @@index([participantId])
   @@index([needsHumanReview])
+  @@index([isRead])
+  @@index([starred])
+  @@index([isArchived])
 }
 
 model Message {
-  id             String   @id @default(cuid())
-  conversationId String
-  content        String   @db.Text
-  sender         String
-  isRead         Boolean  @default(false)
-  timestamp      DateTime @default(now())
-  messageType    String   @default("text")
-  sentByAutomation Boolean @default(false)
+  id               String   @id @default(cuid())
+  conversationId   String
+  content          String   @db.Text
+  sender           String
+  isFromUser       Boolean  @default(false)
+  isRead           Boolean  @default(false)
+  timestamp        DateTime @default(now())
+  messageType      String   @default("text")
+  sentByAutomation Boolean  @default(false)
   automationId     String?
-  sentByAI         Boolean @default(false)
-
-  createdAt         DateTime @default(now())  // Add this line
-  updatedAt         DateTime @updatedAt       // Optional but recommended
+  sentByAI         Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
   conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
 
@@ -221,6 +228,21 @@ model ConversationTag {
   @@index([tagId])
 }
 
+model QuickReply {
+  id        String   @id @default(cuid())
+  userId    String
+  name      String
+  content   String   @db.Text
+  shortcut  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, name])
+  @@index([userId])
+}
+
 model ContentPost {
   id           String    @id @default(cuid())
   userId       String
@@ -243,14 +265,14 @@ model ContentPost {
 }
 
 model Analytics {
-  id                    String   @id @default(cuid())
-  userId                String
-  date                  DateTime
-  messagesReceived      Int      @default(0)
-  messagesSent          Int      @default(0)
-  conversationsStarted  Int      @default(0)
-  automationTriggered   Int      @default(0)
-  contentGenerated      Int      @default(0)
+  id                   String   @id @default(cuid())
+  userId               String
+  date                 DateTime
+  messagesReceived     Int      @default(0)
+  messagesSent         Int      @default(0)
+  conversationsStarted Int      @default(0)
+  automationTriggered  Int      @default(0)
+  contentGenerated     Int      @default(0)
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 

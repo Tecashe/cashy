@@ -27,20 +27,20 @@ export async function POST(request: NextRequest) {
     }
 
     // TODO: Send message via Instagram API (uncomment when ready)
-    // const response = await fetch(
-    //   `https://graph.instagram.com/v21.0/${conversation.participantId}/messages`,
-    //   {
-    //     method: 'POST',
-    //     headers: {
-    //       'Authorization': `Bearer ${conversation.instagramAccount.accessToken}`,
-    //       'Content-Type': 'application/json'
-    //     },
-    //     body: JSON.stringify({
-    //       recipient: { id: conversation.participantId },
-    //       message: { text: content }
-    //     })
-    //   }
-    // )
+    const response = await fetch(
+      `https://graph.instagram.com/v21.0/${conversation.participantId}/messages`,
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${conversation.instagramAccount.accessToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          recipient: { id: conversation.participantId },
+          message: { text: content }
+        })
+      }
+    )
 
     // Save message to database
     const message = await prisma.message.create({

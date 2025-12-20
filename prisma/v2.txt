@@ -1,0 +1,260 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  clerkId   String   @unique
+  email     String   @unique
+  firstName String?
+  lastName  String?
+  imageUrl  String?
+  subscriptionTier String  @default("free")
+  subscriptionStatus String @default("active")
+  businessName String?
+  businessDescription String? @db.Text
+  businessType String?
+  businessIndustry String?
+  aiEnabled Boolean @default(false)
+  aiInstructions String? @db.Text
+  aiTone String? @default("professional")
+  aiPersonality String? @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  instagramAccounts InstagramAccount[]
+  automations       Automation[]
+  conversations     Conversation[]
+  contentPosts      ContentPost[]
+  tags              Tag[]
+  analytics         Analytics[]
+
+  @@index([clerkId])
+  @@index([email])
+  @@index([subscriptionTier])
+}
+
+model InstagramAccount {
+  id            String   @id @default(cuid())
+  userId        String
+  instagramId   String   @unique
+  instagramPageId String? @unique
+  username      String
+  profilePicUrl String?
+  followerCount Int      @default(0)
+  accessToken   String   @db.Text
+  tokenExpiry   DateTime?
+  isConnected   Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  conversations Conversation[]
+  automations   Automation[]
+
+  @@index([userId])
+  @@index([instagramId])
+}
+
+model Automation {
+  id          String   @id @default(cuid())
+  userId      String
+  instagramAccountId String?
+  name        String
+  description String?
+  status      String   @default("draft")
+  isActive    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user     User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  instagramAccount InstagramAccount? @relation(fields: [instagramAccountId], references: [id], onDelete: SetNull)
+  triggers AutomationTrigger[]
+  actions  AutomationAction[]
+  executions AutomationExecution[]
+
+  @@index([userId])
+  @@index([instagramAccountId])
+  @@index([isActive])
+}
+
+model AutomationTrigger {
+  id           String @id @default(cuid())
+  automationId String
+  type         String
+  conditions   Json
+  order        Int    @default(0)
+
+  automation Automation @relation(fields: [automationId], references: [id], onDelete: Cascade)
+
+  @@index([automationId])
+}
+
+model AutomationAction {
+  id           String @id @default(cuid())
+  automationId String
+  type         String
+  content      Json
+  order        Int
+
+  automation Automation @relation(fields: [automationId], references: [id], onDelete: Cascade)
+
+  @@index([automationId])
+  @@index([order])
+}
+
+model AutomationExecution {
+  id            String   @id @default(cuid())
+  automationId  String
+  conversationId String
+  status        String   // success, failed, pending
+  error         String?  @db.Text
+  triggeredBy   String   // message_id or event_id
+  executedAt    DateTime @default(now())
+  completedAt   DateTime?
+
+  automation Automation @relation(fields: [automationId], references: [id], onDelete: Cascade)
+
+  @@index([automationId])
+  @@index([conversationId])
+  @@index([executedAt])
+}
+
+
+model MessageQueue {
+  id             String   @id @default(cuid())
+  conversationId String
+  messageContent String   @db.Text
+  recipientId    String
+  scheduledFor   DateTime
+  status         String   @default("pending") // pending, processing, sent, failed
+  retryCount     Int      @default(0)
+  maxRetries     Int      @default(3)
+  error          String?  @db.Text
+  metadata       Json?
+  createdAt      DateTime @default(now())
+  processedAt    DateTime?
+
+  @@index([status])
+  @@index([scheduledFor])
+  @@index([conversationId])
+}
+
+model Conversation {
+  id                 String   @id @default(cuid())
+  instagramAccountId String
+  userId             String
+  participantId      String
+  participantName    String
+  participantUsername String
+  participantAvatar  String?
+  lastMessageText    String?
+  lastMessageAt      DateTime?
+  unreadCount        Int      @default(0)
+  isArchived         Boolean  @default(false)
+  needsHumanReview   Boolean  @default(false)
+  handoffReason      String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  instagramAccount InstagramAccount  @relation(fields: [instagramAccountId], references: [id], onDelete: Cascade)
+  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages         Message[]
+  conversationTags ConversationTag[]
+
+  @@index([userId])
+  @@index([instagramAccountId])
+  @@index([participantId])
+  @@index([needsHumanReview])
+}
+
+model Message {
+  id             String   @id @default(cuid())
+  conversationId String
+  content        String   @db.Text
+  sender         String
+  isRead         Boolean  @default(false)
+  timestamp      DateTime @default(now())
+  messageType    String   @default("text")
+  sentByAutomation Boolean @default(false)
+  automationId     String?
+  sentByAI         Boolean @default(false)
+
+  createdAt         DateTime @default(now())  // Add this line
+  updatedAt         DateTime @updatedAt       // Optional but recommended
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId])
+  @@index([timestamp])
+}
+
+model Tag {
+  id        String   @id @default(cuid())
+  userId    String
+  name      String
+  color     String   @default("#8B5CF6")
+  createdAt DateTime @default(now())
+
+  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  conversationTags ConversationTag[]
+
+  @@unique([userId, name])
+  @@index([userId])
+}
+
+model ConversationTag {
+  conversationId String
+  tagId          String
+  createdAt      DateTime @default(now())
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  tag          Tag          @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([conversationId, tagId])
+  @@index([conversationId])
+  @@index([tagId])
+}
+
+model ContentPost {
+  id           String    @id @default(cuid())
+  userId       String
+  caption      String    @db.Text
+  mediaUrls    String[]
+  hashtags     String[]
+  location     String?
+  status       String    @default("draft")
+  scheduledFor DateTime?
+  postedAt     DateTime?
+  aiGenerated  Boolean   @default(false)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+  @@index([scheduledFor])
+}
+
+model Analytics {
+  id                    String   @id @default(cuid())
+  userId                String
+  date                  DateTime
+  messagesReceived      Int      @default(0)
+  messagesSent          Int      @default(0)
+  conversationsStarted  Int      @default(0)
+  automationTriggered   Int      @default(0)
+  contentGenerated      Int      @default(0)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+  @@index([userId])
+  @@index([date])
+}
