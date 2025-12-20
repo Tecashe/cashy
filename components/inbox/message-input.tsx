@@ -1,177 +1,3 @@
-// "use client"
-
-// import type React from "react"
-
-// import { useState, useTransition, useRef, useEffect } from "react"
-// import { Button } from "@/components/ui/button"
-// import { Textarea } from "@/components/ui/textarea"
-// import { Card } from "@/components/ui/card"
-// import { Badge } from "@/components/ui/badge"
-// import { ScrollArea } from "@/components/ui/scroll-area"
-// import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-// import { Send, Loader2, FileText } from "lucide-react"
-// import { sendMessage } from "@/actions/conversation-actions"
-// import { getMessageTemplates, updateTemplateUsage } from "@/actions/inbox-actions"
-// import { toast } from "sonner"
-// import { cn } from "@/lib/utils"
-
-// interface MessageInputProps {
-//   conversationId: string
-//   userId: string
-//   onMessageSent?: () => void
-// }
-
-// export function MessageInput({ conversationId, userId, onMessageSent }: MessageInputProps) {
-//   const [message, setMessage] = useState("")
-//   const [isPending, startTransition] = useTransition()
-//   const [templates, setTemplates] = useState<any[]>([])
-//   const [showTemplates, setShowTemplates] = useState(false)
-//   const textareaRef = useRef<HTMLTextAreaElement>(null)
-
-//   useEffect(() => {
-//     const loadTemplates = async () => {
-//       const result = await getMessageTemplates(userId)
-//       if (result.success && result.templates) {
-//         setTemplates(result.templates)
-//       }
-//     }
-//     loadTemplates()
-//   }, [userId])
-
-//   useEffect(() => {
-//     if (textareaRef.current) {
-//       textareaRef.current.style.height = "auto"
-//       textareaRef.current.style.height = textareaRef.current.scrollHeight + "px"
-//     }
-//   }, [message])
-
-//   const handleSend = () => {
-//     if (!message.trim() || isPending) return
-
-//     startTransition(async () => {
-//       const result = await sendMessage(conversationId, message.trim())
-
-//       if (result.success) {
-//         setMessage("")
-//         onMessageSent?.()
-//         toast.success("Message sent successfully")
-//       } else {
-//         toast.error(result.error || "Failed to send message")
-//       }
-//     })
-//   }
-
-//   const handleUseTemplate = (template: any) => {
-//     setMessage(template.content)
-//     setShowTemplates(false)
-//     textareaRef.current?.focus()
-//     // Update template usage after using a template
-//     updateTemplateUsage(template.id)
-//   }
-
-//   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-//     if (e.key === "Enter" && !e.shiftKey) {
-//       e.preventDefault()
-//       handleSend()
-//     }
-//   }
-
-//   return (
-//     <div className="p-4 bg-background">
-//       <Card className="shadow-lg border-border/50 overflow-hidden">
-//         <div className="flex gap-2 items-end p-3">
-//           {templates.length > 0 && (
-//             <Popover open={showTemplates} onOpenChange={setShowTemplates}>
-//               <PopoverTrigger asChild>
-//                 <Button
-//                   variant="ghost"
-//                   size="icon"
-//                   className="h-9 w-9 text-muted-foreground hover:text-foreground shrink-0"
-//                 >
-//                   <FileText className="h-4 w-4" />
-//                 </Button>
-//               </PopoverTrigger>
-//               <PopoverContent className="w-80 p-0" align="start" side="top">
-//                 <div className="p-3 border-b border-border">
-//                   <h4 className="font-semibold text-sm">Quick Reply Templates</h4>
-//                   <p className="text-xs text-muted-foreground mt-0.5">Click to insert a template</p>
-//                 </div>
-//                 <ScrollArea className="h-[300px]">
-//                   <div className="p-2 space-y-1">
-//                     {templates.map((template) => (
-//                       <button
-//                         key={template.id}
-//                         onClick={() => handleUseTemplate(template)}
-//                         className="w-full text-left p-3 rounded-lg hover:bg-accent/50 transition-colors group"
-//                       >
-//                         <div className="flex items-start justify-between gap-2 mb-1">
-//                           <h5 className="font-medium text-sm group-hover:text-primary transition-colors">
-//                             {template.name}
-//                           </h5>
-//                           {template.category && (
-//                             <Badge variant="outline" className="text-xs shrink-0">
-//                               {template.category}
-//                             </Badge>
-//                           )}
-//                         </div>
-//                         <p className="text-xs text-muted-foreground line-clamp-2">{template.content}</p>
-//                       </button>
-//                     ))}
-//                   </div>
-//                 </ScrollArea>
-//               </PopoverContent>
-//             </Popover>
-//           )}
-
-//           <div className="flex-1 relative group">
-//             <Textarea
-//               ref={textareaRef}
-//               value={message}
-//               onChange={(e) => setMessage(e.target.value)}
-//               onKeyDown={handleKeyDown}
-//               placeholder="Type your message..."
-//               className="resize-none min-h-[52px] max-h-[160px] border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 pr-2 scrollbar-thin"
-//               disabled={isPending}
-//               rows={1}
-//             />
-//           </div>
-
-//           <Button
-//             onClick={handleSend}
-//             disabled={!message.trim() || isPending}
-//             size="icon"
-//             className={cn(
-//               "h-10 w-10 shrink-0 transition-all duration-200 shadow-sm",
-//               message.trim() && !isPending && "scale-105 shadow-md shadow-primary/20",
-//             )}
-//           >
-//             {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-//           </Button>
-//         </div>
-
-//         <div className="px-3 py-2 bg-muted/30 border-t border-border/50 flex items-center justify-between">
-//           <p className="text-xs text-muted-foreground flex items-center gap-2 flex-wrap">
-//             <kbd className="px-1.5 py-0.5 text-xs bg-background rounded border border-border font-mono shadow-sm">
-//               Enter
-//             </kbd>
-//             <span>to send</span>
-//             <span className="text-border">•</span>
-//             <kbd className="px-1.5 py-0.5 text-xs bg-background rounded border border-border font-mono shadow-sm">
-//               Shift + Enter
-//             </kbd>
-//             <span>for new line</span>
-//           </p>
-//           {templates.length > 0 && (
-//             <Badge variant="secondary" className="text-xs">
-//               {templates.length} templates
-//             </Badge>
-//           )}
-//         </div>
-//       </Card>
-//     </div>
-//   )
-// }
-
 "use client"
 
 import type React from "react"
@@ -181,9 +7,10 @@ import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Send, Loader2, FileText, ImageIcon, Video, Mic, X } from "lucide-react"
+import { Send, Loader2, FileText, ImageIcon, Video, Mic, X, AlertTriangle, Clock } from "lucide-react"
 import { sendMessageToInstagram, uploadMessageAttachment } from "@/actions/message-actions"
 import { getMessageTemplates, updateTemplateUsage } from "@/actions/inbox-actions"
 import { toast } from "sonner"
@@ -192,12 +19,18 @@ import { cn } from "@/lib/utils"
 interface EnhancedMessageInputProps {
   conversationId: string
   userId: string
+  lastCustomerMessageAt?: Date | null
   onMessageSent?: () => void
 }
 
 type MessageType = "text" | "image" | "video" | "audio" | "carousel"
 
-export function EnhancedMessageInput({ conversationId, userId, onMessageSent }: EnhancedMessageInputProps) {
+export function EnhancedMessageInput({
+  conversationId,
+  userId,
+  lastCustomerMessageAt,
+  onMessageSent,
+}: EnhancedMessageInputProps) {
   const [message, setMessage] = useState("")
   const [isPending, startTransition] = useTransition()
   const [templates, setTemplates] = useState<any[]>([])
@@ -209,6 +42,14 @@ export function EnhancedMessageInput({ conversationId, userId, onMessageSent }: 
 
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const isWithinMessagingWindow = lastCustomerMessageAt
+    ? (Date.now() - new Date(lastCustomerMessageAt).getTime()) / (1000 * 60 * 60) < 24
+    : false
+
+  const hoursRemaining = lastCustomerMessageAt
+    ? Math.max(0, 24 - (Date.now() - new Date(lastCustomerMessageAt).getTime()) / (1000 * 60 * 60))
+    : 0
 
   useEffect(() => {
     const loadTemplates = async () => {
@@ -264,6 +105,13 @@ export function EnhancedMessageInput({ conversationId, userId, onMessageSent }: 
     if (messageType !== "text" && !attachmentFile) return
     if (isPending) return
 
+    if (!isWithinMessagingWindow) {
+      toast.error("Cannot send message outside 24-hour window", {
+        description: "The customer needs to send you a message first before you can reply.",
+      })
+      return
+    }
+
     startTransition(async () => {
       try {
         let attachmentUrl: string | undefined
@@ -300,7 +148,15 @@ export function EnhancedMessageInput({ conversationId, userId, onMessageSent }: 
           onMessageSent?.()
           toast.success("Message sent successfully")
         } else {
-          toast.error(result.error || "Failed to send message")
+          if (result.code === "MESSAGING_WINDOW_EXCEEDED" || result.code === "NO_CUSTOMER_MESSAGE") {
+            toast.error(result.error, {
+              description: "Instagram only allows messages within 24 hours of customer contact.",
+            })
+          } else if (result.code === "RATE_LIMIT_WARNING") {
+            toast.warning(result.error)
+          } else {
+            toast.error(result.error || "Failed to send message")
+          }
         }
       } catch (error) {
         console.error("[v0] Error sending message:", error)
@@ -330,8 +186,29 @@ export function EnhancedMessageInput({ conversationId, userId, onMessageSent }: 
   ]
 
   return (
-    <div className="p-4 bg-background">
-      <Card className="shadow-lg border-border/50 overflow-hidden">
+    <div className="p-4 bg-background/50 backdrop-blur-xl">
+      {!isWithinMessagingWindow && (
+        <Alert variant="destructive" className="mb-4">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>
+            {!lastCustomerMessageAt
+              ? "Cannot send messages. The customer must initiate the conversation first."
+              : "24-hour messaging window expired. Wait for the customer to send a new message."}
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {isWithinMessagingWindow && hoursRemaining < 2 && (
+        <Alert className="mb-4 border-orange-500/50 bg-orange-500/10">
+          <Clock className="h-4 w-4 text-orange-500" />
+          <AlertDescription className="text-orange-700 dark:text-orange-300">
+            Messaging window expires in {Math.floor(hoursRemaining)} hours {Math.floor((hoursRemaining % 1) * 60)}{" "}
+            minutes
+          </AlertDescription>
+        </Alert>
+      )}
+
+      <Card className="shadow-lg border-border/50 overflow-hidden backdrop-blur-sm bg-card/95">
         {/* Attachment preview */}
         {attachmentPreview && (
           <div className="p-3 border-b border-border bg-muted/30">
@@ -462,6 +339,7 @@ export function EnhancedMessageInput({ conversationId, userId, onMessageSent }: 
           <Button
             onClick={handleSend}
             disabled={
+              !isWithinMessagingWindow ||
               (messageType === "text" && !message.trim()) ||
               (messageType !== "text" && !attachmentFile) ||
               isPending ||
@@ -473,6 +351,7 @@ export function EnhancedMessageInput({ conversationId, userId, onMessageSent }: 
               ((messageType === "text" && message.trim()) || (messageType !== "text" && attachmentFile)) &&
                 !isPending &&
                 !isUploading &&
+                isWithinMessagingWindow &&
                 "scale-105 shadow-md shadow-primary/20",
             )}
           >

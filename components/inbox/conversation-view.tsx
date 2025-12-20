@@ -4,7 +4,7 @@ import { useState, useEffect, useTransition } from "react"
 import { getConversation } from "@/actions/conversation-actions"
 import { ConversationHeader } from "@/components/inbox/conversation-header"
 import { MessageThread } from "@/components/inbox/message-thread"
-import { EnhancedMessageInput } from "./message-input"
+import { EnhancedMessageInput } from "@/components/inbox/message-input"
 import { CustomerTimelineSidebar } from "@/components/inbox/customer-timeline-sidebar"
 import { Loader2, ArrowLeft, PanelRightClose, PanelRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -56,7 +56,7 @@ export function ConversationView({ conversationId, userId, onBack }: Conversatio
   return (
     <div className="flex h-full bg-background">
       <div className="flex-1 flex flex-col">
-        <div className="border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-sm">
           {isMobile && onBack && (
             <div className="border-b border-border/50 p-2">
               <Button variant="ghost" size="sm" onClick={onBack} className="hover:bg-accent/50">
@@ -83,7 +83,12 @@ export function ConversationView({ conversationId, userId, onBack }: Conversatio
         <MessageThread messages={conversation.messages} />
 
         <div className="border-t border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-          <EnhancedMessageInput conversationId={conversationId} userId={userId} onMessageSent={loadConversation} />
+          <EnhancedMessageInput
+            conversationId={conversationId}
+            userId={userId}
+            lastCustomerMessageAt={conversation.lastCustomerMessageAt}
+            onMessageSent={loadConversation}
+          />
         </div>
       </div>
 

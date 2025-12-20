@@ -148,32 +148,33 @@ model MessageQueue {
 }
 
 model Conversation {
-  id                  String    @id @default(cuid())
-  instagramAccountId  String
-  userId              String
-  participantId       String
-  participantName     String
-  participantUsername String
-  participantAvatar   String?
-  lastMessageText     String?
-  lastMessageAt       DateTime?
-  unreadCount         Int       @default(0)
-  isRead              Boolean   @default(false)
-  isAuto              Boolean   @default(true)
-  starred             Boolean   @default(false)
-  notes               String?   @db.Text
-  isArchived          Boolean   @default(false)
-  needsHumanReview    Boolean   @default(false)
-  handoffReason       String?
-  priorityScore       Int       @default(0) // 0-100 score
-  category            String    @default("general") // sales, support, collaboration, general
-  status              String    @default("open") // open, awaiting_response, resolved
-  isVip               Boolean   @default(false)
-  assignedToUserId    String?
-  firstContactAt      DateTime  @default(now())
-  lastResponseTime    Int? // Average response time in minutes
-  createdAt           DateTime  @default(now())
-  updatedAt           DateTime  @updatedAt
+  id                    String    @id @default(cuid())
+  instagramAccountId    String
+  userId                String
+  participantId         String
+  participantName       String
+  participantUsername   String
+  participantAvatar     String?
+  lastMessageText       String?
+  lastMessageAt         DateTime?
+  lastCustomerMessageAt DateTime? // Track last message from customer for 24hr window
+  unreadCount           Int       @default(0)
+  isRead                Boolean   @default(false)
+  isAuto                Boolean   @default(true)
+  starred               Boolean   @default(false)
+  notes                 String?   @db.Text
+  isArchived            Boolean   @default(false)
+  needsHumanReview      Boolean   @default(false)
+  handoffReason         String?
+  priorityScore         Int       @default(0) // 0-100 score
+  category              String    @default("general") // sales, support, collaboration, general
+  status                String    @default("open") // open, awaiting_response, resolved
+  isVip                 Boolean   @default(false)
+  assignedToUserId      String?
+  firstContactAt        DateTime  @default(now())
+  lastResponseTime      Int? // Average response time in minutes
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
 
   instagramAccount InstagramAccount  @relation(fields: [instagramAccountId], references: [id], onDelete: Cascade)
   user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)

@@ -66,14 +66,19 @@ export function AdvancedFiltersPanel({ onFiltersChange, currentFilters, tags }: 
   const activeFilterCount = Object.keys(currentFilters).length
 
   return (
-    <div className="border-b border-border bg-card">
+    <div className="border-b border-border/50 bg-card/50 backdrop-blur-xl">
       <div className="p-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="sm" onClick={() => setShowFilters(!showFilters)} className="h-8">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowFilters(!showFilters)}
+            className="h-8 hover:bg-accent/50"
+          >
             <Filter className="h-4 w-4 mr-2" />
             Filters
             {activeFilterCount > 0 && (
-              <Badge variant="default" className="ml-2 h-5 px-1.5">
+              <Badge variant="default" className="ml-2 h-5 px-1.5 shadow-sm">
                 {activeFilterCount}
               </Badge>
             )}
@@ -90,7 +95,7 @@ export function AdvancedFiltersPanel({ onFiltersChange, currentFilters, tags }: 
       {showFilters && (
         <ScrollArea className="max-h-[300px]">
           <div className="px-3 pb-3 space-y-4">
-            {/* Quick Filters */}
+            {/* Quick Filters with glassmorphism */}
             <div>
               <p className="text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wide">Quick Filters</p>
               <div className="grid grid-cols-2 gap-2">
@@ -103,7 +108,11 @@ export function AdvancedFiltersPanel({ onFiltersChange, currentFilters, tags }: 
                       variant={isActive ? "default" : "outline"}
                       size="sm"
                       onClick={() => toggleFilter("quickFilter", filter.filter)}
-                      className={cn("justify-start h-auto py-2", !isActive && "hover:border-primary/50")}
+                      className={cn(
+                        "justify-start h-auto py-2 shadow-sm backdrop-blur-sm",
+                        !isActive && "hover:border-primary/50 bg-card/50",
+                        isActive && "shadow-md",
+                      )}
                     >
                       <Icon className={cn("h-4 w-4 mr-2", isActive ? "" : filter.color)} />
                       <span className="text-xs">{filter.label}</span>
@@ -115,7 +124,7 @@ export function AdvancedFiltersPanel({ onFiltersChange, currentFilters, tags }: 
 
             <Separator />
 
-            {/* Categories */}
+            {/* Categories with improved styling */}
             <div>
               <p className="text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wide">Category</p>
               <div className="flex flex-wrap gap-2">
@@ -126,10 +135,10 @@ export function AdvancedFiltersPanel({ onFiltersChange, currentFilters, tags }: 
                       key={cat.id}
                       onClick={() => toggleFilter("category", cat.id)}
                       className={cn(
-                        "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all",
+                        "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all shadow-sm",
                         isActive
-                          ? "bg-primary text-primary-foreground shadow-sm"
-                          : "bg-secondary hover:bg-secondary/80 text-secondary-foreground",
+                          ? "bg-primary text-primary-foreground shadow-md scale-105"
+                          : "bg-card/50 backdrop-blur-sm hover:bg-card border border-border/50 text-secondary-foreground hover:scale-105",
                       )}
                     >
                       <div className={cn("h-2 w-2 rounded-full", cat.color)} />
@@ -155,7 +164,7 @@ export function AdvancedFiltersPanel({ onFiltersChange, currentFilters, tags }: 
                       variant={isActive ? "default" : "outline"}
                       size="sm"
                       onClick={() => toggleFilter("status", status.id)}
-                      className="h-8"
+                      className={cn("h-8 shadow-sm", isActive && "shadow-md")}
                     >
                       <Icon className="h-3 w-3 mr-1.5" />
                       {status.label}
@@ -188,12 +197,12 @@ export function AdvancedFiltersPanel({ onFiltersChange, currentFilters, tags }: 
                             toggleFilter("tagIds", newTags.length > 0 ? newTags : undefined)
                           }}
                           className={cn(
-                            "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-all border",
+                            "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-all border shadow-sm",
                             isActive
-                              ? "bg-primary text-primary-foreground border-primary shadow-sm"
-                              : "bg-background hover:bg-accent border-border",
+                              ? "shadow-md scale-105"
+                              : "bg-card/50 backdrop-blur-sm hover:bg-card hover:scale-105 border-border/50",
                           )}
-                          style={isActive ? { backgroundColor: tag.color, borderColor: tag.color } : {}}
+                          style={isActive ? { backgroundColor: tag.color, borderColor: tag.color, color: "white" } : {}}
                         >
                           {tag.name}
                         </button>
@@ -212,7 +221,7 @@ export function AdvancedFiltersPanel({ onFiltersChange, currentFilters, tags }: 
                 variant={currentFilters.starred ? "default" : "outline"}
                 size="sm"
                 onClick={() => toggleFilter("starred", !currentFilters.starred || undefined)}
-                className="h-8"
+                className={cn("h-8 shadow-sm", currentFilters.starred && "shadow-md")}
               >
                 <Star className="h-3 w-3 mr-1.5" />
                 Starred
@@ -221,7 +230,7 @@ export function AdvancedFiltersPanel({ onFiltersChange, currentFilters, tags }: 
                 variant={currentFilters.isRead === false ? "default" : "outline"}
                 size="sm"
                 onClick={() => toggleFilter("isRead", currentFilters.isRead === false ? undefined : false)}
-                className="h-8"
+                className={cn("h-8 shadow-sm", currentFilters.isRead === false && "shadow-md")}
               >
                 Unread Only
               </Button>
@@ -229,7 +238,7 @@ export function AdvancedFiltersPanel({ onFiltersChange, currentFilters, tags }: 
                 variant={currentFilters.archived ? "default" : "outline"}
                 size="sm"
                 onClick={() => toggleFilter("archived", !currentFilters.archived || undefined)}
-                className="h-8"
+                className={cn("h-8 shadow-sm", currentFilters.archived && "shadow-md")}
               >
                 <Archive className="h-3 w-3 mr-1.5" />
                 Archived

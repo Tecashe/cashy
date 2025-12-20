@@ -850,6 +850,16 @@ export class InstagramAPI {
         throw new Error("Permission denied. Please ensure all required permissions are granted.")
       }
 
+      if (error.error?.code === 10900 || error.error?.message?.includes("allowed window")) {
+        throw new Error(
+          "This message is sent outside of allowed window. You can only message customers who contacted you within the last 24 hours.",
+        )
+      }
+
+      if (error.error?.code === 551) {
+        throw new Error("This user isn't available right now. They may have blocked your account.")
+      }
+
       throw new Error(error.error?.message || `Instagram API Error: ${response.status}`)
     }
 
@@ -1292,5 +1302,3 @@ export async function exchangeTokenForLongLived(shortLivedToken: string): Promis
 
   return response.json()
 }
-
-

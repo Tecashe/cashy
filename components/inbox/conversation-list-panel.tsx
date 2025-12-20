@@ -1,97 +1,3 @@
-// "use client"
-
-// import { cn } from "@/lib/utils"
-
-// import { useState, useEffect, useTransition } from "react"
-// import { getConversations, getTags } from "@/actions/conversation-actions"
-// import { ConversationList } from "@/components/inbox/conversation-list"
-// import { InboxFilters } from "@/components/inbox/inbox-filters"
-// import { Button } from "@/components/ui/button"
-// import { RefreshCw, Inbox } from "lucide-react"
-// import { ScrollArea } from "@/components/ui/scroll-area"
-
-// type Conversation = any // Use the actual type from your actions
-
-// interface ConversationListPanelProps {
-//   userId: string
-//   instagramAccountId: string
-//   selectedConversationId?: string
-//   onConversationSelect: (id: string) => void
-// }
-
-// export function ConversationListPanel({
-//   userId,
-//   instagramAccountId,
-//   selectedConversationId,
-//   onConversationSelect,
-// }: ConversationListPanelProps) {
-//   const [conversations, setConversations] = useState<Conversation[]>([])
-//   const [tags, setTags] = useState<any[]>([])
-//   const [isLoading, startTransition] = useTransition()
-//   const [filters, setFilters] = useState<any>({})
-
-//   const loadConversations = () => {
-//     startTransition(async () => {
-//       const [convResult, tagsResult] = await Promise.all([
-//         getConversations({ ...filters, userId, instagramAccountId }),
-//         getTags(userId),
-//       ])
-
-//       if (convResult.success) {
-//         setConversations(
-//           (convResult.conversations || []).filter(
-//             (c): c is typeof c & { lastMessageAt: Date } => c.lastMessageAt !== null,
-//           ),
-//         )
-//       }
-
-//       if (tagsResult.success) {
-//         setTags(tagsResult.tags || [])
-//       }
-//     })
-//   }
-
-//   useEffect(() => {
-//     loadConversations()
-//   }, [userId, instagramAccountId, filters])
-
-//   const unreadCount = conversations.filter((c) => !c.isRead).length
-
-//   return (
-//     <>
-//       {/* Header */}
-//       <div className="border-b border-border p-4">
-//         <div className="flex items-center justify-between mb-3">
-//           <div className="flex items-center gap-2">
-//             <Inbox className="h-5 w-5 text-muted-foreground" />
-//             <div>
-//               <h2 className="font-semibold">All Conversations</h2>
-//               <p className="text-xs text-muted-foreground">
-//                 {conversations.length} total
-//                 {unreadCount > 0 && ` • ${unreadCount} unread`}
-//               </p>
-//             </div>
-//           </div>
-//           <Button variant="ghost" size="icon-sm" onClick={loadConversations} disabled={isLoading}>
-//             <RefreshCw className={cn("h-4 w-4", isLoading && "animate-spin")} />
-//           </Button>
-//         </div>
-//       </div>
-
-//       {/* Filters */}
-//       <InboxFilters onFilterChange={setFilters} tags={tags} />
-
-//       {/* Conversation List */}
-//       <ScrollArea className="flex-1">
-//         <ConversationList
-//           conversations={conversations}
-//           currentConversationId={selectedConversationId}
-//           onSelect={onConversationSelect}
-//         />
-//       </ScrollArea>
-//     </>
-//   )
-// }
 "use client"
 
 import { cn } from "@/lib/utils"
@@ -102,7 +8,14 @@ import { AdvancedFiltersPanel } from "@/components/inbox/advanced-filters-panel"
 import { BulkActionsBar } from "@/components/inbox/bulk-actions-bar"
 import { TemplatesModal } from "@/components/inbox/templates-modal"
 import { Button } from "@/components/ui/button"
-import { RefreshCw, Inbox, Settings } from "lucide-react"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { RefreshCw, Inbox, MoreVertical, FileText, SlidersHorizontal } from "lucide-react"
 import { ScrollArea } from "@/components/ui/scroll-area"
 
 type Conversation = any // Use the actual type from your actions
@@ -156,27 +69,45 @@ export function ConversationListPanel({
 
   return (
     <>
-      {/* Header */}
-      <div className="border-b border-border p-4">
+      {/* Header with glassmorphism */}
+      <div className="border-b border-border/50 p-4 bg-card/80 backdrop-blur-xl">
         <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <Inbox className="h-5 w-5 text-muted-foreground" />
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-gradient-to-br from-purple-500/10 to-pink-500/10">
+              <Inbox className="h-5 w-5 text-primary" />
+            </div>
             <div>
               <h2 className="font-semibold">All Conversations</h2>
               <p className="text-xs text-muted-foreground">
                 {conversations.length} total
-                {unreadCount > 0 && ` • ${unreadCount} unread`}
+                {unreadCount > 0 && <span className="text-primary font-medium"> • {unreadCount} unread</span>}
               </p>
             </div>
           </div>
+
           <div className="flex items-center gap-2">
-            {/* Templates button */}
-            <Button variant="ghost" size="icon-sm" onClick={() => setShowTemplates(true)}>
-              <Settings className="h-4 w-4" />
-            </Button>
-            <Button variant="ghost" size="icon-sm" onClick={loadConversations} disabled={isLoading}>
+            <Button variant="ghost" size="icon" onClick={loadConversations} disabled={isLoading} className="h-9 w-9">
               <RefreshCw className={cn("h-4 w-4", isLoading && "animate-spin")} />
             </Button>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="icon" className="h-9 w-9 shadow-sm bg-transparent">
+                  <MoreVertical className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56 backdrop-blur-xl bg-card/95">
+                <DropdownMenuItem onClick={() => setShowTemplates(true)}>
+                  <FileText className="h-4 w-4 mr-2" />
+                  Manage Templates
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem>
+                  <SlidersHorizontal className="h-4 w-4 mr-2" />
+                  Filter Settings
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </div>
