@@ -58,7 +58,7 @@ export function CustomerTimelineSidebar({ conversation, userId }: CustomerTimeli
   }
 
   return (
-    <div className="w-80 border-l border-border bg-card flex flex-col">
+    <div className="w-80 border-l border-border bg-card/50 backdrop-blur-sm flex flex-col shadow-xl">
       <div className="p-4 border-b border-border">
         <h3 className="font-semibold text-sm">Customer Profile</h3>
       </div>
@@ -66,16 +66,22 @@ export function CustomerTimelineSidebar({ conversation, userId }: CustomerTimeli
       <ScrollArea className="flex-1">
         <div className="p-4 space-y-6">
           {/* Profile Card */}
-          <Card className="p-4 bg-gradient-to-br from-primary/5 to-transparent">
+          <Card className="p-4 bg-gradient-to-br from-primary/5 to-transparent backdrop-blur-sm shadow-md">
             <div className="flex flex-col items-center text-center">
               <Avatar className="h-20 w-20 mb-3 border-4 border-background shadow-lg">
-                <AvatarImage src={conversation.participantAvatar || "/placeholder.svg"} />
+                <AvatarImage
+                  src={
+                    conversation.participantAvatar ||
+                    `https://avatar.vercel.sh/${conversation.participantUsername || "/placeholder.svg"}` ||
+                    "/placeholder.svg"
+                  }
+                />
                 <AvatarFallback className="text-lg bg-gradient-to-br from-blue-500 to-purple-500 text-white">
-                  {conversation.participantName?.slice(0, 2).toUpperCase()}
+                  {(conversation.participantName || conversation.participantUsername || "U").slice(0, 2).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
-              <h4 className="font-semibold">{conversation.participantName}</h4>
-              <p className="text-sm text-muted-foreground">@{conversation.participantUsername}</p>
+              <h4 className="font-semibold">{conversation.participantName || conversation.participantUsername}</h4>
+              <p className="text-sm text-muted-foreground">@{conversation.participantUsername || "unknown"}</p>
               {history?.firstContact && (
                 <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1">
                   <Calendar className="h-3 w-3" />
@@ -83,7 +89,7 @@ export function CustomerTimelineSidebar({ conversation, userId }: CustomerTimeli
                 </p>
               )}
               {isVip && (
-                <Badge variant="default" className="mt-2 bg-yellow-500 hover:bg-yellow-600">
+                <Badge variant="default" className="mt-2 bg-yellow-500 hover:bg-yellow-600 shadow-sm">
                   <Star className="h-3 w-3 mr-1" />
                   VIP Customer
                 </Badge>
@@ -94,12 +100,12 @@ export function CustomerTimelineSidebar({ conversation, userId }: CustomerTimeli
           {/* Stats */}
           {history && (
             <div className="grid grid-cols-2 gap-3">
-              <Card className="p-3 text-center">
+              <Card className="p-3 text-center backdrop-blur-sm shadow-sm">
                 <MessageSquare className="h-4 w-4 mx-auto mb-1 text-muted-foreground" />
                 <p className="text-2xl font-bold">{history.conversationCount}</p>
                 <p className="text-xs text-muted-foreground">Conversations</p>
               </Card>
-              <Card className="p-3 text-center">
+              <Card className="p-3 text-center backdrop-blur-sm shadow-sm">
                 <MessageSquare className="h-4 w-4 mx-auto mb-1 text-muted-foreground" />
                 <p className="text-2xl font-bold">{history.totalMessages}</p>
                 <p className="text-xs text-muted-foreground">Messages</p>
@@ -115,7 +121,7 @@ export function CustomerTimelineSidebar({ conversation, userId }: CustomerTimeli
             <div className="space-y-2">
               <Button
                 variant={isVip ? "default" : "outline"}
-                className="w-full justify-start"
+                className="w-full justify-start shadow-sm"
                 size="sm"
                 onClick={handleToggleVip}
               >
@@ -124,18 +130,22 @@ export function CustomerTimelineSidebar({ conversation, userId }: CustomerTimeli
               </Button>
               <Button
                 variant="outline"
-                className="w-full justify-start bg-transparent"
+                className="w-full justify-start bg-transparent shadow-sm"
                 size="sm"
                 onClick={handleSetReminder}
               >
                 <Clock className="h-4 w-4 mr-2" />
                 Set Reminder
               </Button>
-              <Button variant="outline" className="w-full justify-start bg-transparent" size="sm">
+              <Button variant="outline" className="w-full justify-start bg-transparent shadow-sm" size="sm">
                 <Download className="h-4 w-4 mr-2" />
                 Export Conversation
               </Button>
-              <Button variant="outline" className="w-full justify-start text-destructive bg-transparent" size="sm">
+              <Button
+                variant="outline"
+                className="w-full justify-start text-destructive bg-transparent shadow-sm"
+                size="sm"
+              >
                 <Ban className="h-4 w-4 mr-2" />
                 Block User
               </Button>
@@ -152,7 +162,10 @@ export function CustomerTimelineSidebar({ conversation, userId }: CustomerTimeli
                 </h5>
                 <div className="space-y-2">
                   {history.conversations.slice(1, 4).map((conv: any) => (
-                    <Card key={conv.id} className="p-3 hover:bg-accent/50 cursor-pointer transition-colors">
+                    <Card
+                      key={conv.id}
+                      className="p-3 hover:bg-accent/50 cursor-pointer transition-colors backdrop-blur-sm shadow-sm"
+                    >
                       <p className="text-xs text-muted-foreground mb-1">
                         {formatDistanceToNow(conv.date, { addSuffix: true })}
                       </p>

@@ -43,38 +43,39 @@ export function InboxLayout({ userId, instagramAccounts }: InboxLayoutProps) {
 
   return (
     <div className="flex flex-col h-screen bg-background">
-      {/* Professional Top Bar with glassmorphism and shadows */}
-      <div className="border-b border-border/50 bg-card/80 backdrop-blur-xl px-6 py-4 shadow-lg">
+      <div className="border-b border-border/50 bg-card/80 backdrop-blur-xl px-3 md:px-6 py-3 md:py-4 shadow-lg">
         <div className="flex items-center justify-between max-w-screen-2xl mx-auto">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 shadow-md">
-              <Instagram className="h-5 w-5 text-white" />
+          <div className="flex items-center gap-2 md:gap-3 min-w-0 flex-1">
+            <div className="p-1.5 md:p-2 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 shadow-md">
+              <Instagram className="h-4 w-4 md:h-5 md:w-5 text-white" />
             </div>
-            <div>
-              <h1 className="text-lg font-semibold">Inbox</h1>
-              <p className="text-xs text-muted-foreground">Manage your Instagram conversations</p>
+            <div className="min-w-0 flex-1">
+              <h1 className="text-base md:text-lg font-semibold truncate">Inbox</h1>
+              <p className="text-xs text-muted-foreground hidden sm:block truncate">
+                Manage your Instagram conversations
+              </p>
             </div>
           </div>
 
           {instagramAccounts.length > 0 && (
             <Select value={selectedAccount} onValueChange={handleAccountChange}>
-              <SelectTrigger className="w-[280px] bg-background/95 backdrop-blur-sm shadow-sm border-border/50">
-                <SelectValue placeholder="Select Instagram account" />
+              <SelectTrigger className="w-[140px] sm:w-[200px] md:w-[280px] bg-background/95 backdrop-blur-sm shadow-sm border-border/50 text-sm">
+                <SelectValue placeholder="Select account" />
               </SelectTrigger>
               <SelectContent className="backdrop-blur-xl bg-card/95">
                 {instagramAccounts.map((account) => (
                   <SelectItem key={account.id} value={account.id}>
-                    <div className="flex items-center gap-3 py-1">
-                      <Avatar className="h-7 w-7 border-2 border-border shadow-sm">
+                    <div className="flex items-center gap-2 md:gap-3 py-1">
+                      <Avatar className="h-6 w-6 md:h-7 md:w-7 border-2 border-border shadow-sm">
                         <AvatarImage src={account.profilePicUrl || undefined} />
                         <AvatarFallback className="text-xs bg-gradient-to-br from-blue-500 to-purple-500 text-white">
                           {account.username.slice(0, 2).toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
-                      <span className="font-medium">@{account.username}</span>
+                      <span className="font-medium text-sm truncate">@{account.username}</span>
                       <Badge
                         variant={account.isConnected ? "default" : "secondary"}
-                        className="ml-auto text-xs h-5 shadow-sm"
+                        className="ml-auto text-xs h-5 shadow-sm hidden sm:inline-flex"
                       >
                         {account.isConnected ? "Active" : "Disconnected"}
                       </Badge>
@@ -87,13 +88,12 @@ export function InboxLayout({ userId, instagramAccounts }: InboxLayoutProps) {
         </div>
       </div>
 
-      {/* Split Pane Layout with subtle shadows */}
       <div className="flex flex-1 overflow-hidden">
-        {/* Left: Conversation List with shadow */}
+        {/* Left: Conversation List */}
         <div
           className={cn(
             "border-r border-border/50 bg-card/95 backdrop-blur-sm flex flex-col shadow-xl",
-            conversationId ? "hidden md:flex md:w-[400px] lg:w-[420px]" : "w-full md:w-[400px] lg:w-[420px]",
+            conversationId ? "hidden lg:flex lg:w-[380px] xl:w-[420px]" : "w-full lg:w-[380px] xl:w-[420px]",
           )}
         >
           <ConversationListPanel
@@ -105,7 +105,7 @@ export function InboxLayout({ userId, instagramAccounts }: InboxLayoutProps) {
         </div>
 
         {/* Right: Conversation View */}
-        <div className={cn("flex-1 flex flex-col bg-background", !conversationId && "hidden md:flex")}>
+        <div className={cn("flex-1 flex flex-col bg-background", !conversationId && "hidden lg:flex")}>
           {conversationId ? (
             <ConversationView conversationId={conversationId} userId={userId} onBack={() => router.push("/inbox")} />
           ) : (
@@ -113,8 +113,8 @@ export function InboxLayout({ userId, instagramAccounts }: InboxLayoutProps) {
               <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 rounded-full p-8 mb-6 shadow-lg backdrop-blur-sm">
                 <Instagram className="h-16 w-16 text-muted-foreground" />
               </div>
-              <h2 className="text-2xl font-semibold mb-2">Select a conversation</h2>
-              <p className="text-muted-foreground max-w-md text-balance">
+              <h2 className="text-xl md:text-2xl font-semibold mb-2">Select a conversation</h2>
+              <p className="text-sm md:text-base text-muted-foreground max-w-md text-balance">
                 Choose a conversation from the list to view messages and engage with your customers
               </p>
             </div>

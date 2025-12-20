@@ -15,7 +15,7 @@ interface AdvancedFiltersPanelProps {
 }
 
 export function AdvancedFiltersPanel({ onFiltersChange, currentFilters, tags }: AdvancedFiltersPanelProps) {
-  const [showFilters, setShowFilters] = useState(true)
+  const [showFilters, setShowFilters] = useState(false)
 
   const quickFilters = [
     {
