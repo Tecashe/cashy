@@ -3,9 +3,9 @@
 import { useState, useEffect, useTransition } from "react"
 import { getConversation } from "@/actions/conversation-actions"
 import { ConversationHeader } from "@/components/inbox/conversation-header"
-import { MessageThread } from "./message-thread"
-import { MessageInput } from "./message-input"
-import { CustomerTimelineSidebar } from "./customer-timeline-sidebar"
+import { MessageThread } from "@/components/inbox/message-thread"
+import { EnhancedMessageInput } from "./message-input"
+import { CustomerTimelineSidebar } from "@/components/inbox/customer-timeline-sidebar"
 import { Loader2, ArrowLeft, PanelRightClose, PanelRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useMobile } from "@/hooks/use-mobile"
@@ -83,7 +83,7 @@ export function ConversationView({ conversationId, userId, onBack }: Conversatio
         <MessageThread messages={conversation.messages} />
 
         <div className="border-t border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-          <MessageInput conversationId={conversationId} userId={userId} onMessageSent={loadConversation} />
+          <EnhancedMessageInput conversationId={conversationId} userId={userId} onMessageSent={loadConversation} />
         </div>
       </div>
 

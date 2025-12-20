@@ -98,6 +98,7 @@ export async function getMessages(conversationId: string, limit = 50) {
 
   return messages
 }
+//sf
 
 export async function markMessagesAsRead(conversationId: string) {
   const { userId } = await auth()

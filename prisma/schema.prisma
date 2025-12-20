@@ -198,19 +198,21 @@ model Conversation {
 }
 
 model Message {
-  id               String   @id @default(cuid())
-  conversationId   String
-  content          String   @db.Text
-  sender           String
-  isFromUser       Boolean  @default(false)
-  isRead           Boolean  @default(false)
-  timestamp        DateTime @default(now())
-  messageType      String   @default("text")
-  sentByAutomation Boolean  @default(false)
-  automationId     String?
-  sentByAI         Boolean  @default(false)
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  id                 String   @id @default(cuid())
+  conversationId     String
+  content            String   @db.Text
+  sender             String
+  isFromUser         Boolean  @default(false)
+  isRead             Boolean  @default(false)
+  timestamp          DateTime @default(now())
+  messageType        String   @default("text") // text, image, video, audio, carousel
+  attachmentUrl      String? // Added to store media URL
+  attachmentMetadata Json? // Added to store additional attachment info (thumbnail, duration, etc.)
+  sentByAutomation   Boolean  @default(false)
+  automationId       String?
+  sentByAI           Boolean  @default(false)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 
   conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
 
