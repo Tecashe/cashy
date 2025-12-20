@@ -77,6 +77,86 @@
 //     </div>
 //   )
 // }
+
+
+
+// "use client"
+
+// import { useState, useEffect, useTransition } from "react"
+// import { getConversation } from "@/actions/conversation-actions"
+// import { ConversationHeader } from "@/components/inbox/conversation-header"
+// import { MessageThread } from "@/components/inbox/message-thread"
+// import { MessageInput } from "@/components/inbox/message-input"
+// import { Loader2, ArrowLeft } from "lucide-react"
+// import { Button } from "@/components/ui/button"
+// import { useMobile } from "@/hooks/use-mobile"
+
+// interface ConversationViewProps {
+//   conversationId: string
+//   onBack?: () => void
+// }
+
+// export function ConversationView({ conversationId, onBack }: ConversationViewProps) {
+//   const [conversation, setConversation] = useState<any>(null)
+//   const [isLoading, startTransition] = useTransition()
+//   const isMobile = useMobile()
+
+//   const loadConversation = () => {
+//     startTransition(async () => {
+//       const result = await getConversation(conversationId)
+//       if (result.success) {
+//         setConversation(result.conversation)
+//       }
+//     })
+//   }
+
+//   useEffect(() => {
+//     loadConversation()
+//     // Poll for new messages every 10 seconds to reduce auto-scroll frequency
+//     const interval = setInterval(loadConversation, 10000)
+//     return () => clearInterval(interval)
+//   }, [conversationId])
+
+//   if (isLoading && !conversation) {
+//     return (
+//       <div className="flex items-center justify-center h-full">
+//         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+//       </div>
+//     )
+//   }
+
+//   if (!conversation) {
+//     return (
+//       <div className="flex items-center justify-center h-full">
+//         <p className="text-muted-foreground">Conversation not found</p>
+//       </div>
+//     )
+//   }
+
+//   return (
+//     <div className="flex flex-col h-full bg-background">
+//       <div className="border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+//         {isMobile && onBack && (
+//           <div className="border-b border-border/50 p-2">
+//             <Button variant="ghost" size="sm" onClick={onBack} className="hover:bg-accent/50">
+//               <ArrowLeft className="h-4 w-4 mr-2" />
+//               Back
+//             </Button>
+//           </div>
+//         )}
+//         <ConversationHeader conversation={conversation} />
+//       </div>
+
+//       <MessageThread messages={conversation.messages} />
+
+//       <div className="border-t border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+//         <MessageInput conversationId={conversationId} onMessageSent={loadConversation} />
+//       </div>
+//     </div>
+//   )
+// }
+
+
 "use client"
 
 import { useState, useEffect, useTransition } from "react"
@@ -90,10 +170,11 @@ import { useMobile } from "@/hooks/use-mobile"
 
 interface ConversationViewProps {
   conversationId: string
+  userId: string
   onBack?: () => void
 }
 
-export function ConversationView({ conversationId, onBack }: ConversationViewProps) {
+export function ConversationView({ conversationId, userId, onBack }: ConversationViewProps) {
   const [conversation, setConversation] = useState<any>(null)
   const [isLoading, startTransition] = useTransition()
   const isMobile = useMobile()
@@ -109,7 +190,6 @@ export function ConversationView({ conversationId, onBack }: ConversationViewPro
 
   useEffect(() => {
     loadConversation()
-    // Poll for new messages every 10 seconds to reduce auto-scroll frequency
     const interval = setInterval(loadConversation, 10000)
     return () => clearInterval(interval)
   }, [conversationId])
@@ -147,7 +227,7 @@ export function ConversationView({ conversationId, onBack }: ConversationViewPro
       <MessageThread messages={conversation.messages} />
 
       <div className="border-t border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <MessageInput conversationId={conversationId} onMessageSent={loadConversation} />
+        <MessageInput conversationId={conversationId} userId={userId} onMessageSent={loadConversation} />
       </div>
     </div>
   )

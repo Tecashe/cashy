@@ -34,8 +34,6 @@ model User {
   tags              Tag[]
   analytics         Analytics[]
   quickReplies      QuickReply[]
-  messageTemplates  MessageTemplate[]
-  savedFilters      SavedFilter[]
 
   @@index([clerkId])
   @@index([email])
@@ -165,13 +163,6 @@ model Conversation {
   isArchived          Boolean   @default(false)
   needsHumanReview    Boolean   @default(false)
   handoffReason       String?
-  priorityScore       Int       @default(0) // 0-100 score
-  category            String    @default("general") // sales, support, collaboration, general
-  status              String    @default("open") // open, awaiting_response, resolved
-  isVip               Boolean   @default(false)
-  assignedToUserId    String?
-  firstContactAt      DateTime  @default(now())
-  lastResponseTime    Int? // Average response time in minutes
   createdAt           DateTime  @default(now())
   updatedAt           DateTime  @updatedAt
 
@@ -179,9 +170,6 @@ model Conversation {
   user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   messages         Message[]
   conversationTags ConversationTag[]
-  internalNotes    InternalNote[]
-  reminders        Reminder[]
-  aiSuggestions    AISuggestion[]
 
   @@index([userId])
   @@index([instagramAccountId])
@@ -190,11 +178,6 @@ model Conversation {
   @@index([isRead])
   @@index([starred])
   @@index([isArchived])
-  @@index([priorityScore])
-  @@index([category])
-  @@index([status])
-  @@index([isVip])
-  @@index([assignedToUserId])
 }
 
 model Message {
@@ -298,81 +281,3 @@ model Analytics {
   @@index([date])
 }
 
-model InternalNote {
-  id             String   @id @default(cuid())
-  conversationId String
-  userId         String
-  content        String   @db.Text
-  mentions       String[] // Array of user IDs mentioned with @
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-
-  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-
-  @@index([conversationId])
-  @@index([userId])
-}
-
-model MessageTemplate {
-  id         String   @id @default(cuid())
-  userId     String
-  title      String
-  content    String   @db.Text
-  category   String   @default("general") // sales, support, followup, general
-  variables  String[] // Array of variable names like firstName, lastProduct
-  usageCount Int      @default(0)
-  isActive   Boolean  @default(true)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@index([category])
-  @@index([usageCount])
-}
-
-model Reminder {
-  id             String    @id @default(cuid())
-  conversationId String
-  userId         String
-  message        String    @db.Text
-  remindAt       DateTime
-  isCompleted    Boolean   @default(false)
-  completedAt    DateTime?
-  createdAt      DateTime  @default(now())
-
-  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-
-  @@index([conversationId])
-  @@index([userId])
-  @@index([remindAt])
-  @@index([isCompleted])
-}
-
-model AISuggestion {
-  id             String   @id @default(cuid())
-  conversationId String
-  suggestions    String[] // Array of 2-3 suggested replies
-  context        Json // Store the context used to generate
-  createdAt      DateTime @default(now())
-  expiresAt      DateTime // Cache for 5 minutes
-
-  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-
-  @@unique([conversationId]) // Only one active suggestion per conversation
-  @@index([conversationId])
-  @@index([expiresAt])
-}
-
-model SavedFilter {
-  id        String   @id @default(cuid())
-  userId    String
-  name      String
-  filters   Json // Store filter configuration
-  isDefault Boolean  @default(false)
-  createdAt DateTime @default(now())
-  User      User     @relation(fields: [userId], references: [id])
-
-  @@index([userId])
-}
