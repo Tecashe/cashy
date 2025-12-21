@@ -3785,6 +3785,7 @@ async function processMessagingEvent(messagingEvent: any, webhookPageId: string)
       senderId,
       webhookPageId,
       messageText: message?.text,
+      isEcho: message?.is_echo,
     })
     
     if (!senderId || !message || message.is_echo) {
@@ -3842,6 +3843,13 @@ async function processMessagingEvent(messagingEvent: any, webhookPageId: string)
     
     console.log("[Instagram Webhook] ✅ Using account:", instagramAccount.username)
     
+    // Get message timestamp
+    const messageTimestamp = messagingEvent.timestamp 
+      ? new Date(messagingEvent.timestamp) 
+      : new Date()
+    
+    console.log("[Instagram Webhook] 📅 Message timestamp:", messageTimestamp)
+    
     // Find or create conversation
     let conversation = await prisma.conversation.findFirst({
       where: {
@@ -3871,22 +3879,27 @@ async function processMessagingEvent(messagingEvent: any, webhookPageId: string)
           participantUsername: profileData?.username || messagingEvent.sender?.username || "unknown",
           participantAvatar: profileData?.profilePic || null,
           lastMessageText: message.text || "[Media]",
-          lastMessageAt: new Date(messagingEvent.timestamp || Date.now()),
+          lastMessageAt: messageTimestamp,
+          lastCustomerMessageAt: messageTimestamp, // ✅ CRITICAL: Set this for new conversations
           unreadCount: 1,
         },
       })
       
-      console.log("[Instagram Webhook] ✅ Conversation created with profile data")
+      console.log("[Instagram Webhook] ✅ Conversation created with lastCustomerMessageAt:", messageTimestamp)
     } else {
-      // Update existing conversation
+      // Update existing conversation - ALWAYS update lastCustomerMessageAt
+      console.log("[Instagram Webhook] Updating existing conversation...")
       await prisma.conversation.update({
         where: { id: conversation.id },
         data: {
           lastMessageText: message.text || "[Media]",
-          lastMessageAt: new Date(messagingEvent.timestamp || Date.now()),
+          lastMessageAt: messageTimestamp,
+          lastCustomerMessageAt: messageTimestamp, // ✅ CRITICAL: Always update this on customer messages
           unreadCount: { increment: 1 },
         },
       })
+      
+      console.log("[Instagram Webhook] ✅ Conversation updated with lastCustomerMessageAt:", messageTimestamp)
       
       // If conversation exists but doesn't have profile picture, fetch it now
       if (!conversation.participantAvatar) {
@@ -3909,6 +3922,17 @@ async function processMessagingEvent(messagingEvent: any, webhookPageId: string)
           console.log("[Instagram Webhook] ✅ Profile picture updated")
         }
       }
+      
+      // Refresh conversation object to get updated data
+      conversation = await prisma.conversation.findUnique({
+        where: { id: conversation.id },
+        include: { instagramAccount: true, conversationTags: { include: { tag: true } } }
+      }) as any
+    }
+    
+    if (!conversation) {
+      console.error("[Instagram Webhook] ❌ ERROR: Conversation became null after update")
+      return
     }
     
     // Save message
@@ -3919,6 +3943,7 @@ async function processMessagingEvent(messagingEvent: any, webhookPageId: string)
         sender: "participant",
         isRead: false,
         messageType: message.is_story_reply ? "story_reply" : "text",
+        timestamp: messageTimestamp,
       },
     })
     
@@ -3987,6 +4012,8 @@ async function processComment(value: any, webhookPageId: string) {
       return
     }
     
+    const commentTimestamp = new Date()
+    
     // Find or create conversation
     let conversation = await prisma.conversation.findFirst({
       where: {
@@ -4012,10 +4039,25 @@ async function processComment(value: any, webhookPageId: string) {
           participantUsername: profileData?.username || from.username || "unknown",
           participantAvatar: profileData?.profilePic || null,
           lastMessageText: `Commented: ${text}`,
-          lastMessageAt: new Date(),
+          lastMessageAt: commentTimestamp,
+          lastCustomerMessageAt: commentTimestamp, // ✅ Set for comments too
           unreadCount: 0,
         },
       })
+    } else {
+      // Update lastCustomerMessageAt for comments too
+      await prisma.conversation.update({
+        where: { id: conversation.id },
+        data: {
+          lastMessageAt: commentTimestamp,
+          lastCustomerMessageAt: commentTimestamp, // ✅ Update for comments
+        },
+      })
+    }
+    
+    if (!conversation) {
+      console.error("[Instagram Webhook] ❌ ERROR: Failed to create/update conversation for comment")
+      return
     }
     
     // Detect if comment contains mentions
@@ -4075,6 +4117,8 @@ async function processMention(value: any, webhookPageId: string) {
     
     if (!instagramAccount) return
     
+    const mentionTimestamp = new Date()
+    
     let conversation = await prisma.conversation.findFirst({
       where: {
         instagramAccountId: instagramAccount.id,
@@ -4099,10 +4143,25 @@ async function processMention(value: any, webhookPageId: string) {
           participantUsername: profileData?.username || from.username || "unknown",
           participantAvatar: profileData?.profilePic || null,
           lastMessageText: "Mentioned you",
-          lastMessageAt: new Date(),
+          lastMessageAt: mentionTimestamp,
+          lastCustomerMessageAt: mentionTimestamp, // ✅ Set for mentions too
           unreadCount: 0,
         },
       })
+    } else {
+      // Update lastCustomerMessageAt for mentions too
+      await prisma.conversation.update({
+        where: { id: conversation.id },
+        data: {
+          lastMessageAt: mentionTimestamp,
+          lastCustomerMessageAt: mentionTimestamp, // ✅ Update for mentions
+        },
+      })
+    }
+    
+    if (!conversation) {
+      console.error("[Instagram Webhook] ❌ ERROR: Failed to create/update conversation for mention")
+      return
     }
     
     await processAutomationTriggers({
