@@ -44,17 +44,19 @@ export function ConversationListPanel({
 
   const loadConversations = () => {
     startTransition(async () => {
+      console.log("[v0] Loading conversations with filters:", { ...filters, userId, instagramAccountId })
+
       const [convResult, tagsResult] = await Promise.all([
         getConversations({ ...filters, userId, instagramAccountId }),
         getTags(userId),
       ])
 
+      console.log("[v0] Conversations result:", convResult)
+
       if (convResult.success) {
-        setConversations(
-          (convResult.conversations || []).filter(
-            (c): c is typeof c & { lastMessageAt: Date } => c.lastMessageAt !== null,
-          ),
-        )
+        const allConversations = convResult.conversations || []
+        console.log("[v0] Total conversations:", allConversations.length)
+        setConversations(allConversations)
       }
 
       if (tagsResult.success) {
