@@ -119,9 +119,8 @@ export function AutomationWizard({ automation, accounts, tags }: AutomationWizar
     }
   }
 
-  const canProceed = () => {
+  const validateCurrentStep = (): boolean => {
     const validation = validateStep(currentStep)
-    setValidationErrors(validation.errors)
     return validation.isValid
   }
 
@@ -130,12 +129,21 @@ export function AutomationWizard({ automation, accounts, tags }: AutomationWizar
   }, [currentStep])
 
   const handleNext = () => {
-    if (canProceed()) {
+    const validation = validateStep(currentStep)
+    setValidationErrors(validation.errors)
+
+    if (validation.isValid) {
       setCurrentStep((prev) => prev + 1)
     }
   }
 
   const handleSave = async () => {
+    const validation = validateStep(currentStep)
+    if (!validation.isValid) {
+      setValidationErrors(validation.errors)
+      return
+    }
+
     setIsSaving(true)
     try {
       const primaryTrigger = flow.triggers[0]
@@ -360,7 +368,7 @@ export function AutomationWizard({ automation, accounts, tags }: AutomationWizar
               <Button
                 size="lg"
                 onClick={handleSave}
-                disabled={isSaving || !canProceed()}
+                disabled={isSaving}
                 className="group relative min-w-[120px] overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300"
               >
                 <span className="relative z-10">{isSaving ? "Saving..." : automation ? "Update" : "Create"}</span>
