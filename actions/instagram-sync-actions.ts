@@ -30,9 +30,9 @@ export async function autoSyncConversationParticipant(conversationId: string) {
     // Get all conversations from Instagram to find the matching one
     const instagramConversations = await api.getConversations(50)
 
-    const matchingConversation = conversation.instagramConversationId
-      ? instagramConversations.data?.find((c: any) => c.id === conversation.instagramConversationId)
-      : null
+    const matchingConversation = instagramConversations.data?.find((c: any) =>
+      c.participants?.some((p: any) => p.id === conversation.participantId),
+    )
 
     if (matchingConversation) {
       // Find the participant that is NOT the business account

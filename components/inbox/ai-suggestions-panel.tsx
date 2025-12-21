@@ -10,7 +10,6 @@ import { UpgradePrompt } from "./upgrade-prompt"
 interface AISuggestionsPanelProps {
   conversationId: string
   userId: string
-  
   onSelectSuggestion: (text: string) => void
 }
 
@@ -47,22 +46,16 @@ export function AISuggestionsPanel({ conversationId, userId, onSelectSuggestion 
   if (suggestions.length === 0) {
     return (
       <>
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={loadSuggestions}
-          disabled={loading}
-          className="gap-2 bg-transparent"
-        >
+        <Button size="sm" onClick={loadSuggestions} disabled={loading} className="gap-2 w-full">
           {loading ? (
             <>
-              <Loader2 className="h-3 w-3 animate-spin" />
-              Generating...
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Generating AI suggestions...
             </>
           ) : (
             <>
-              <Sparkles className="h-3 w-3" />
-              Get AI Suggestions
+              <Sparkles className="h-4 w-4" />
+              Generate AI Suggestions
             </>
           )}
         </Button>
@@ -78,12 +71,9 @@ export function AISuggestionsPanel({ conversationId, userId, onSelectSuggestion 
 
   return (
     <div className="space-y-2">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <Sparkles className="h-3 w-3" />
-          <span>AI Suggestions</span>
-        </div>
-        <Button size="sm" variant="ghost" onClick={loadSuggestions} disabled={loading} className="h-6 px-2">
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-xs text-muted-foreground">{suggestions.length} suggestions</span>
+        <Button size="sm" variant="ghost" onClick={loadSuggestions} disabled={loading} className="h-7 px-2">
           <RefreshCw className="h-3 w-3" />
         </Button>
       </div>
@@ -93,7 +83,7 @@ export function AISuggestionsPanel({ conversationId, userId, onSelectSuggestion 
           <button
             key={index}
             onClick={() => onSelectSuggestion(suggestion)}
-            className="w-full rounded-lg border border-purple-200 bg-purple-50/50 p-3 text-left text-sm hover:bg-purple-100/50 hover:border-purple-300 transition-colors"
+            className="w-full rounded-lg border bg-background p-3 text-left text-sm hover:bg-accent transition-colors"
           >
             {suggestion}
           </button>
