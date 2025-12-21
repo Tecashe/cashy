@@ -154,8 +154,8 @@ export function ConversationView({
             userId={userId}
             lastCustomerMessageAt={conversation.lastCustomerMessageAt}
             onMessageSent={loadConversation}
-           
-            
+            externalMessage={messageInputValue}
+            onExternalMessageUsed={() => setMessageInputValue("")}
           />
         </div>
       </div>
