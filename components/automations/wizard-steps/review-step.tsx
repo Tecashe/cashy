@@ -1,11 +1,10 @@
-
 "use client"
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
-import { TRIGGER_TYPES, ACTION_TYPES } from "@/lib/constants/utomation-constants"
+import { TRIGGER_TYPES, ACTION_TYPES } from "@/lib/constants/automations"
 import type { AutomationFlow } from "@/lib/types/automation"
 import { ArrowRight, CheckCircle2, Play, Zap, Sparkles } from "lucide-react"
 import { motion } from "framer-motion"
@@ -24,16 +23,29 @@ export function ReviewStep({ flow, setFlow, accounts }: ReviewStepProps) {
 
   useEffect(() => {
     const fetchSelectedPosts = async () => {
-      const commentTrigger = flow.triggers.find((t) => t.type === "comment")
-      if (commentTrigger?.config?.postIds && commentTrigger.config.postIds.length > 0 && accounts[0]) {
-        const posts = await getInstagramPostsByIds(accounts[0].id, commentTrigger.config.postIds)
-        setSelectedPosts(posts)
+      const commentTrigger = flow.triggers?.find((t) => t.type === "comment")
+      if (
+        commentTrigger?.config?.postIds &&
+        commentTrigger.config.postIds.length > 0 &&
+        accounts &&
+        accounts.length > 0
+      ) {
+        try {
+          const posts = await getInstagramPostsByIds(accounts[0].id, commentTrigger.config.postIds)
+          setSelectedPosts(posts)
+        } catch (error) {
+          console.error("Failed to fetch posts:", error)
+        }
       }
     }
     fetchSelectedPosts()
   }, [flow.triggers, accounts])
 
   const getAutomationStory = () => {
+    if (!flow.triggers || flow.triggers.length === 0 || !flow.actions || flow.actions.length === 0) {
+      return null
+    }
+
     const trigger = flow.triggers[0]
     const firstAction = flow.actions[0]
 
@@ -41,6 +53,8 @@ export function ReviewStep({ flow, setFlow, accounts }: ReviewStepProps) {
 
     const triggerInfo = TRIGGER_TYPES[trigger.type]
     const actionInfo = ACTION_TYPES[firstAction.type]
+
+    if (!triggerInfo || !actionInfo) return null
 
     let triggerDescription = ""
     let actionDescription = ""
@@ -133,42 +147,47 @@ export function ReviewStep({ flow, setFlow, accounts }: ReviewStepProps) {
                 <div>
                   <CardTitle className="text-lg font-semibold">Triggers</CardTitle>
                   <CardDescription className="text-sm">
-                    {flow.triggers.length} trigger{flow.triggers.length !== 1 ? "s" : ""}
+                    {flow.triggers?.length || 0} trigger{flow.triggers?.length !== 1 ? "s" : ""}
                   </CardDescription>
                 </div>
               </div>
             </CardHeader>
             <CardContent className="space-y-3 pt-6">
-              {flow.triggers.map((trigger, index) => {
-                const triggerInfo = TRIGGER_TYPES[trigger.type]
-                const TriggerIcon = triggerInfo.icon
+              {flow.triggers && flow.triggers.length > 0 ? (
+                flow.triggers.map((trigger, index) => {
+                  const triggerInfo = TRIGGER_TYPES[trigger.type]
+                  if (!triggerInfo) return null
+                  const TriggerIcon = triggerInfo.icon
 
-                return (
-                  <motion.div
-                    key={index}
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.3, delay: index * 0.05 }}
-                    className="flex items-center gap-4 rounded-xl border border-border/50 bg-gradient-to-r from-muted/50 to-muted/30 p-4 shadow-sm"
-                  >
-                    <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 shadow-inner">
-                      <TriggerIcon className="h-5 w-5 text-primary" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-semibold leading-tight">{triggerInfo.label}</p>
-                      {trigger.config?.keywords && trigger.config.keywords.length > 0 && (
-                        <div className="mt-2 flex flex-wrap gap-1.5">
-                          {trigger.config.keywords.map((kw: string, i: number) => (
-                            <Badge key={i} variant="secondary" className="text-xs">
-                              {kw}
-                            </Badge>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </motion.div>
-                )
-              })}
+                  return (
+                    <motion.div
+                      key={index}
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.3, delay: index * 0.05 }}
+                      className="flex items-center gap-4 rounded-xl border border-border/50 bg-gradient-to-r from-muted/50 to-muted/30 p-4 shadow-sm"
+                    >
+                      <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 shadow-inner">
+                        <TriggerIcon className="h-5 w-5 text-primary" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold leading-tight">{triggerInfo.label}</p>
+                        {trigger.config?.keywords && trigger.config.keywords.length > 0 && (
+                          <div className="mt-2 flex flex-wrap gap-1.5">
+                            {trigger.config.keywords.map((kw: string, i: number) => (
+                              <Badge key={i} variant="secondary" className="text-xs">
+                                {kw}
+                              </Badge>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </motion.div>
+                  )
+                })
+              ) : (
+                <p className="text-sm text-muted-foreground text-center py-4">No triggers configured yet</p>
+              )}
 
               {selectedPosts.length > 0 && (
                 <motion.div
@@ -212,49 +231,54 @@ export function ReviewStep({ flow, setFlow, accounts }: ReviewStepProps) {
                 <div>
                   <CardTitle className="text-lg font-semibold">Actions</CardTitle>
                   <CardDescription className="text-sm">
-                    {flow.actions.length} action{flow.actions.length !== 1 ? "s" : ""}
+                    {flow.actions?.length || 0} action{flow.actions?.length !== 1 ? "s" : ""}
                   </CardDescription>
                 </div>
               </div>
             </CardHeader>
             <CardContent className="space-y-3 pt-6">
-              <div className="relative space-y-3">
-                <div className="absolute left-5 top-4 bottom-4 w-0.5 bg-gradient-to-b from-primary via-primary/50 to-primary/20" />
+              {flow.actions && flow.actions.length > 0 ? (
+                <div className="relative space-y-3">
+                  <div className="absolute left-5 top-4 bottom-4 w-0.5 bg-gradient-to-b from-primary via-primary/50 to-primary/20" />
 
-                {flow.actions.map((action, index) => {
-                  const actionInfo = ACTION_TYPES[action.type]
-                  const ActionIcon = actionInfo.icon
+                  {flow.actions.map((action, index) => {
+                    const actionInfo = ACTION_TYPES[action.type]
+                    if (!actionInfo) return null
+                    const ActionIcon = actionInfo.icon
 
-                  return (
-                    <motion.div
-                      key={action.id}
-                      initial={{ opacity: 0, scale: 0.95 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ duration: 0.3, delay: index * 0.05 + 0.1 }}
-                      className="relative flex items-center gap-4 rounded-xl border border-border/50 bg-gradient-to-r from-card to-card/80 p-4 shadow-sm"
-                    >
-                      <div className="absolute -left-1 flex items-center">
-                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-primary to-primary/80 text-sm font-bold text-primary-foreground shadow-lg ring-4 ring-background">
-                          {index + 1}
+                    return (
+                      <motion.div
+                        key={action.id}
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.3, delay: index * 0.05 + 0.1 }}
+                        className="relative flex items-center gap-4 rounded-xl border border-border/50 bg-gradient-to-r from-card to-card/80 p-4 shadow-sm"
+                      >
+                        <div className="absolute -left-1 flex items-center">
+                          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-primary to-primary/80 text-sm font-bold text-primary-foreground shadow-lg ring-4 ring-background">
+                            {index + 1}
+                          </div>
                         </div>
-                      </div>
 
-                      <div className="ml-6 flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 shadow-inner">
-                        <ActionIcon className="h-5 w-5 text-primary" />
-                      </div>
+                        <div className="ml-6 flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 shadow-inner">
+                          <ActionIcon className="h-5 w-5 text-primary" />
+                        </div>
 
-                      <div className="flex-1 space-y-1.5 min-w-0">
-                        <p className="font-semibold leading-tight">{actionInfo.label}</p>
-                        {action.config.message && (
-                          <p className="line-clamp-2 text-sm italic text-muted-foreground rounded bg-muted/50 px-2 py-1">
-                            "{action.config.message}"
-                          </p>
-                        )}
-                      </div>
-                    </motion.div>
-                  )
-                })}
-              </div>
+                        <div className="flex-1 space-y-1.5 min-w-0">
+                          <p className="font-semibold leading-tight">{actionInfo.label}</p>
+                          {action.config.message && (
+                            <p className="line-clamp-2 text-sm italic text-muted-foreground rounded bg-muted/50 px-2 py-1">
+                              "{action.config.message}"
+                            </p>
+                          )}
+                        </div>
+                      </motion.div>
+                    )
+                  })}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground text-center py-4">No actions configured yet</p>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -269,16 +293,16 @@ export function ReviewStep({ flow, setFlow, accounts }: ReviewStepProps) {
             </div>
 
             <InstagramMockPreview
-              type={flow.triggers[0]?.type === "comment" ? "post" : "dm"}
-              accountName={accounts[0]?.instagram_username || "your_account"}
-              accountAvatar={accounts[0]?.profile_picture_url}
+              type={flow.triggers && flow.triggers[0]?.type === "comment" ? "post" : "dm"}
+              accountName={(accounts && accounts.length > 0 && accounts[0]?.instagram_username) || "your_account"}
+              accountAvatar={accounts && accounts.length > 0 ? accounts[0]?.profile_picture_url : undefined}
               commentText={
-                flow.triggers[0]?.type === "keyword"
+                flow.triggers && flow.triggers[0]?.type === "keyword"
                   ? flow.triggers[0]?.config?.keywords?.[0] || "Hello"
                   : "This looks amazing! 🔥"
               }
-              replyText={flow.actions[0]?.config?.message}
-              dmMessage={flow.actions[0]?.config?.message}
+              replyText={flow.actions && flow.actions[0]?.config?.message}
+              dmMessage={flow.actions && flow.actions[0]?.config?.message}
               selectedPosts={selectedPosts}
             />
           </div>

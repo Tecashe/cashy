@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -12,6 +12,7 @@ import { ReviewStep } from "./wizard-steps/review-step"
 import type { AutomationFlow, LogicOperator } from "@/lib/types/automation"
 import { createAutomation, updateAutomation } from "@/lib/actions/automation-actions"
 import { motion, AnimatePresence } from "framer-motion"
+import { TRIGGER_TYPES } from "@/lib/constants/utomation-constants"
 
 interface AutomationWizardProps {
   automation?: any
@@ -30,6 +31,7 @@ export function AutomationWizard({ automation, accounts, tags }: AutomationWizar
   const router = useRouter()
   const [currentStep, setCurrentStep] = useState(1)
   const [isSaving, setIsSaving] = useState(false)
+  const [validationErrors, setValidationErrors] = useState<string[]>([])
 
   const [flow, setFlow] = useState<AutomationFlow>({
     id: automation?.id,
@@ -47,17 +49,90 @@ export function AutomationWizard({ automation, accounts, tags }: AutomationWizar
     isActive: automation?.isActive || false,
   })
 
+  useEffect(() => {
+    if (!automation?.id) {
+      const savedProgress = localStorage.getItem("automation-wizard-progress")
+      if (savedProgress) {
+        try {
+          const parsed = JSON.parse(savedProgress)
+          setFlow(parsed.flow)
+          setCurrentStep(parsed.currentStep)
+        } catch (error) {
+          console.error("Failed to parse saved progress:", error)
+        }
+      }
+    }
+  }, [automation?.id])
+
+  useEffect(() => {
+    if (!automation?.id) {
+      localStorage.setItem(
+        "automation-wizard-progress",
+        JSON.stringify({
+          flow,
+          currentStep,
+        }),
+      )
+    }
+  }, [flow, currentStep, automation?.id])
+
+  const validateStep = (step: number): { isValid: boolean; errors: string[] } => {
+    const errors: string[] = []
+
+    if (step === 1) {
+      if (!flow.name.trim()) errors.push("Please enter a name for your automation")
+      if (!flow.instagramAccountId) errors.push("Please select an Instagram account")
+    }
+
+    if (step === 2) {
+      if (flow.triggers.length === 0) errors.push("Please add at least one trigger")
+
+      flow.triggers.forEach((trigger, index) => {
+        const triggerInfo = TRIGGER_TYPES[trigger.type]
+        if (triggerInfo?.requiresConfig) {
+          if (trigger.type === "keyword" && (!trigger.config?.keywords || trigger.config.keywords.length === 0)) {
+            errors.push(`Trigger ${index + 1} (${triggerInfo.label}): Please configure keywords`)
+          }
+          if (trigger.type === "comment" && (!trigger.config?.keywords || trigger.config.keywords.length === 0)) {
+            errors.push(`Trigger ${index + 1} (${triggerInfo.label}): Please configure keywords`)
+          }
+        }
+      })
+    }
+
+    if (step === 3) {
+      if (flow.actions.length === 0) errors.push("Please add at least one action")
+
+      flow.actions.forEach((action, index) => {
+        if (action.type === "send_message" && !action.config?.message) {
+          errors.push(`Action ${index + 1}: Please enter a message`)
+        }
+        if (action.type === "reply_to_comment" && !action.config?.message) {
+          errors.push(`Action ${index + 1}: Please enter a reply message`)
+        }
+      })
+    }
+
+    return {
+      isValid: errors.length === 0,
+      errors,
+    }
+  }
+
   const canProceed = () => {
-    if (currentStep === 1) {
-      return flow.name && flow.instagramAccountId
+    const validation = validateStep(currentStep)
+    setValidationErrors(validation.errors)
+    return validation.isValid
+  }
+
+  useEffect(() => {
+    setValidationErrors([])
+  }, [currentStep])
+
+  const handleNext = () => {
+    if (canProceed()) {
+      setCurrentStep((prev) => prev + 1)
     }
-    if (currentStep === 2) {
-      return flow.triggers.length > 0
-    }
-    if (currentStep === 3) {
-      return flow.actions.length > 0
-    }
-    return true
   }
 
   const handleSave = async () => {
@@ -89,6 +164,10 @@ export function AutomationWizard({ automation, accounts, tags }: AutomationWizar
           triggerConditions: primaryTrigger.config,
           actions: actionsData,
         })
+      }
+
+      if (!automation?.id) {
+        localStorage.removeItem("automation-wizard-progress")
       }
 
       router.push("/automations")
@@ -223,9 +302,26 @@ export function AutomationWizard({ automation, accounts, tags }: AutomationWizar
             {currentStep === 1 && <SetupStep flow={flow} setFlow={setFlow} accounts={accounts} />}
             {currentStep === 2 && <TriggerStep flow={flow} setFlow={setFlow} accounts={accounts} />}
             {currentStep === 3 && <ActionsStep flow={flow} setFlow={setFlow} tags={tags} />}
-            {currentStep === 4 && <ReviewStep flow={flow} setFlow={setFlow} />}
+            {currentStep === 4 && <ReviewStep flow={flow} setFlow={setFlow} accounts={accounts} />}
           </motion.div>
         </AnimatePresence>
+
+        {validationErrors.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            className="mt-4 rounded-lg border border-destructive/50 bg-destructive/10 p-4"
+          >
+            <h4 className="font-semibold text-destructive mb-2">Please fix the following issues:</h4>
+            <ul className="list-disc list-inside space-y-1">
+              {validationErrors.map((error, index) => (
+                <li key={index} className="text-sm text-destructive">
+                  {error}
+                </li>
+              ))}
+            </ul>
+          </motion.div>
+        )}
       </motion.div>
 
       <motion.div
@@ -254,9 +350,8 @@ export function AutomationWizard({ automation, accounts, tags }: AutomationWizar
             {currentStep < STEPS.length ? (
               <Button
                 size="lg"
-                onClick={() => setCurrentStep((prev) => prev + 1)}
-                disabled={!canProceed()}
-                className="min-w-[120px] shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50"
+                onClick={handleNext}
+                className="min-w-[120px] shadow-lg hover:shadow-xl transition-all duration-300"
               >
                 Next
                 <ArrowRight className="ml-2 h-4 w-4" />
