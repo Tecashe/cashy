@@ -47,12 +47,12 @@ export function ActionSelector({ open, onClose, onSelect }: ActionSelectorProps)
 
         <Tabs value={activeCategory} onValueChange={setActiveCategory} className="flex flex-col h-full">
           <div className="px-6 pt-4">
-            <TabsList className="w-full justify-start overflow-x-auto rounded-lg border border-border/50 bg-muted/30 p-1">
+            <TabsList className="w-full justify-start rounded-lg border border-border/50 bg-muted/30 p-1">
               {ACTION_CATEGORIES.map((category) => (
                 <TabsTrigger
                   key={category.id}
                   value={category.id}
-                  className="flex-shrink-0 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all"
+                  className="flex-1 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all"
                 >
                   {category.label}
                 </TabsTrigger>

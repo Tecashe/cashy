@@ -1,10 +1,210 @@
+// "use server"
+
+// import { auth } from "@clerk/nextjs/server"
+// import { prisma } from "@/lib/db"
+// import { InstagramAPI } from "@/lib/instagram-api"
+
+// export async function getInstagramPosts(accountId: string) {
+//   const { userId } = await auth()
+//   if (!userId) throw new Error("Unauthorized")
+
+//   const user = await prisma.user.findUnique({ where: { clerkId: userId } })
+//   if (!user) throw new Error("User not found")
+
+//   const account = await prisma.instagramAccount.findFirst({
+//     where: { id: accountId, userId: user.id },
+//   })
+//   if (!account) throw new Error("Account not found")
+
+//   try {
+//     const api = new InstagramAPI({
+//       accessToken: account.accessToken,
+//       instagramId: account.instagramId,
+//     })
+
+//     const mediaData = await api.getMediaList(50)
+
+//     return mediaData.data.map((media: any) => ({
+//       id: media.id,
+//       caption: media.caption || "No caption",
+//       mediaType: media.media_type,
+//       mediaUrl: media.media_url,
+//       thumbnailUrl: media.thumbnail_url,
+//       permalink: media.permalink,
+//       timestamp: media.timestamp,
+//     }))
+//   } catch (error) {
+//     console.error("[Instagram] Failed to fetch posts:", error)
+//     throw new Error("Failed to fetch Instagram posts")
+//   }
+// }
+
+// export async function getInstagramStoriesOLD(accountId: string) {
+//   const { userId } = await auth()
+//   if (!userId) throw new Error("Unauthorized")
+
+//   const user = await prisma.user.findUnique({ where: { clerkId: userId } })
+//   if (!user) throw new Error("User not found")
+
+//   const account = await prisma.instagramAccount.findFirst({
+//     where: { id: accountId, userId: user.id },
+//   })
+//   if (!account) throw new Error("Account not found")
+
+//   try {
+//     const api = new InstagramAPI({
+//       accessToken: account.accessToken,
+//       instagramId: account.instagramId,
+//     })
+
+//     // Get stories from recent media
+//     const mediaData = await api.getMediaList(25)
+
+//     // Filter for stories (typically media_type === 'STORY' or recent media)
+//     const stories = mediaData.data
+//       .filter((media: any) => {
+//         // Check if media is from last 24 hours (stories expire after 24h)
+//         const timestamp = new Date(media.timestamp)
+//         const now = new Date()
+//         const hoursDiff = (now.getTime() - timestamp.getTime()) / (1000 * 60 * 60)
+//         return hoursDiff <= 24
+//       })
+//       .map((media: any) => ({
+//         id: media.id,
+//         caption: media.caption || "Story",
+//         mediaType: media.media_type,
+//         mediaUrl: media.media_url,
+//         thumbnailUrl: media.thumbnail_url,
+//         timestamp: media.timestamp,
+//       }))
+
+//     return stories
+//   } catch (error) {
+//     console.error("[Instagram] Failed to fetch stories:", error)
+//     throw new Error("Failed to fetch Instagram stories")
+//   }
+// }
+
+
+
+
+
+
+// export async function getInstagramMedia(accountId: string, options?: { limit?: number; type?: "posts" | "stories" }) {
+//   const { userId } = await auth()
+//   if (!userId) throw new Error("Unauthorized")
+
+//   const user = await prisma.user.findUnique({ where: { clerkId: userId } })
+//   if (!user) throw new Error("User not found")
+
+//   const account = await prisma.instagramAccount.findFirst({
+//     where: { id: accountId, userId: user.id },
+//   })
+//   if (!account) throw new Error("Account not found")
+
+//   try {
+//     const api = new InstagramAPI({
+//       accessToken: account.accessToken,
+//       instagramId: account.instagramId,
+//     })
+
+//     const limit = options?.limit || 20
+//     const mediaData = await api.getMediaList(limit)
+
+//     return mediaData.data.map((media: any) => ({
+//       id: media.id,
+//       caption: media.caption || "No caption",
+//       mediaType: media.media_type,
+//       mediaUrl: media.media_url,
+//       thumbnailUrl: media.thumbnail_url,
+//       permalink: media.permalink,
+//       timestamp: media.timestamp,
+//     }))
+//   } catch (error) {
+//     console.error("[Instagram] Failed to fetch media:", error)
+//     // Return mock data if API fails
+//     return [
+//       {
+//         id: "post-1",
+//         caption: "Check out our latest product!",
+//         mediaType: "IMAGE",
+//         thumbnailUrl: "/placeholder.svg?height=100&width=100",
+//         permalink: "#",
+//         timestamp: new Date().toISOString(),
+//       },
+//       {
+//         id: "post-2",
+//         caption: "Behind the scenes of our new campaign",
+//         mediaType: "VIDEO",
+//         thumbnailUrl: "/placeholder.svg?height=100&width=100",
+//         permalink: "#",
+//         timestamp: new Date().toISOString(),
+//       },
+//     ]
+//   }
+// }
+
+// export async function getInstagramStories(accountId: string) {
+//   const { userId } = await auth()
+//   if (!userId) throw new Error("Unauthorized")
+
+//   const user = await prisma.user.findUnique({ where: { clerkId: userId } })
+//   if (!user) throw new Error("User not found")
+
+//   const account = await prisma.instagramAccount.findFirst({
+//     where: { id: accountId, userId: user.id },
+//   })
+//   if (!account) throw new Error("Account not found")
+
+//   try {
+//     const api = new InstagramAPI({
+//       accessToken: account.accessToken,
+//       instagramId: account.instagramId,
+//     })
+
+//     const mediaData = await api.getMediaList(25)
+
+//     const stories = mediaData.data
+//       .filter((media: any) => {
+//         const timestamp = new Date(media.timestamp)
+//         const now = new Date()
+//         const hoursDiff = (now.getTime() - timestamp.getTime()) / (1000 * 60 * 60)
+//         return hoursDiff <= 24
+//       })
+//       .map((media: any) => ({
+//         id: media.id,
+//         caption: media.caption || "Story",
+//         mediaType: media.media_type,
+//         mediaUrl: media.media_url,
+//         thumbnailUrl: media.thumbnail_url,
+//         timestamp: media.timestamp,
+//       }))
+
+//     return stories
+//   } catch (error) {
+//     console.error("[Instagram] Failed to fetch stories:", error)
+//     return []
+//   }
+// }
+
+
 "use server"
 
 import { auth } from "@clerk/nextjs/server"
 import { prisma } from "@/lib/db"
 import { InstagramAPI } from "@/lib/instagram-api"
 
-export async function getInstagramPosts(accountId: string) {
+interface InstagramMediaItem {
+  id: string
+  caption?: string
+  media_type: string
+  media_url: string
+  thumbnail_url?: string
+  permalink?: string
+  timestamp: string
+}
+
+export async function getInstagramPosts(accountId: string): Promise<InstagramMediaItem[]> {
   const { userId } = await auth()
   if (!userId) throw new Error("Unauthorized")
 
@@ -27,9 +227,9 @@ export async function getInstagramPosts(accountId: string) {
     return mediaData.data.map((media: any) => ({
       id: media.id,
       caption: media.caption || "No caption",
-      mediaType: media.media_type,
-      mediaUrl: media.media_url,
-      thumbnailUrl: media.thumbnail_url,
+      media_type: media.media_type,
+      media_url: media.media_url,
+      thumbnail_url: media.thumbnail_url,
       permalink: media.permalink,
       timestamp: media.timestamp,
     }))
@@ -39,7 +239,7 @@ export async function getInstagramPosts(accountId: string) {
   }
 }
 
-export async function getInstagramStoriesOLD(accountId: string) {
+export async function getInstagramStories(accountId: string): Promise<InstagramMediaItem[]> {
   const { userId } = await auth()
   if (!userId) throw new Error("Unauthorized")
 
@@ -57,13 +257,10 @@ export async function getInstagramStoriesOLD(accountId: string) {
       instagramId: account.instagramId,
     })
 
-    // Get stories from recent media
     const mediaData = await api.getMediaList(25)
 
-    // Filter for stories (typically media_type === 'STORY' or recent media)
     const stories = mediaData.data
       .filter((media: any) => {
-        // Check if media is from last 24 hours (stories expire after 24h)
         const timestamp = new Date(media.timestamp)
         const now = new Date()
         const hoursDiff = (now.getTime() - timestamp.getTime()) / (1000 * 60 * 60)
@@ -72,25 +269,66 @@ export async function getInstagramStoriesOLD(accountId: string) {
       .map((media: any) => ({
         id: media.id,
         caption: media.caption || "Story",
-        mediaType: media.media_type,
-        mediaUrl: media.media_url,
-        thumbnailUrl: media.thumbnail_url,
+        media_type: media.media_type,
+        media_url: media.media_url,
+        thumbnail_url: media.thumbnail_url,
         timestamp: media.timestamp,
       }))
 
     return stories
   } catch (error) {
     console.error("[Instagram] Failed to fetch stories:", error)
-    throw new Error("Failed to fetch Instagram stories")
+    return []
   }
 }
 
+export async function getInstagramPostsByIds(accountId: string, postIds: string[]): Promise<InstagramMediaItem[]> {
+  const { userId } = await auth()
+  if (!userId) throw new Error("Unauthorized")
 
+  const user = await prisma.user.findUnique({ where: { clerkId: userId } })
+  if (!user) throw new Error("User not found")
 
+  const account = await prisma.instagramAccount.findFirst({
+    where: { id: accountId, userId: user.id },
+  })
+  if (!account) throw new Error("Account not found")
 
+  try {
+    const api = new InstagramAPI({
+      accessToken: account.accessToken,
+      instagramId: account.instagramId,
+    })
 
+    const mediaData = await api.getMediaList(100)
 
-export async function getInstagramMedia(accountId: string, options?: { limit?: number; type?: "posts" | "stories" }) {
+    const postsMap = new Map(
+      mediaData.data.map((media: any) => [
+        media.id,
+        {
+          id: media.id,
+          caption: media.caption || "No caption",
+          media_type: media.media_type,
+          media_url: media.media_url,
+          thumbnail_url: media.thumbnail_url,
+          permalink: media.permalink,
+          timestamp: media.timestamp,
+        },
+      ]),
+    )
+
+    // Return posts in the same order as postIds
+    return postIds.map((id) => postsMap.get(id)).filter((post): post is InstagramMediaItem => post !== undefined)
+  } catch (error) {
+    console.error("[Instagram] Failed to fetch posts by IDs:", error)
+    return []
+  }
+}
+
+export async function getInstagramMedia(
+  accountId: string,
+  options?: { limit?: number; type?: "posts" | "stories" },
+): Promise<InstagramMediaItem[]> {
   const { userId } = await auth()
   if (!userId) throw new Error("Unauthorized")
 
@@ -111,78 +349,29 @@ export async function getInstagramMedia(accountId: string, options?: { limit?: n
     const limit = options?.limit || 20
     const mediaData = await api.getMediaList(limit)
 
-    return mediaData.data.map((media: any) => ({
-      id: media.id,
-      caption: media.caption || "No caption",
-      mediaType: media.media_type,
-      mediaUrl: media.media_url,
-      thumbnailUrl: media.thumbnail_url,
-      permalink: media.permalink,
-      timestamp: media.timestamp,
-    }))
-  } catch (error) {
-    console.error("[Instagram] Failed to fetch media:", error)
-    // Return mock data if API fails
-    return [
-      {
-        id: "post-1",
-        caption: "Check out our latest product!",
-        mediaType: "IMAGE",
-        thumbnailUrl: "/placeholder.svg?height=100&width=100",
-        permalink: "#",
-        timestamp: new Date().toISOString(),
-      },
-      {
-        id: "post-2",
-        caption: "Behind the scenes of our new campaign",
-        mediaType: "VIDEO",
-        thumbnailUrl: "/placeholder.svg?height=100&width=100",
-        permalink: "#",
-        timestamp: new Date().toISOString(),
-      },
-    ]
-  }
-}
+    let filteredData = mediaData.data
 
-export async function getInstagramStories(accountId: string) {
-  const { userId } = await auth()
-  if (!userId) throw new Error("Unauthorized")
-
-  const user = await prisma.user.findUnique({ where: { clerkId: userId } })
-  if (!user) throw new Error("User not found")
-
-  const account = await prisma.instagramAccount.findFirst({
-    where: { id: accountId, userId: user.id },
-  })
-  if (!account) throw new Error("Account not found")
-
-  try {
-    const api = new InstagramAPI({
-      accessToken: account.accessToken,
-      instagramId: account.instagramId,
-    })
-
-    const mediaData = await api.getMediaList(25)
-
-    const stories = mediaData.data
-      .filter((media: any) => {
+    // Filter by type if specified
+    if (options?.type === "stories") {
+      filteredData = mediaData.data.filter((media: any) => {
         const timestamp = new Date(media.timestamp)
         const now = new Date()
         const hoursDiff = (now.getTime() - timestamp.getTime()) / (1000 * 60 * 60)
         return hoursDiff <= 24
       })
-      .map((media: any) => ({
-        id: media.id,
-        caption: media.caption || "Story",
-        mediaType: media.media_type,
-        mediaUrl: media.media_url,
-        thumbnailUrl: media.thumbnail_url,
-        timestamp: media.timestamp,
-      }))
+    }
 
-    return stories
+    return filteredData.map((media: any) => ({
+      id: media.id,
+      caption: media.caption || "No caption",
+      media_type: media.media_type,
+      media_url: media.media_url,
+      thumbnail_url: media.thumbnail_url,
+      permalink: media.permalink,
+      timestamp: media.timestamp,
+    }))
   } catch (error) {
-    console.error("[Instagram] Failed to fetch stories:", error)
+    console.error("[Instagram] Failed to fetch media:", error)
     return []
   }
 }

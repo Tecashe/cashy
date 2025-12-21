@@ -15,12 +15,11 @@ import { Badge } from "@/components/ui/badge"
 import { X, Plus, Sparkles } from "lucide-react"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from "@/components/ui/input-group"
+import { Spinner } from "@/components/ui/spinner"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import type { TriggerConfig as TriggerConfigType } from "@/lib/types/automation"
-import { getInstagramPosts } from "@/lib/actions/instagram-media-actions"
+import type { TriggerConfig as TriggerConfigType } from "@/lib/automation-types"
+import { getInstagramMedia } from "@/lib/actions/instagram-media-actions"
 import { InstagramPostSelector } from "./instagram-post-selector"
-import { InstagramStorySelector } from "./instagram-story-selector"
-import { SelectedPostsPreview } from "./selected-posts-preview"
 import { motion, AnimatePresence } from "framer-motion"
 
 interface TriggerConfigProps {
@@ -36,26 +35,23 @@ export function TriggerConfig({ open, onClose, trigger, onSave, accounts }: Trig
   const [keywordInput, setKeywordInput] = useState("")
   const [posts, setPosts] = useState<any[]>([])
   const [isLoadingPosts, setIsLoadingPosts] = useState(false)
-  const [selectedPostIds, setSelectedPostIds] = useState<string[]>(config.postIds || [])
-  const [showStorySelector, setShowStorySelector] = useState(false)
-  const [showPostSelector, setShowPostSelector] = useState(false)
-  const [selectedStoryIds, setSelectedStoryIds] = useState<string[]>(config.storyIds || [])
+  const [selectedPostIds, setSelectedPostIds] = useState<string[]>([])
 
   useEffect(() => {
-    if (trigger.type === "comment" && open && accounts[0]) {
+    if (trigger.type === "comment" && open && config.postId !== "all") {
       setIsLoadingPosts(true)
-      getInstagramPosts(accounts[0].id)
-        .then((media) => {
-          setPosts(media)
-        })
-        .catch((error) => {
-          console.error("Failed to fetch posts:", error)
-        })
-        .finally(() => {
-          setIsLoadingPosts(false)
-        })
+      const account = accounts[0]
+      if (account) {
+        getInstagramMedia(account.id, { limit: 20 })
+          .then((media) => {
+            setPosts(media)
+          })
+          .finally(() => {
+            setIsLoadingPosts(false)
+          })
+      }
     }
-  }, [trigger.type, open, accounts])
+  }, [trigger.type, open, accounts, config.postId])
 
   const handleAddKeyword = () => {
     if (keywordInput.trim()) {
@@ -77,14 +73,7 @@ export function TriggerConfig({ open, onClose, trigger, onSave, accounts }: Trig
   }
 
   const handleSave = () => {
-    onSave({
-      ...trigger,
-      config: {
-        ...config,
-        postIds: selectedPostIds,
-        storyIds: selectedStoryIds,
-      },
-    })
+    onSave({ ...trigger, config })
     onClose()
   }
 
@@ -211,14 +200,8 @@ export function TriggerConfig({ open, onClose, trigger, onSave, accounts }: Trig
                 <div className="space-y-3 rounded-lg border border-border/50 bg-muted/30 p-4">
                   <Label className="text-base font-semibold">Apply to posts</Label>
                   <RadioGroup
-                    value={selectedPostIds.length > 0 ? "specific" : "all"}
-                    onValueChange={(value) => {
-                      if (value === "all") {
-                        setSelectedPostIds([])
-                      } else {
-                        setShowPostSelector(true)
-                      }
-                    }}
+                    value={config.postId || "all"}
+                    onValueChange={(value) => setConfig({ ...config, postId: value === "all" ? undefined : value })}
                     className="space-y-3"
                   >
                     <div className="flex items-center space-x-3 rounded-md border border-border/50 bg-background p-3 transition-colors hover:bg-accent/50">
@@ -243,77 +226,31 @@ export function TriggerConfig({ open, onClose, trigger, onSave, accounts }: Trig
                 </div>
 
                 <AnimatePresence>
-                  {selectedPostIds.length > 0 && accounts[0] && (
+                  {config.postId !== "all" && config.postId !== undefined && (
                     <motion.div
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: "auto" }}
                       exit={{ opacity: 0, height: 0 }}
+                      className="overflow-hidden"
                     >
-                      <SelectedPostsPreview
-                        postIds={selectedPostIds}
-                        accountId={accounts[0].id}
-                        onRemove={(postId) => setSelectedPostIds(selectedPostIds.filter((id) => id !== postId))}
-                      />
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setShowPostSelector(true)}
-                        className="mt-3 w-full"
-                      >
-                        <Plus className="w-4 h-4 mr-2" />
-                        Add More Posts
-                      </Button>
+                      {isLoadingPosts ? (
+                        <div className="flex h-48 items-center justify-center rounded-lg border border-border/50 bg-muted/20">
+                          <div className="text-center">
+                            <Spinner className="mx-auto h-8 w-8 text-primary" />
+                            <p className="mt-3 text-sm text-muted-foreground">Loading your posts...</p>
+                          </div>
+                        </div>
+                      ) : (
+                        <InstagramPostSelector
+                          posts={posts}
+                          selectedPostIds={selectedPostIds}
+                          onSelectionChange={setSelectedPostIds}
+                          multiSelect={true}
+                        />
+                      )}
                     </motion.div>
                   )}
                 </AnimatePresence>
-              </motion.div>
-            )}
-
-            {trigger.type === "story_reply" && (
-              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-                <div className="space-y-3 rounded-lg border border-border/50 bg-muted/30 p-4">
-                  <Label className="text-base font-semibold">Apply to stories</Label>
-                  <RadioGroup
-                    value={selectedStoryIds.length > 0 ? "specific" : "all"}
-                    onValueChange={(value) => {
-                      if (value === "all") {
-                        setSelectedStoryIds([])
-                      } else {
-                        setShowStorySelector(true)
-                      }
-                    }}
-                    className="space-y-3"
-                  >
-                    <div className="flex items-center space-x-3 rounded-md border border-border/50 bg-background p-3 transition-colors hover:bg-accent/50">
-                      <RadioGroupItem value="all" id="all-stories" />
-                      <Label htmlFor="all-stories" className="flex-1 cursor-pointer font-normal">
-                        <span className="font-medium">All stories</span>
-                        <p className="text-xs text-muted-foreground mt-0.5">Apply automation to all active stories</p>
-                      </Label>
-                    </div>
-                    <div className="flex items-center space-x-3 rounded-md border border-border/50 bg-background p-3 transition-colors hover:bg-accent/50">
-                      <RadioGroupItem value="specific" id="specific-story" />
-                      <Label htmlFor="specific-story" className="flex-1 cursor-pointer font-normal">
-                        <span className="font-medium">Specific stories</span>
-                        <p className="text-xs text-muted-foreground mt-0.5">
-                          Choose which stories this automation applies to
-                        </p>
-                      </Label>
-                    </div>
-                  </RadioGroup>
-                </div>
-
-                {selectedStoryIds.length > 0 && (
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium">
-                      {selectedStoryIds.length} {selectedStoryIds.length === 1 ? "story" : "stories"} selected
-                    </p>
-                    <Button variant="outline" size="sm" onClick={() => setShowStorySelector(true)} className="w-full">
-                      <Plus className="w-4 h-4 mr-2" />
-                      Change Selected Stories
-                    </Button>
-                  </div>
-                )}
               </motion.div>
             )}
           </div>
@@ -330,26 +267,6 @@ export function TriggerConfig({ open, onClose, trigger, onSave, accounts }: Trig
           </div>
         </DialogFooter>
       </DialogContent>
-
-      {showPostSelector && accounts[0] && (
-        <InstagramPostSelector
-          open={showPostSelector}
-          onOpenChange={setShowPostSelector}
-          accountId={accounts[0].id}
-          selectedPostIds={selectedPostIds}
-          onSelectPosts={setSelectedPostIds}
-        />
-      )}
-
-      {showStorySelector && accounts[0] && (
-        <InstagramStorySelector
-          open={showStorySelector}
-          onOpenChange={setShowStorySelector}
-          accountId={accounts[0].id}
-          selectedStoryIds={selectedStoryIds}
-          onSelectStories={setSelectedStoryIds}
-        />
-      )}
     </Dialog>
   )
 }

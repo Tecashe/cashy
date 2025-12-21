@@ -22,7 +22,6 @@ import { ConditionBuilder } from "./condition-builder"
 import { Plus, Info } from "lucide-react"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { CarouselImageUploader } from "./carousel-image-uploader"
 import React from "react"
 
 interface ActionConfigModalProps {
@@ -168,25 +167,22 @@ export function ActionConfigModal({ open, onClose, action, onSave, tags }: Actio
             {action.type === "send_carousel" && (
               <Card className="border-border/50">
                 <CardHeader>
-                  <CardTitle className="text-base">Carousel Images</CardTitle>
-                  <CardDescription>Upload and arrange multiple images (2-10 images)</CardDescription>
+                  <CardTitle className="text-base">Carousel Settings</CardTitle>
+                  <CardDescription>Add multiple images (2-10 images)</CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <CarouselImageUploader
-                    images={
-                      config.carouselImages?.map((url: string, index: number) => ({
-                        id: `img-${index}`,
-                        url,
-                      })) || []
-                    }
-                    onImagesChange={(images) => {
-                      setConfig({
-                        ...config,
-                        carouselImages: images.map((img) => img.url),
-                      })
-                    }}
-                    maxImages={10}
-                  />
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label>Image URLs</Label>
+                    <Textarea
+                      placeholder="https://example.com/image1.jpg&#10;https://example.com/image2.jpg&#10;https://example.com/image3.jpg"
+                      value={config.images?.join("\n") || ""}
+                      onChange={(e) =>
+                        setConfig({ ...config, images: e.target.value.split("\n").filter((url) => url.trim()) })
+                      }
+                      rows={5}
+                    />
+                    <p className="text-xs text-muted-foreground">Enter one URL per line (2-10 images)</p>
+                  </div>
                 </CardContent>
               </Card>
             )}
