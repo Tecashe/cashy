@@ -133,3 +133,5 @@ export async function batchSyncAllConversations(userId: string, instagramAccount
     return { success: false, error: "Failed to batch sync" }
   }
 }
+
+export { autoSyncConversationParticipant as autoSyncConversationFromInstagram }

@@ -12,6 +12,7 @@ import { Loader2, ArrowLeft, PanelRightClose, PanelRight, Sparkles } from "lucid
 import { Button } from "@/components/ui/button"
 import { useMobile } from "@/hooks/use-mobile"
 import { hasAccess } from "@/lib/subscription"
+import { Badge } from "@/components/ui/badge"
 
 interface ConversationViewProps {
   conversationId: string
@@ -110,43 +111,42 @@ export function ConversationView({
 
         <MessageThread messages={conversation.messages} />
 
-        {canUseAI && conversation.messages.length > 0 && (
-          <div className="border-t">
-            {showAISuggestions ? (
-              <div className="p-4 bg-muted/20">
-                <div className="mb-3 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Sparkles className="h-4 w-4 text-primary" />
-                    <span className="text-sm font-medium">AI Smart Replies</span>
-                  </div>
-                  <Button variant="ghost" size="sm" onClick={() => setShowAISuggestions(false)} className="h-7">
-                    Hide
-                  </Button>
-                </div>
-                <AISuggestionsPanel
-                  conversationId={conversationId}
-                  userId={userId}
-                  onSelectSuggestion={(suggestion) => {
-                    setMessageInputValue(suggestion)
-                    setShowAISuggestions(false)
-                  }}
-                />
+        <div className="border-t bg-muted/20">
+          {canUseAI ? (
+            <div className="p-3 md:p-4">
+              <div className="mb-3 flex items-center gap-2">
+                <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+                <span className="text-sm font-medium">AI Smart Replies</span>
+                <Badge variant="secondary" className="text-xs">
+                  Pro
+                </Badge>
               </div>
-            ) : (
-              <div className="p-2 bg-muted/10">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowAISuggestions(true)}
-                  className="w-full justify-start gap-2 h-8"
-                >
-                  <Sparkles className="h-4 w-4 text-primary" />
-                  <span className="text-sm">Show AI Smart Replies</span>
-                </Button>
-              </div>
-            )}
-          </div>
-        )}
+              <AISuggestionsPanel
+                conversationId={conversationId}
+                userId={userId}
+                onSelectSuggestion={(suggestion) => {
+                  setMessageInputValue(suggestion)
+                  setShowAISuggestions(false)
+                }}
+              />
+            </div>
+          ) : (
+            <div className="p-2">
+              <Button
+                variant="default"
+                size="sm"
+                onClick={() => setShowAISuggestions(true)}
+                className="w-full justify-center gap-2 h-9 shadow-sm"
+              >
+                <Sparkles className="h-4 w-4" />
+                <span>Get AI Smart Replies</span>
+                <Badge variant="secondary" className="text-xs bg-primary-foreground/20">
+                  Pro
+                </Badge>
+              </Button>
+            </div>
+          )}
+        </div>
 
         <div className="border-t">
           <EnhancedMessageInput
