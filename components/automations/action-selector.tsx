@@ -263,13 +263,218 @@
 // }
 
 
+// "use client"
+
+// import { useState } from "react"
+// import { ACTION_TYPES, ACTION_CATEGORIES } from "@/lib/constants/automations"
+// import type { ActionType } from "@/lib/types/automation"
+// import { motion, AnimatePresence } from "framer-motion"
+// import { Zap, X, Sparkles } from "lucide-react"
+// import { cn } from "@/lib/utils"
+// import * as DialogPrimitive from "@radix-ui/react-dialog"
+
+// interface ActionSelectorProps {
+//   open: boolean
+//   onClose: () => void
+//   onSelect: (type: ActionType) => void
+// }
+
+// const FALLBACK_CATEGORIES = [
+//   { id: "all", label: "All Actions" },
+//   { id: "messaging", label: "Messaging" },
+//   { id: "ai", label: "AI Powered" },
+//   { id: "organization", label: "Organization" },
+//   { id: "moderation", label: "Moderation" },
+//   { id: "flow", label: "Flow Control" },
+//   { id: "handoff", label: "Handoff" },
+//   { id: "integration", label: "Integration" },
+// ] as const
+
+// export function ActionSelector({ open, onClose, onSelect }: ActionSelectorProps) {
+//   const [activeCategory, setActiveCategory] = useState("all")
+//   const [hoveredAction, setHoveredAction] = useState<string | null>(null)
+
+//   const categories = ACTION_CATEGORIES || FALLBACK_CATEGORIES
+
+//   const filteredActions = Object.values(ACTION_TYPES).filter(
+//     (action) => activeCategory === "all" || action.category === activeCategory,
+//   )
+
+//   const handleSelect = (type: ActionType) => {
+//     onSelect(type)
+//     onClose()
+//   }
+
+//   return (
+//     <DialogPrimitive.Root open={open} onOpenChange={onClose}>
+//       <DialogPrimitive.Portal>
+//         <DialogPrimitive.Overlay asChild>
+//           <motion.div
+//             initial={{ opacity: 0 }}
+//             animate={{ opacity: 1 }}
+//             exit={{ opacity: 0 }}
+//             className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm"
+//           />
+//         </DialogPrimitive.Overlay>
+//         <DialogPrimitive.Content asChild>
+//           <motion.div
+//             initial={{ opacity: 0, scale: 0.95, y: 20 }}
+//             animate={{ opacity: 1, scale: 1, y: 0 }}
+//             exit={{ opacity: 0, scale: 0.95, y: 20 }}
+//             transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
+//             className="fixed left-[50%] top-[50%] z-50 w-[95vw] max-w-5xl translate-x-[-50%] translate-y-[-50%] rounded-2xl border border-border/50 bg-background shadow-2xl"
+//           >
+//             <div className="flex h-[85vh] flex-col overflow-hidden">
+//               {/* Header */}
+//               <div className="relative border-b border-border/50 bg-gradient-to-b from-muted/30 to-background px-8 pb-6 pt-7">
+//                 <DialogPrimitive.Close className="absolute right-6 top-6 rounded-lg p-2 opacity-70 ring-offset-background transition-all hover:bg-accent hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2">
+//                   <X className="h-5 w-5" />
+//                   <span className="sr-only">Close</span>
+//                 </DialogPrimitive.Close>
+
+//                 <div className="flex items-start gap-4">
+//                   <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 shadow-lg ring-1 ring-primary/20">
+//                     <Zap className="h-7 w-7 text-primary" />
+//                   </div>
+//                   <div className="flex-1">
+//                     <DialogPrimitive.Title className="text-2xl font-bold tracking-tight">
+//                       Add Action
+//                     </DialogPrimitive.Title>
+//                     <DialogPrimitive.Description className="mt-2 text-base text-muted-foreground">
+//                       Choose what action to perform when the trigger activates
+//                     </DialogPrimitive.Description>
+//                   </div>
+//                 </div>
+
+//                 {/* Category Pills */}
+//                 <div className="mt-6 -mb-2 flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+//                   {categories.map((category) => (
+//                     <button
+//                       key={category.id}
+//                       onClick={() => setActiveCategory(category.id)}
+//                       className={cn(
+//                         "flex-shrink-0 rounded-full px-5 py-2 text-sm font-semibold transition-all",
+//                         activeCategory === category.id
+//                           ? "bg-primary text-primary-foreground shadow-md"
+//                           : "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground",
+//                       )}
+//                     >
+//                       {category.label}
+//                     </button>
+//                   ))}
+//                 </div>
+//               </div>
+
+//               {/* Actions Grid - Custom Scrollable */}
+//               <div className="flex-1 overflow-y-auto px-8 py-6 scrollbar-hide">
+//                 <motion.div className="grid gap-4 pb-4 sm:grid-cols-2" layout>
+//                   <AnimatePresence mode="popLayout">
+//                     {filteredActions.map((action, index) => {
+//                       const Icon = action.icon
+//                       const isHovered = hoveredAction === action.id
+
+//                       return (
+//                         <motion.button
+//                           key={action.id}
+//                           type="button"
+//                           initial={{ opacity: 0, y: 20 }}
+//                           animate={{ opacity: 1, y: 0 }}
+//                           exit={{ opacity: 0, scale: 0.9 }}
+//                           transition={{
+//                             duration: 0.2,
+//                             delay: index * 0.03,
+//                             ease: [0.4, 0, 0.2, 1],
+//                           }}
+//                           whileHover={{ y: -4, transition: { duration: 0.2 } }}
+//                           whileTap={{ scale: 0.97 }}
+//                           onMouseEnter={() => setHoveredAction(action.id)}
+//                           onMouseLeave={() => setHoveredAction(null)}
+//                           onClick={() => handleSelect(action.id as ActionType)}
+//                           className={cn(
+//                             "group relative flex items-start gap-4 rounded-2xl border p-6 text-left transition-all duration-300",
+//                             "bg-card/50 backdrop-blur-sm",
+//                             "hover:bg-card hover:shadow-xl hover:shadow-primary/5",
+//                             isHovered ? "border-primary/40 scale-[1.02]" : "border-border/50",
+//                           )}
+//                         >
+//                           {/* Gradient Overlay on Hover */}
+//                           <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary/10 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+
+//                           {/* Icon Container */}
+//                           <div className="relative flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary/20 via-primary/10 to-transparent shadow-md ring-1 ring-primary/20 transition-all duration-300 group-hover:scale-110 group-hover:shadow-lg group-hover:shadow-primary/20">
+//                             <Icon className="h-8 w-8 text-primary transition-transform duration-300 group-hover:scale-110" />
+
+//                             {/* Sparkle effect on hover */}
+//                             <motion.div
+//                               initial={{ opacity: 0, scale: 0 }}
+//                               animate={isHovered ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0 }}
+//                               className="absolute -right-1 -top-1"
+//                             >
+//                               <Sparkles className="h-4 w-4 text-primary" />
+//                             </motion.div>
+//                           </div>
+
+//                           {/* Content */}
+//                           <div className="relative flex-1 min-w-0 pt-1">
+//                             <h3 className="mb-2 text-lg font-bold tracking-tight text-foreground transition-colors group-hover:text-primary">
+//                               {action.label}
+//                             </h3>
+//                             <p className="text-sm leading-relaxed text-muted-foreground">{action.description}</p>
+//                           </div>
+
+//                           {/* Arrow indicator */}
+//                           <div className="relative flex-shrink-0 pt-1">
+//                             <motion.div
+//                               animate={isHovered ? { x: 4 } : { x: 0 }}
+//                               transition={{ duration: 0.2 }}
+//                               className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 transition-colors group-hover:bg-primary/20"
+//                             >
+//                               <svg
+//                                 className="h-4 w-4 text-primary"
+//                                 fill="none"
+//                                 viewBox="0 0 24 24"
+//                                 stroke="currentColor"
+//                                 strokeWidth={2}
+//                               >
+//                                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+//                               </svg>
+//                             </motion.div>
+//                           </div>
+//                         </motion.button>
+//                       )
+//                     })}
+//                   </AnimatePresence>
+//                 </motion.div>
+
+//                 {/* Empty State */}
+//                 {filteredActions.length === 0 && (
+//                   <div className="flex flex-col items-center justify-center py-20 text-center">
+//                     <div className="flex h-24 w-24 items-center justify-center rounded-full bg-muted/50 mb-6">
+//                       <Zap className="h-12 w-12 text-muted-foreground/50" />
+//                     </div>
+//                     <h3 className="text-xl font-semibold text-foreground mb-2">No actions found</h3>
+//                     <p className="text-sm text-muted-foreground max-w-sm">
+//                       No actions match the selected category. Try selecting a different category.
+//                     </p>
+//                   </div>
+//                 )}
+//               </div>
+//             </div>
+//           </motion.div>
+//         </DialogPrimitive.Content>
+//       </DialogPrimitive.Portal>
+//     </DialogPrimitive.Root>
+//   )
+// }
+
+
 "use client"
 
 import { useState } from "react"
 import { ACTION_TYPES, ACTION_CATEGORIES } from "@/lib/constants/automations"
 import type { ActionType } from "@/lib/types/automation"
 import { motion, AnimatePresence } from "framer-motion"
-import { Zap, X, Sparkles } from "lucide-react"
+import { Zap, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 import * as DialogPrimitive from "@radix-ui/react-dialog"
 
@@ -313,7 +518,7 @@ export function ActionSelector({ open, onClose, onSelect }: ActionSelectorProps)
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm"
+            className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm animate-in fade-in-0"
           />
         </DialogPrimitive.Overlay>
         <DialogPrimitive.Content asChild>
@@ -322,12 +527,12 @@ export function ActionSelector({ open, onClose, onSelect }: ActionSelectorProps)
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
-            className="fixed left-[50%] top-[50%] z-50 w-[95vw] max-w-5xl translate-x-[-50%] translate-y-[-50%] rounded-2xl border border-border/50 bg-background shadow-2xl"
+            className="fixed left-[50%] top-[50%] z-50 w-[95vw] max-w-5xl translate-x-[-50%] translate-y-[-50%] rounded-2xl border border-border/50 bg-background shadow-2xl animate-in fade-in-0 zoom-in-95 duration-200"
           >
             <div className="flex h-[85vh] flex-col overflow-hidden">
               {/* Header */}
               <div className="relative border-b border-border/50 bg-gradient-to-b from-muted/30 to-background px-8 pb-6 pt-7">
-                <DialogPrimitive.Close className="absolute right-6 top-6 rounded-lg p-2 opacity-70 ring-offset-background transition-all hover:bg-accent hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2">
+                <DialogPrimitive.Close className="absolute right-6 top-6 rounded-lg p-2 opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2">
                   <X className="h-5 w-5" />
                   <span className="sr-only">Close</span>
                 </DialogPrimitive.Close>
@@ -347,16 +552,16 @@ export function ActionSelector({ open, onClose, onSelect }: ActionSelectorProps)
                 </div>
 
                 {/* Category Pills */}
-                <div className="mt-6 -mb-2 flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                <div className="mt-6 -mb-2 flex gap-2 overflow-x-auto pb-2">
                   {categories.map((category) => (
                     <button
                       key={category.id}
                       onClick={() => setActiveCategory(category.id)}
                       className={cn(
-                        "flex-shrink-0 rounded-full px-5 py-2 text-sm font-semibold transition-all",
+                        "flex-shrink-0 rounded-full px-5 py-2.5 text-sm font-medium transition-colors",
                         activeCategory === category.id
-                          ? "bg-primary text-primary-foreground shadow-md"
-                          : "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground",
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-muted/50 text-muted-foreground hover:bg-muted",
                       )}
                     >
                       {category.label}
@@ -366,8 +571,8 @@ export function ActionSelector({ open, onClose, onSelect }: ActionSelectorProps)
               </div>
 
               {/* Actions Grid - Custom Scrollable */}
-              <div className="flex-1 overflow-y-auto px-8 py-6 scrollbar-hide">
-                <motion.div className="grid gap-4 pb-4 sm:grid-cols-2" layout>
+              <div className="flex-1 overflow-y-auto px-8 py-6">
+                <motion.div className="grid gap-4 pb-4 sm:grid-cols-2 lg:grid-cols-2" layout>
                   <AnimatePresence mode="popLayout">
                     {filteredActions.map((action, index) => {
                       const Icon = action.icon
@@ -391,54 +596,32 @@ export function ActionSelector({ open, onClose, onSelect }: ActionSelectorProps)
                           onMouseLeave={() => setHoveredAction(null)}
                           onClick={() => handleSelect(action.id as ActionType)}
                           className={cn(
-                            "group relative flex items-start gap-4 rounded-2xl border p-6 text-left transition-all duration-300",
-                            "bg-card/50 backdrop-blur-sm",
-                            "hover:bg-card hover:shadow-xl hover:shadow-primary/5",
+                            "group relative flex items-start gap-4 rounded-xl border border-border/50 bg-card p-5 text-left transition-all hover:border-primary/40 hover:bg-accent/50 hover:shadow-lg",
                             isHovered ? "border-primary/40 scale-[1.02]" : "border-border/50",
                           )}
                         >
-                          {/* Gradient Overlay on Hover */}
-                          <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary/10 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-
                           {/* Icon Container */}
-                          <div className="relative flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary/20 via-primary/10 to-transparent shadow-md ring-1 ring-primary/20 transition-all duration-300 group-hover:scale-110 group-hover:shadow-lg group-hover:shadow-primary/20">
-                            <Icon className="h-8 w-8 text-primary transition-transform duration-300 group-hover:scale-110" />
-
-                            {/* Sparkle effect on hover */}
-                            <motion.div
-                              initial={{ opacity: 0, scale: 0 }}
-                              animate={isHovered ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0 }}
-                              className="absolute -right-1 -top-1"
-                            >
-                              <Sparkles className="h-4 w-4 text-primary" />
-                            </motion.div>
+                          <div className="relative flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10 ring-1 ring-primary/20 transition-transform group-hover:scale-105">
+                            <Icon className="h-7 w-7 text-primary" />
                           </div>
 
                           {/* Content */}
-                          <div className="relative flex-1 min-w-0 pt-1">
-                            <h3 className="mb-2 text-lg font-bold tracking-tight text-foreground transition-colors group-hover:text-primary">
-                              {action.label}
-                            </h3>
-                            <p className="text-sm leading-relaxed text-muted-foreground">{action.description}</p>
+                          <div className="relative flex-1 min-w-0 pt-0.5">
+                            <h3 className="mb-1.5 text-base font-semibold text-foreground">{action.label}</h3>
+                            <p className="text-sm text-muted-foreground line-clamp-2">{action.description}</p>
                           </div>
 
                           {/* Arrow indicator */}
-                          <div className="relative flex-shrink-0 pt-1">
-                            <motion.div
-                              animate={isHovered ? { x: 4 } : { x: 0 }}
-                              transition={{ duration: 0.2 }}
-                              className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 transition-colors group-hover:bg-primary/20"
+                          <div className="flex-shrink-0 pt-1 opacity-0 transition-opacity group-hover:opacity-100">
+                            <svg
+                              className="h-5 w-5 text-primary"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                              strokeWidth={2}
                             >
-                              <svg
-                                className="h-4 w-4 text-primary"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                                strokeWidth={2}
-                              >
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                              </svg>
-                            </motion.div>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                            </svg>
                           </div>
                         </motion.button>
                       )
@@ -449,13 +632,11 @@ export function ActionSelector({ open, onClose, onSelect }: ActionSelectorProps)
                 {/* Empty State */}
                 {filteredActions.length === 0 && (
                   <div className="flex flex-col items-center justify-center py-20 text-center">
-                    <div className="flex h-24 w-24 items-center justify-center rounded-full bg-muted/50 mb-6">
-                      <Zap className="h-12 w-12 text-muted-foreground/50" />
+                    <div className="flex h-20 w-20 items-center justify-center rounded-full bg-muted/50 mb-4">
+                      <Zap className="h-10 w-10 text-muted-foreground/50" />
                     </div>
-                    <h3 className="text-xl font-semibold text-foreground mb-2">No actions found</h3>
-                    <p className="text-sm text-muted-foreground max-w-sm">
-                      No actions match the selected category. Try selecting a different category.
-                    </p>
+                    <h3 className="text-lg font-semibold mb-2">No actions found</h3>
+                    <p className="text-sm text-muted-foreground">Try selecting a different category.</p>
                   </div>
                 )}
               </div>
