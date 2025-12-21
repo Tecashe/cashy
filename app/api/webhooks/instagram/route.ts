@@ -3940,7 +3940,8 @@ async function processMessagingEvent(messagingEvent: any, webhookPageId: string)
       data: {
         conversationId: conversation.id,
         content: message.text || "[Media]",
-        sender: "participant",
+        sender: "participant", // Customer's message
+        isFromUser: false, // Not from business
         isRead: false,
         messageType: message.is_story_reply ? "story_reply" : "text",
         timestamp: messageTimestamp,
