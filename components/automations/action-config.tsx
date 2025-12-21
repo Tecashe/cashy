@@ -1,7 +1,14 @@
 "use client"
 
 import { useState } from "react"
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetFooter } from "@/components/ui/sheet"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -15,6 +22,7 @@ import { ConditionBuilder } from "./condition-builder"
 import { Plus, Info } from "lucide-react"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import React from "react"
 
 interface ActionConfigModalProps {
   open: boolean
@@ -52,30 +60,37 @@ export function ActionConfigModal({ open, onClose, action, onSave, tags }: Actio
   }
 
   return (
-    <Sheet open={open} onOpenChange={onClose}>
-      <SheetContent side="bottom" className="h-[90vh] flex flex-col p-0">
-        <SheetHeader className="px-6 pt-6 pb-4 border-b">
-          <SheetTitle className="flex items-center gap-2">
-            {actionInfo.label}
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Info className="h-4 w-4 text-muted-foreground" />
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p className="max-w-xs">{actionInfo.description}</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </SheetTitle>
-          <SheetDescription>{actionInfo.description}</SheetDescription>
-        </SheetHeader>
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent className="max-w-4xl max-h-[90vh] p-0 gap-0">
+        <DialogHeader className="px-6 pt-6 pb-4 border-b border-border/50">
+          <div className="flex items-start gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 ring-1 ring-primary/20">
+              {React.createElement(actionInfo.icon, { className: "h-5 w-5 text-primary" })}
+            </div>
+            <div className="flex-1">
+              <DialogTitle className="text-xl font-semibold flex items-center gap-2">
+                {actionInfo.label}
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Info className="h-4 w-4 text-muted-foreground" />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p className="max-w-xs">{actionInfo.description}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </DialogTitle>
+              <DialogDescription className="mt-1">{actionInfo.description}</DialogDescription>
+            </div>
+          </div>
+        </DialogHeader>
 
-        <ScrollArea className="flex-1 px-6">
-          <div className="space-y-6 py-6">
+        <ScrollArea className="flex-1 px-6 py-6 max-h-[calc(90vh-180px)]">
+          <div className="space-y-6">
             {/* Send Message */}
             {action.type === "send_message" && (
-              <Card>
+              <Card className="border-border/50">
                 <CardHeader>
                   <CardTitle className="text-base">Message Content</CardTitle>
                   <CardDescription>Compose your automated message</CardDescription>
@@ -104,6 +119,7 @@ export function ActionConfigModal({ open, onClose, action, onSave, tags }: Actio
                           size="sm"
                           type="button"
                           onClick={() => insertVariable(variable.value, "message")}
+                          className="border-border/50 hover:border-primary/30"
                         >
                           <Plus className="mr-1 h-3 w-3" />
                           {variable.label}
@@ -117,7 +133,7 @@ export function ActionConfigModal({ open, onClose, action, onSave, tags }: Actio
 
             {/* Send Image */}
             {action.type === "send_image" && (
-              <Card>
+              <Card className="border-border/50">
                 <CardHeader>
                   <CardTitle className="text-base">Image Settings</CardTitle>
                   <CardDescription>Configure the image to send</CardDescription>
@@ -149,7 +165,7 @@ export function ActionConfigModal({ open, onClose, action, onSave, tags }: Actio
 
             {/* Send Carousel */}
             {action.type === "send_carousel" && (
-              <Card>
+              <Card className="border-border/50">
                 <CardHeader>
                   <CardTitle className="text-base">Carousel Settings</CardTitle>
                   <CardDescription>Add multiple images (2-10 images)</CardDescription>
@@ -173,7 +189,7 @@ export function ActionConfigModal({ open, onClose, action, onSave, tags }: Actio
 
             {/* Reply to Comment */}
             {action.type === "reply_to_comment" && (
-              <Card>
+              <Card className="border-border/50">
                 <CardHeader>
                   <CardTitle className="text-base">Comment Reply</CardTitle>
                   <CardDescription>Configure your automated comment reply</CardDescription>
@@ -201,6 +217,7 @@ export function ActionConfigModal({ open, onClose, action, onSave, tags }: Actio
                           size="sm"
                           type="button"
                           onClick={() => insertVariable(variable.value, "message")}
+                          className="border-border/50 hover:border-primary/30"
                         >
                           <Plus className="mr-1 h-3 w-3" />
                           {variable.label}
@@ -214,7 +231,7 @@ export function ActionConfigModal({ open, onClose, action, onSave, tags }: Actio
 
             {/* Hide Comment */}
             {action.type === "hide_comment" && (
-              <Card>
+              <Card className="border-border/50">
                 <CardHeader>
                   <CardTitle className="text-base">Comment Moderation</CardTitle>
                   <CardDescription>Control comment visibility</CardDescription>
@@ -237,7 +254,7 @@ export function ActionConfigModal({ open, onClose, action, onSave, tags }: Actio
             {/* AI Response */}
             {action.type === "ai_response" && (
               <div className="space-y-4">
-                <Card>
+                <Card className="border-border/50">
                   <CardHeader>
                     <CardTitle className="text-base">AI Configuration</CardTitle>
                     <CardDescription>Customize AI response behavior</CardDescription>
@@ -284,6 +301,7 @@ export function ActionConfigModal({ open, onClose, action, onSave, tags }: Actio
                             size="sm"
                             type="button"
                             onClick={() => insertVariable(variable.value, "aiInstructions")}
+                            className="border-border/50 hover:border-primary/30"
                           >
                             <Plus className="mr-1 h-3 w-3" />
                             {variable.label}
@@ -294,7 +312,7 @@ export function ActionConfigModal({ open, onClose, action, onSave, tags }: Actio
                   </CardContent>
                 </Card>
 
-                <Card>
+                <Card className="border-border/50">
                   <CardHeader>
                     <CardTitle className="text-base">Advanced Settings</CardTitle>
                   </CardHeader>
@@ -330,7 +348,7 @@ export function ActionConfigModal({ open, onClose, action, onSave, tags }: Actio
 
             {/* Add Tag */}
             {action.type === "add_tag" && (
-              <Card>
+              <Card className="border-border/50">
                 <CardHeader>
                   <CardTitle className="text-base">Tag Selection</CardTitle>
                   <CardDescription>Choose a tag to apply to the conversation</CardDescription>
@@ -365,7 +383,7 @@ export function ActionConfigModal({ open, onClose, action, onSave, tags }: Actio
 
             {/* Delay */}
             {action.type === "delay" && (
-              <Card>
+              <Card className="border-border/50">
                 <CardHeader>
                   <CardTitle className="text-base">Delay Duration</CardTitle>
                   <CardDescription>Set how long to wait before the next action</CardDescription>
@@ -419,7 +437,7 @@ export function ActionConfigModal({ open, onClose, action, onSave, tags }: Actio
 
             {/* Conditional Branch */}
             {action.type === "condition" && (
-              <Card>
+              <Card className="border-border/50">
                 <CardHeader>
                   <CardTitle className="text-base">Conditional Logic</CardTitle>
                   <CardDescription>Create IF/THEN/ELSE branches based on conditions</CardDescription>
@@ -435,7 +453,7 @@ export function ActionConfigModal({ open, onClose, action, onSave, tags }: Actio
 
             {/* Human Handoff */}
             {action.type === "human_handoff" && (
-              <Card>
+              <Card className="border-border/50">
                 <CardHeader>
                   <CardTitle className="text-base">Human Handoff</CardTitle>
                   <CardDescription>Transfer conversation to live agent</CardDescription>
@@ -463,7 +481,7 @@ export function ActionConfigModal({ open, onClose, action, onSave, tags }: Actio
 
             {/* Webhook */}
             {action.type === "webhook" && (
-              <Card>
+              <Card className="border-border/50">
                 <CardHeader>
                   <CardTitle className="text-base">Webhook Configuration</CardTitle>
                   <CardDescription>Send data to external services</CardDescription>
@@ -515,17 +533,17 @@ export function ActionConfigModal({ open, onClose, action, onSave, tags }: Actio
           </div>
         </ScrollArea>
 
-        <SheetFooter className="sticky bottom-0 border-t bg-background px-6 py-4">
+        <DialogFooter className="border-t border-border/50 px-6 py-4">
           <div className="flex w-full gap-3">
             <Button variant="outline" onClick={onClose} className="flex-1 bg-transparent">
               Cancel
             </Button>
-            <Button onClick={handleSave} className="flex-1">
+            <Button onClick={handleSave} className="flex-1 shadow-sm">
               Save Action
             </Button>
           </div>
-        </SheetFooter>
-      </SheetContent>
-    </Sheet>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   )
 }
