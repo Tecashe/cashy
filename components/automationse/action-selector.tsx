@@ -30,6 +30,11 @@ const FALLBACK_CATEGORIES = [
 export function ActionSelector({ open, onClose, onSelect }: ActionSelectorProps) {
   const [activeCategory, setActiveCategory] = useState("all")
 
+  console.log("[v0] ACTION_CATEGORIES:", ACTION_CATEGORIES)
+  console.log("[v0] ACTION_TYPES:", ACTION_TYPES)
+  console.log("[v0] typeof ACTION_CATEGORIES:", typeof ACTION_CATEGORIES)
+  console.log("[v0] Array.isArray(ACTION_CATEGORIES):", Array.isArray(ACTION_CATEGORIES))
+
   const categories = ACTION_CATEGORIES || FALLBACK_CATEGORIES
 
   const filteredActions = Object.values(ACTION_TYPES).filter(
