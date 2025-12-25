@@ -5028,6 +5028,142 @@ async function processAutomationTriggers(context: TriggerContext) {
   }
 }
 
+
+
+
+
+
+// function checkAutomationTriggers(automation: any, context: TriggerContext): boolean {
+//   const { messageContent = "", messageType, isFirstMessage } = context
+
+//   if (!automation.triggers || automation.triggers.length === 0) {
+//     console.log("[Automation] ❌ No triggers found for:", automation.name)
+//     return false
+//   }
+
+//   console.log("[Automation] 📋 Checking triggers for:", automation.name, {
+//     triggerCount: automation.triggers.length,
+//     messageType,
+//     hasContent: !!messageContent,
+//   })
+
+//   const triggerResults = automation.triggers.map((trigger: any) => {
+//     const conditions = trigger.conditions || {}
+
+//     console.log("[Automation] 🔍 Evaluating trigger:", {
+//       automationName: automation.name,
+//       type: trigger.type,
+//       conditions,
+//       messageType,
+//     })
+
+//     let matches = false
+
+//     switch (trigger.type) {
+//       case "DM_RECEIVED":
+//       case "new_message":
+//         matches = messageType === "DM"
+//         break
+
+//       case "FIRST_MESSAGE":
+//         matches = isFirstMessage && messageType === "DM"
+//         break
+
+//       case "KEYWORD":
+//       case "keyword":
+//         if (messageType !== "DM" && messageType !== "COMMENT" && messageType !== "COMMENT_MENTION") {
+//           matches = false
+//           break
+//         }
+
+//         const keywords = conditions.keywords || []
+//         const matchType = conditions.matchType || "contains"
+
+//         console.log("[Automation] 🔑 Keyword check:", {
+//           keywords,
+//           matchType,
+//           messageContent,
+//         })
+
+//         if (matchType === "contains" || matchType === "any") {
+//           matches = keywords.some((keyword: string) => messageContent.toLowerCase().includes(keyword.toLowerCase()))
+//         } else if (matchType === "exact" || matchType === "all") {
+//           matches = keywords.every((keyword: string) => messageContent.toLowerCase().includes(keyword.toLowerCase()))
+//         } else if (matchType === "starts_with") {
+//           matches = keywords.some((keyword: string) => messageContent.toLowerCase().startsWith(keyword.toLowerCase()))
+//         }
+//         break
+
+//       case "STORY_REPLY":
+//         matches = messageType === "STORY_REPLY"
+//         break
+
+//       case "COMMENT":
+//       case "COMMENT_RECEIVED":
+//         // Match both regular comments AND comment mentions
+//         matches = messageType === "COMMENT" || messageType === "COMMENT_MENTION"
+
+//         // If conditions require a mention, check for it
+//         if (matches && conditions.requireMention) {
+//           matches = context.triggerData?.hasMention || false
+//         }
+
+//         // If specific username must be mentioned
+//         if (matches && conditions.mentionUsername) {
+//           const mentionedUsernames = context.triggerData?.mentionedUsernames || []
+//           matches = mentionedUsernames.includes(conditions.mentionUsername)
+//         }
+//         break
+
+//       case "COMMENT_MENTION":
+//         // Only trigger on comments with mentions
+//         matches = messageType === "COMMENT_MENTION"
+
+//         // If specific username must be mentioned
+//         if (matches && conditions.mentionUsername) {
+//           const mentionedUsernames = context.triggerData?.mentionedUsernames || []
+//           matches = mentionedUsernames.includes(conditions.mentionUsername)
+//         }
+//         break
+
+//       case "mention":
+//       case "MENTION":
+//       case "MENTION_RECEIVED":
+//         // Handle both comment mentions and story/feed mentions
+//         matches = messageType === "MENTION" || messageType === "COMMENT_MENTION"
+
+//         // If specific username must be mentioned
+//         if (matches && conditions.mentionUsername) {
+//           const mentionedUsernames = context.triggerData?.mentionedUsernames || []
+//           matches = mentionedUsernames.includes(conditions.mentionUsername)
+//         }
+//         break
+
+//       default:
+//         console.log("[Automation] ⚠️ Unknown trigger type:", trigger.type)
+//         matches = false
+//     }
+
+//     console.log("[Automation] 📊 Trigger result:", {
+//       automationName: automation.name,
+//       triggerType: trigger.type,
+//       matches,
+//     })
+
+//     return matches
+//   })
+
+//   const shouldExecute = triggerResults.some((result: any) => result)
+
+//   console.log("[Automation] 🎯 Final decision for", automation.name, ":", {
+//     shouldExecute,
+//     matchedTriggers: triggerResults.filter((r: any) => r).length,
+//     totalTriggers: triggerResults.length,
+//   })
+
+//   return shouldExecute
+// }
+
 function checkAutomationTriggers(automation: any, context: TriggerContext): boolean {
   const { messageContent = "", messageType, isFirstMessage } = context
 
@@ -5093,10 +5229,37 @@ function checkAutomationTriggers(automation: any, context: TriggerContext): bool
         matches = messageType === "STORY_REPLY"
         break
 
+      case "comment": // ✅ Added lowercase version
       case "COMMENT":
       case "COMMENT_RECEIVED":
         // Match both regular comments AND comment mentions
         matches = messageType === "COMMENT" || messageType === "COMMENT_MENTION"
+
+        // If listenMode is set to "keywords", check keywords
+        if (matches && conditions.listenMode === "keywords") {
+          const keywords = conditions.keywords || []
+          if (keywords.length > 0) {
+            matches = keywords.some((keyword: string) => 
+              messageContent.toLowerCase().includes(keyword.toLowerCase())
+            )
+            console.log("[Automation] 🔑 Comment keyword check:", {
+              keywords,
+              messageContent,
+              matches
+            })
+          }
+        }
+
+        // If specific post IDs are required, check if media ID matches
+        if (matches && conditions.postIds && conditions.postIds.length > 0) {
+          const mediaId = context.triggerData?.mediaId
+          matches = conditions.postIds.includes(mediaId)
+          console.log("[Automation] 📍 Post ID check:", {
+            requiredPostIds: conditions.postIds,
+            actualMediaId: mediaId,
+            matches
+          })
+        }
 
         // If conditions require a mention, check for it
         if (matches && conditions.requireMention) {
@@ -5158,6 +5321,17 @@ function checkAutomationTriggers(automation: any, context: TriggerContext): bool
 
   return shouldExecute
 }
+
+
+
+
+
+
+
+
+
+
+
 
 async function executeAutomation(automation: any, context: TriggerContext, conversation: any, executionId: string) {
   try {
