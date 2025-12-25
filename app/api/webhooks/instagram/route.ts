@@ -5164,6 +5164,7 @@ async function processAutomationTriggers(context: TriggerContext) {
 //   return shouldExecute
 // }
 
+
 function checkAutomationTriggers(automation: any, context: TriggerContext): boolean {
   const { messageContent = "", messageType, isFirstMessage } = context
 
