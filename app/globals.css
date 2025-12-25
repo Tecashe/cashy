@@ -4,32 +4,46 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
+  /* Dark theme - almost black */
+  --background: #0a0a0a;
+  --foreground: #fafafa;
+
+  /* Bright accent colors - no gradients! */
+  --color-orange: #ff6b35;
+  --color-green: #00d9a3;
+  --color-red: #ff3366;
+  --color-yellow: #ffd93d;
+  --color-maroon: #c1121f;
+  --color-brown: #a0522d;
+  --color-purple: #9d4edd;
+
+  /* Card backgrounds */
+  --card: #141414;
+  --card-foreground: #fafafa;
+
+  /* Muted colors */
+  --muted: #1f1f1f;
+  --muted-foreground: #a3a3a3;
+
+  --border: #262626;
+  --input: #262626;
+  --ring: #ff6b35;
+
+  --radius: 1rem;
+
+  --primary: #ff6b35;
+  --primary-foreground: #0a0a0a;
+
+  --secondary: #1f1f1f;
+  --secondary-foreground: #fafafa;
+
+  --accent: #00d9a3;
+  --accent-foreground: #0a0a0a;
+
   --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
+
+  --sidebar: oklch(1 0 0);
   --sidebar-foreground: oklch(0.145 0 0);
   --sidebar-primary: oklch(0.205 0 0);
   --sidebar-primary-foreground: oklch(0.985 0 0);
@@ -75,36 +89,36 @@
 }
 
 @theme inline {
-  --font-sans: "Geist", "Geist Fallback";
-  --font-mono: "Geist Mono", "Geist Mono Fallback";
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
+  --color-orange: var(--color-orange);
+  --color-green: var(--color-green);
+  --color-red: var(--color-red);
+  --color-yellow: var(--color-yellow);
+  --color-maroon: var(--color-maroon);
+  --color-brown: var(--color-brown);
+  --color-purple: var(--color-purple);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
-  --color-destructive: var(--destructive);
-  --color-destructive-foreground: var(--destructive-foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
@@ -124,258 +138,165 @@
   }
 }
 
-/* Adding custom animations and polish for automation builder nodes */
+/* Scroll animations */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slide-in-left {
+  from {
+    opacity: 0;
+    transform: translateX(-50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.6s ease-out;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.6s ease-out;
+}
+
+.animate-slide-in-left {
+  animation: slide-in-left 0.6s ease-out;
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right 0.6s ease-out;
+}
+
+.animate-scale-in {
+  animation: scale-in 0.6s ease-out;
+}
+
+/* Scroll reveal utility */
+.scroll-reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+
+.scroll-reveal.revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Cursor animation for DM simulations */
+@keyframes cursor-move {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  25% {
+    transform: translate(5px, 5px);
+  }
+  50% {
+    transform: translate(10px, 2px);
+  }
+  75% {
+    transform: translate(3px, 8px);
+  }
+}
+
+.cursor-animate {
+  animation: cursor-move 3s ease-in-out infinite;
+}
+
+/* Typing indicator animation */
+@keyframes typing {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.typing-dot {
+  animation: typing 1.4s ease-in-out infinite;
+}
+
+.typing-dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.typing-dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+/* Mobile-optimized responsive utilities */
 @layer utilities {
-  /* Enhanced pulse animation for attention-grabbing elements */
-  .node-pulse {
-    animation: node-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  /* Mobile-first responsive text */
+  .text-responsive-xs {
+    @apply text-xs sm:text-sm;
   }
 
-  @keyframes node-pulse {
-    0%,
-    100% {
-      opacity: 1;
-      transform: scale(1);
-    }
-    50% {
-      opacity: 0.9;
-      transform: scale(1.05);
-    }
+  .text-responsive-sm {
+    @apply text-sm sm:text-base;
   }
 
-  /* Animated gradient background for dynamic visual appeal */
-  .animate-gradient-x {
-    background-size: 200% 100%;
-    animation: gradient-x 3s ease infinite;
+  .text-responsive-base {
+    @apply text-base sm:text-lg;
   }
 
-  @keyframes gradient-x {
-    0%,
-    100% {
-      background-position: 0% 50%;
-    }
-    50% {
-      background-position: 100% 50%;
-    }
+  .text-responsive-lg {
+    @apply text-lg sm:text-xl md:text-2xl;
   }
 
-  /* Floating animation for decorative elements */
-  .animate-float {
-    animation: float 3s ease-in-out infinite;
+  .text-responsive-xl {
+    @apply text-xl sm:text-2xl md:text-3xl;
   }
 
-  @keyframes float {
-    0%,
-    100% {
-      transform: translateY(0px) translateX(0px);
-      opacity: 0.4;
-    }
-    50% {
-      transform: translateY(-20px) translateX(10px);
-      opacity: 0.8;
-    }
+  /* Mobile-optimized spacing */
+  .section-padding {
+    @apply py-12 md:py-16 lg:py-20;
   }
 
-  /* Glow pulse for highlighted nodes */
-  .animate-pulse-glow {
-    animation: pulse-glow 2s ease-in-out infinite;
+  .container-padding {
+    @apply px-4 sm:px-6 lg:px-8;
   }
-
-  @keyframes pulse-glow {
-    0%,
-    100% {
-      box-shadow: 0 0 20px rgba(139, 92, 246, 0.4);
-    }
-    50% {
-      box-shadow: 0 0 40px rgba(139, 92, 246, 0.8), 0 0 60px rgba(139, 92, 246, 0.4);
-    }
-  }
-
-  /* Shimmer effect for premium feel */
-  .animate-shimmer {
-    animation: shimmer 2s linear infinite;
-    background: linear-gradient(to right, transparent 0%, rgba(255, 255, 255, 0.3) 50%, transparent 100%);
-    background-size: 200% 100%;
-  }
-
-  @keyframes shimmer {
-    0% {
-      background-position: -200% 0;
-    }
-    100% {
-      background-position: 200% 0;
-    }
-  }
-
-  /* Bounce in animation for dynamic entry */
-  .animate-bounce-in {
-    animation: bounce-in 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-  }
-
-  @keyframes bounce-in {
-    0% {
-      opacity: 0;
-      transform: scale(0.3);
-    }
-    50% {
-      opacity: 1;
-      transform: scale(1.05);
-    }
-    70% {
-      transform: scale(0.9);
-    }
-    100% {
-      transform: scale(1);
-    }
-  }
-
-  /* Grid background pattern for canvas */
-  .bg-grid-slate-200\/50 {
-    background-image: linear-gradient(to right, rgb(226 232 240 / 0.5) 1px, transparent 1px),
-      linear-gradient(to bottom, rgb(226 232 240 / 0.5) 1px, transparent 1px);
-    background-size: 24px 24px;
-  }
-
-  .dark .bg-grid-slate-800\/50 {
-    background-image: linear-gradient(to right, rgb(30 41 59 / 0.5) 1px, transparent 1px),
-      linear-gradient(to bottom, rgb(30 41 59 / 0.5) 1px, transparent 1px);
-    background-size: 24px 24px;
-  }
-
-  /* Enhanced custom scrollbar */
-  .automation-scroll {
-    scrollbar-width: thin;
-    scrollbar-color: hsl(var(--muted-foreground) / 0.3) transparent;
-  }
-
-  .automation-scroll::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-  }
-
-  .automation-scroll::-webkit-scrollbar-track {
-    background: transparent;
-    border-radius: 4px;
-  }
-
-  .automation-scroll::-webkit-scrollbar-thumb {
-    background: linear-gradient(to bottom, hsl(var(--muted-foreground) / 0.3), hsl(var(--muted-foreground) / 0.5));
-    border-radius: 4px;
-    transition: all 0.2s ease;
-  }
-
-  .automation-scroll::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(to bottom, hsl(var(--muted-foreground) / 0.5), hsl(var(--muted-foreground) / 0.7));
-  }
-
-  /* Decorative grid with fade effect */
-  .bg-grid-white\/10 {
-    background-image: linear-gradient(to right, rgba(255, 255, 255, 0.1) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
-    background-size: 20px 20px;
-  }
-
-  /* Gradient border effect for cards */
-  .gradient-border {
-    position: relative;
-    background: linear-gradient(var(--card), var(--card)) padding-box,
-      linear-gradient(135deg, #8b5cf6, #ec4899, #06b6d4) border-box;
-    border: 2px solid transparent;
-  }
-
-  /* Spotlight effect on hover */
-  .spotlight-effect {
-    position: relative;
-    overflow: hidden;
-  }
-
-  .spotlight-effect::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-    transition: left 0.5s;
-  }
-
-  .spotlight-effect:hover::before {
-    left: 100%;
-  }
-
-  /* Subtle rotate animation for icons */
-  .animate-rotate-slow {
-    animation: rotate-slow 20s linear infinite;
-  }
-
-  @keyframes rotate-slow {
-    from {
-      transform: rotate(0deg);
-    }
-    to {
-      transform: rotate(360deg);
-    }
-  }
-
-  /* Scale up animation for interactive elements */
-  .scale-up {
-    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-  }
-
-  .scale-up:hover {
-    transform: scale(1.05);
-  }
-
-  .scale-up:active {
-    transform: scale(0.95);
-  }
-}
-
-/* React Flow custom styling for professional look */
-.react-flow__node {
-  cursor: grab;
-}
-
-.react-flow__node:active {
-  cursor: grabbing;
-}
-
-.react-flow__edge-path {
-  stroke-width: 3;
-  transition: stroke-width 0.2s ease;
-}
-
-.react-flow__edge:hover .react-flow__edge-path {
-  stroke-width: 4;
-}
-
-.react-flow__handle {
-  transition: all 0.2s ease;
-}
-
-.react-flow__handle:hover {
-  transform: scale(1.2);
-}
-
-/* Panel styling for canvas controls */
-.react-flow__controls {
-  box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.2);
-}
-
-.react-flow__minimap {
-  box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.2);
-}
-
-/* Smooth transitions for all interactive elements*/
-.react-flow__node-default,
-.react-flow__node-input,
-.react-flow__node-output {
-  transition: box-shadow 0.2s ease, transform 0.2s ease;
-}
-
-.react-flow__node-default:hover,
-.react-flow__node-input:hover,
-.react-flow__node-output:hover {
-  box-shadow: 0 20px 60px -15px rgba(0, 0, 0, 0.3);
 }
