@@ -6027,6 +6027,82 @@ async function processComment(value: any, webhookPageId: string) {
   }
 }
 
+// async function processMention(value: any, webhookPageId: string) {
+//   try {
+//     const { comment_id, media_id, from } = value
+
+//     if (!from) return
+
+//     const instagramAccount = await prisma.instagramAccount.findFirst({
+//       where: {
+//         OR: [{ instagramPageId: webhookPageId }, { instagramId: webhookPageId }],
+//       },
+//       include: { user: true },
+//     })
+
+//     if (!instagramAccount) return
+
+//     const mentionTimestamp = new Date()
+
+//     let conversation = await prisma.conversation.findFirst({
+//       where: {
+//         instagramAccountId: instagramAccount.id,
+//         participantId: from.id,
+//       },
+//     })
+
+//     if (!conversation) {
+//       // Fetch user profile data from Instagram API
+//       const profileData = await fetchUserProfile(from.id, instagramAccount.accessToken, webhookPageId)
+
+//       conversation = await prisma.conversation.create({
+//         data: {
+//           instagramAccountId: instagramAccount.id,
+//           userId: instagramAccount.userId,
+//           participantId: from.id,
+//           participantName: profileData?.name || from.username || "Unknown",
+//           participantUsername: profileData?.username || from.username || "unknown",
+//           participantAvatar: profileData?.profilePic || null,
+//           lastMessageText: "Mentioned you",
+//           lastMessageAt: mentionTimestamp,
+//           lastCustomerMessageAt: mentionTimestamp, // ✅ Set for mentions too
+//           unreadCount: 0,
+//         },
+//       })
+//     } else {
+//       // Update lastCustomerMessageAt for mentions too
+//       await prisma.conversation.update({
+//         where: { id: conversation.id },
+//         data: {
+//           lastMessageAt: mentionTimestamp,
+//           lastCustomerMessageAt: mentionTimestamp, // ✅ Update for mentions
+//         },
+//       })
+//     }
+
+//     if (!conversation) {
+//       console.error("[Instagram Webhook] ❌ ERROR: Failed to create/update conversation for mention")
+//       return
+//     }
+
+//     await processAutomationTriggers({
+//       conversationId: conversation.id,
+//       messageContent: "",
+//       senderId: from.id,
+//       senderUsername: from.username || "unknown",
+//       senderName: from.username || "Unknown",
+//       messageType: "MENTION",
+//       isFirstMessage: false,
+//       instagramAccountId: instagramAccount.id,
+//       webhookPageId: webhookPageId,
+//       accessToken: instagramAccount.accessToken,
+//       triggerData: { commentId: comment_id, mediaId: media_id },
+//     })
+//   } catch (error) {
+//     console.error("[Instagram Webhook] ❌ Error processing mention:", error)
+//   }
+// }
+
 async function processMention(value: any, webhookPageId: string) {
   try {
     const { comment_id, media_id, from } = value
@@ -6043,6 +6119,25 @@ async function processMention(value: any, webhookPageId: string) {
     if (!instagramAccount) return
 
     const mentionTimestamp = new Date()
+
+    // ✅ Fetch the comment text if comment_id is provided
+    let commentText = ""
+    if (comment_id) {
+      try {
+        const instagramAPI = new InstagramAPI({
+          accessToken: instagramAccount.accessToken,
+          instagramId: webhookPageId,
+        })
+        
+        // Fetch comment details from Instagram Graph API
+        const commentData = await instagramAPI.getComment(comment_id)
+        commentText = commentData.text || ""
+        
+        console.log("[Instagram Webhook] 📝 Fetched comment text:", commentText)
+      } catch (error) {
+        console.error("[Instagram Webhook] ❌ Error fetching comment:", error)
+      }
+    }
 
     let conversation = await prisma.conversation.findFirst({
       where: {
@@ -6063,9 +6158,9 @@ async function processMention(value: any, webhookPageId: string) {
           participantName: profileData?.name || from.username || "Unknown",
           participantUsername: profileData?.username || from.username || "unknown",
           participantAvatar: profileData?.profilePic || null,
-          lastMessageText: "Mentioned you",
+          lastMessageText: commentText || "Mentioned you",
           lastMessageAt: mentionTimestamp,
-          lastCustomerMessageAt: mentionTimestamp, // ✅ Set for mentions too
+          lastCustomerMessageAt: mentionTimestamp,
           unreadCount: 0,
         },
       })
@@ -6074,8 +6169,9 @@ async function processMention(value: any, webhookPageId: string) {
       await prisma.conversation.update({
         where: { id: conversation.id },
         data: {
+          lastMessageText: commentText || "Mentioned you",
           lastMessageAt: mentionTimestamp,
-          lastCustomerMessageAt: mentionTimestamp, // ✅ Update for mentions
+          lastCustomerMessageAt: mentionTimestamp,
         },
       })
     }
@@ -6085,9 +6181,20 @@ async function processMention(value: any, webhookPageId: string) {
       return
     }
 
+    // ✅ Extract mentioned usernames from the comment text
+    const mentionMatches = commentText.match(/@(\w+)/g) || []
+    const mentionedUsernames = mentionMatches.map((m: string) => m.substring(1))
+
+    console.log("[Instagram Webhook] 👤 Mention details:", {
+      commentText,
+      mentionedUsernames,
+      comment_id,
+      media_id,
+    })
+
     await processAutomationTriggers({
       conversationId: conversation.id,
-      messageContent: "",
+      messageContent: commentText, // ✅ Pass the actual comment text
       senderId: from.id,
       senderUsername: from.username || "unknown",
       senderName: from.username || "Unknown",
@@ -6096,12 +6203,18 @@ async function processMention(value: any, webhookPageId: string) {
       instagramAccountId: instagramAccount.id,
       webhookPageId: webhookPageId,
       accessToken: instagramAccount.accessToken,
-      triggerData: { commentId: comment_id, mediaId: media_id },
+      triggerData: { 
+        commentId: comment_id, 
+        mediaId: media_id,
+        mentionedUsernames, // ✅ Include the list of mentioned users
+      },
     })
   } catch (error) {
     console.error("[Instagram Webhook] ❌ Error processing mention:", error)
   }
 }
+
+
 
 // Trigger context interface
 interface TriggerContext {

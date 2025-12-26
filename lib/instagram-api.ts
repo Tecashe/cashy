@@ -3105,6 +3105,26 @@ export class InstagramAPI {
   // COMMENTS & MENTIONS API
   // ============================================
 
+  // Add this method to your InstagramAPI class
+
+async getComment(commentId: string) {
+  try {
+    const response = await fetch(
+      `https://graph.facebook.com/v21.0/${commentId}?fields=text,from,timestamp,media&access_token=${this.accessToken}`
+    )
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch comment: ${response.statusText}`)
+    }
+
+    const data = await response.json()
+    return data
+  } catch (error) {
+    console.error("[Instagram API] Error fetching comment:", error)
+    throw error
+  }
+}
+
   async getComments(mediaId: string): Promise<{ data: InstagramComment[] }> {
     const response = await fetch(`${this.baseUrl}/${mediaId}/comments?fields=id,text,username,timestamp`, {
       headers: {
