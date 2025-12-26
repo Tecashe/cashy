@@ -285,8 +285,8 @@
 
 import { Suspense } from "react"
 import { getAnalyticsOverview, getAutomationPerformance, getRecentActivity } from "@/actions/analytics-actions"
-import { BarChart3, MessageSquare, Users, Zap, Clock, TrendingUp, Activity, CheckCircle2 } from "lucide-react"
-import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts"
+import { MessageSquare, Users, Zap, Clock, Activity, CheckCircle2, BarChart3 } from "lucide-react"
+import { MessageVolumeChart, StatusPieChart, CategoryBarChart } from "@/components/analytics/charts"
 
 export default async function AnalyticsPage({
   searchParams,
@@ -363,58 +363,12 @@ async function AnalyticsContent({ dateRange }: { dateRange: "7d" | "30d" | "90d"
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Message Volume Chart */}
         <ChartCard title="Message Volume">
-          <ResponsiveContainer width="100%" height={300}>
-            <AreaChart data={overview.chartData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#262626" />
-              <XAxis dataKey="date" stroke="#a3a3a3" fontSize={12} />
-              <YAxis stroke="#a3a3a3" fontSize={12} />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: "#141414",
-                  border: "1px solid #262626",
-                  borderRadius: "0.5rem",
-                }}
-              />
-              <Area type="monotone" dataKey="received" stackId="1" stroke="#00d9a3" fill="#00d9a3" fillOpacity={0.6} />
-              <Area type="monotone" dataKey="sent" stackId="1" stroke="#ff6b35" fill="#ff6b35" fillOpacity={0.6} />
-            </AreaChart>
-          </ResponsiveContainer>
+          <MessageVolumeChart data={overview.chartData} />
         </ChartCard>
 
         {/* Status Breakdown */}
         <ChartCard title="Conversation Status">
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={[
-                  { name: "Open", value: overview.statusBreakdown.open, color: "#ff6b35" },
-                  { name: "Awaiting", value: overview.statusBreakdown.awaiting_response, color: "#ffd93d" },
-                  { name: "Resolved", value: overview.statusBreakdown.resolved, color: "#00d9a3" },
-                ]}
-                cx="50%"
-                cy="50%"
-                innerRadius={60}
-                outerRadius={100}
-                paddingAngle={2}
-                dataKey="value"
-              >
-                {[
-                  { name: "Open", value: overview.statusBreakdown.open, color: "#ff6b35" },
-                  { name: "Awaiting", value: overview.statusBreakdown.awaiting_response, color: "#ffd93d" },
-                  { name: "Resolved", value: overview.statusBreakdown.resolved, color: "#00d9a3" },
-                ].map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
-                ))}
-              </Pie>
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: "#141414",
-                  border: "1px solid #262626",
-                  borderRadius: "0.5rem",
-                }}
-              />
-            </PieChart>
-          </ResponsiveContainer>
+          <StatusPieChart data={overview.statusBreakdown} />
         </ChartCard>
       </div>
 
@@ -450,43 +404,9 @@ async function AnalyticsContent({ dateRange }: { dateRange: "7d" | "30d" | "90d"
         </div>
 
         {/* Category Breakdown */}
-        <div className="bg-card border border-border rounded-xl p-6 space-y-6">
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold">Conversation Categories</h3>
-            <BarChart3 className="w-5 h-5 text-muted-foreground" />
-          </div>
-          <ResponsiveContainer width="100%" height={240}>
-            <BarChart
-              data={[
-                { name: "Sales", value: overview.categoryBreakdown.sales, color: "#00d9a3" },
-                { name: "Support", value: overview.categoryBreakdown.support, color: "#ff6b35" },
-                { name: "Collaboration", value: overview.categoryBreakdown.collaboration, color: "#9d4edd" },
-                { name: "General", value: overview.categoryBreakdown.general, color: "#ffd93d" },
-              ]}
-            >
-              <CartesianGrid strokeDasharray="3 3" stroke="#262626" />
-              <XAxis dataKey="name" stroke="#a3a3a3" fontSize={12} />
-              <YAxis stroke="#a3a3a3" fontSize={12} />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: "#141414",
-                  border: "1px solid #262626",
-                  borderRadius: "0.5rem",
-                }}
-              />
-              <Bar dataKey="value" radius={[8, 8, 0, 0]}>
-                {[
-                  { name: "Sales", value: overview.categoryBreakdown.sales, color: "#00d9a3" },
-                  { name: "Support", value: overview.categoryBreakdown.support, color: "#ff6b35" },
-                  { name: "Collaboration", value: overview.categoryBreakdown.collaboration, color: "#9d4edd" },
-                  { name: "General", value: overview.categoryBreakdown.general, color: "#ffd93d" },
-                ].map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
+        <ChartCard title="Conversation Categories">
+          <CategoryBarChart data={overview.categoryBreakdown} />
+        </ChartCard>
       </div>
 
       {/* Top Tags */}
