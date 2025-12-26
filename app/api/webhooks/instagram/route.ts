@@ -5225,8 +5225,9 @@ function checkAutomationTriggers(automation: any, context: TriggerContext): bool
           matches = keywords.some((keyword: string) => messageContent.toLowerCase().startsWith(keyword.toLowerCase()))
         }
         break
-
+      case "story_reply":
       case "STORY_REPLY":
+
         matches = messageType === "STORY_REPLY"
         break
 
