@@ -403,14 +403,21 @@ const navigation = [
     name: "Inbox",
     href: "/inbox",
     icon: MessageSquare,
-    badge: 24,
+    badge: null,
+    group: "main",
+  },
+   {
+    name: "Customers",
+    href: "/customers",
+    icon: MessageSquare,
+    badge: null,
     group: "main",
   },
   {
     name: "Automations",
     href: "/automations",
     icon: Zap,
-    badge: 3,
+    badge: null,
     group: "main",
   },
   {
