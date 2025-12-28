@@ -1,6 +1,5 @@
 generator client {
   provider = "prisma-client-js"
-  previewFeatures = ["fullTextIndex"]
 }
 
 datasource db {
@@ -28,21 +27,15 @@ model User {
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
 
-  instagramAccounts   InstagramAccount[]
-  automations         Automation[]
-  conversations       Conversation[]
-  contentPosts        ContentPost[]
-  tags                Tag[]
-  analytics           Analytics[]
-  quickReplies        QuickReply[]
-  messageTemplates    MessageTemplate[]
-  savedFilters        SavedFilter[]
-  products            Product[]
-  orders              Order[]
-  appointments        Appointment[]
-  supportTickets      SupportTicket[]
-  integrations        Integration[]
-  knowledgeDocuments  KnowledgeDocument[]
+  instagramAccounts InstagramAccount[]
+  automations       Automation[]
+  conversations     Conversation[]
+  contentPosts      ContentPost[]
+  tags              Tag[]
+  analytics         Analytics[]
+  quickReplies      QuickReply[]
+  messageTemplates  MessageTemplate[]
+  savedFilters      SavedFilter[]
 
   @@index([clerkId])
   @@index([email])
@@ -122,9 +115,9 @@ model AutomationExecution {
   id             String    @id @default(cuid())
   automationId   String
   conversationId String
-  status         String
+  status         String // success, failed, pending
   error          String?   @db.Text
-  triggeredBy    String
+  triggeredBy    String // message_id or event_id
   executedAt     DateTime  @default(now())
   completedAt    DateTime?
 
@@ -141,7 +134,7 @@ model MessageQueue {
   messageContent String    @db.Text
   recipientId    String
   scheduledFor   DateTime
-  status         String    @default("pending")
+  status         String    @default("pending") // pending, processing, sent, failed
   retryCount     Int       @default(0)
   maxRetries     Int       @default(3)
   error          String?   @db.Text
@@ -162,10 +155,10 @@ model Conversation {
   participantName         String
   participantUsername     String
   participantAvatar       String?
-  instagramConversationId String?
+  instagramConversationId String? // Added to track Instagram's conversation ID
   lastMessageText         String?
   lastMessageAt           DateTime?
-  lastCustomerMessageAt   DateTime?
+  lastCustomerMessageAt   DateTime? // Track last message from customer for 24hr window
   unreadCount             Int       @default(0)
   isRead                  Boolean   @default(false)
   isAuto                  Boolean   @default(true)
@@ -174,32 +167,23 @@ model Conversation {
   isArchived              Boolean   @default(false)
   needsHumanReview        Boolean   @default(false)
   handoffReason           String?
-  priorityScore           Int       @default(0)
-  category                String    @default("general")
-  status                  String    @default("open")
+  priorityScore           Int       @default(0) // 0-100 score
+  category                String    @default("general") // sales, support, collaboration, general
+  status                  String    @default("open") // open, awaiting_response, resolved
   isVip                   Boolean   @default(false)
   assignedToUserId        String?
   firstContactAt          DateTime  @default(now())
-  lastResponseTime        Int?
-  customerEmail           String?
-  customerPhone           String?
-  customerPreferences     Json?
+  lastResponseTime        Int? // Average response time in minutes
   createdAt               DateTime  @default(now())
   updatedAt               DateTime  @updatedAt
 
-  instagramAccount    InstagramAccount    @relation(fields: [instagramAccountId], references: [id], onDelete: Cascade)
-  user                User                @relation(fields: [userId], references: [id], onDelete: Cascade)
-  messages            Message[]
-  conversationTags    ConversationTag[]
-  internalNotes       InternalNote[]
-  reminders           Reminder[]
-  aiSuggestions       AISuggestion[]
-  aiInteractions      AIInteraction[]
-  pendingAIResponses  PendingAIResponse[]
-  orders              Order[]
-  appointments        Appointment[]
-  supportTickets      SupportTicket[]
-  queuedMessages      QueuedMessage[]
+  instagramAccount InstagramAccount  @relation(fields: [instagramAccountId], references: [id], onDelete: Cascade)
+  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages         Message[]
+  conversationTags ConversationTag[]
+  internalNotes    InternalNote[]
+  reminders        Reminder[]
+  aiSuggestions    AISuggestion[]
 
   @@index([userId])
   @@index([instagramAccountId])
@@ -223,13 +207,12 @@ model Message {
   isFromUser         Boolean  @default(false)
   isRead             Boolean  @default(false)
   timestamp          DateTime @default(now())
-  messageType        String   @default("text")
-  attachmentUrl      String?
-  attachmentMetadata Json?
+  messageType        String   @default("text") // text, image, video, audio, carousel
+  attachmentUrl      String? // Added to store media URL
+  attachmentMetadata Json? // Added to store additional attachment info (thumbnail, duration, etc.)
   sentByAutomation   Boolean  @default(false)
   automationId       String?
   sentByAI           Boolean  @default(false)
-  metadata           Json?
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
 
@@ -324,7 +307,7 @@ model InternalNote {
   conversationId String
   userId         String
   content        String   @db.Text
-  mentions       String[]
+  mentions       String[] // Array of user IDs mentioned with @
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
@@ -339,8 +322,8 @@ model MessageTemplate {
   userId     String
   title      String
   content    String   @db.Text
-  category   String   @default("general")
-  variables  String[]
+  category   String   @default("general") // sales, support, followup, general
+  variables  String[] // Array of variable names like firstName, lastProduct
   usageCount Int      @default(0)
   isActive   Boolean  @default(true)
   createdAt  DateTime @default(now())
@@ -374,14 +357,14 @@ model Reminder {
 model AISuggestion {
   id             String   @id @default(cuid())
   conversationId String
-  suggestions    String[]
-  context        Json
+  suggestions    String[] // Array of 2-3 suggested replies
+  context        Json // Store the context used to generate
   createdAt      DateTime @default(now())
-  expiresAt      DateTime
+  expiresAt      DateTime // Cache for 5 minutes
 
   conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
 
-  @@unique([conversationId])
+  @@unique([conversationId]) // Only one active suggestion per conversation
   @@index([conversationId])
   @@index([expiresAt])
 }
@@ -390,313 +373,11 @@ model SavedFilter {
   id        String   @id @default(cuid())
   userId    String
   name      String
-  filters   Json
+  filters   Json // Store filter configuration
   isDefault Boolean  @default(false)
   createdAt DateTime @default(now())
-  
-  user User @relation(fields: [userId], references: [id])
+  User      User     @relation(fields: [userId], references: [id])
 
   @@index([userId])
 }
 
-model KnowledgeDocument {
-  id        String   @id @default(cuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  title     String
-  content   String   @db.Text
-  type      String
-  tags      String[]
-  
-  embedding Float[]
-  
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  
-  @@index([userId])
-}
-
-model AIInteraction {
-  id             String   @id @default(cuid())
-  conversationId String
-  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  
-  userMessage    String   @db.Text
-  aiResponse     String   @db.Text
-  
-  sentiment      String
-  confidence     Float
-  shouldHandoff  Boolean  @default(false)
-  
-  usedFunctions  String[]
-  metadata       Json?
-  
-  createdAt      DateTime @default(now())
-  
-  @@index([conversationId])
-  @@index([createdAt])
-}
-
-model PendingAIResponse {
-  id             String   @id @default(cuid())
-  conversationId String
-  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  
-  response       String   @db.Text
-  confidence     Float
-  sentiment      String
-  
-  status         String   @default("pending")
-  reviewedBy     String?
-  reviewedAt     DateTime?
-  
-  createdAt      DateTime @default(now())
-  
-  @@index([conversationId])
-  @@index([status])
-}
-
-model Integration {
-  id        String   @id @default(cuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  type      String
-  name      String
-  isActive  Boolean  @default(true)
-  
-  config    Json
-  metadata  Json?
-  
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  
-  @@index([userId])
-  @@index([type])
-}
-
-model Product {
-  id             String   @id @default(cuid())
-  userId         String
-  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  name           String
-  description    String   @db.Text
-  price          Int
-  compareAtPrice Int?
-  
-  imageUrl       String?
-  images         String[]
-  
-  category       String?
-  tags           String[]
-  sku            String?
-  barcode        String?
-  
-  stock          Int      @default(0)
-  isAvailable    Boolean  @default(true)
-  
-  hasVariants    Boolean  @default(false)
-  variants       ProductVariant[]
-  
-  slug           String?  @unique
-  
-  metadata       Json?
-  
-  orderItems     OrderItem[]
-  
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-  
-  @@index([userId])
-  @@index([category])
-  @@index([isAvailable])
-}
-
-model ProductVariant {
-  id        String  @id @default(cuid())
-  productId String
-  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-  
-  name      String
-  price     Int?
-  sku       String?
-  stock     Int     @default(0)
-  
-  options   Json
-  
-  @@index([productId])
-}
-
-model Order {
-  id                String    @id @default(cuid())
-  userId            String
-  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  conversationId    String?
-  conversation      Conversation? @relation(fields: [conversationId], references: [id])
-  
-  customerName      String
-  customerEmail     String?
-  customerPhone     String?
-  
-  orderNumber       String    @unique
-  status            String    @default("pending")
-  
-  subtotal          Int
-  tax               Int       @default(0)
-  shipping          Int       @default(0)
-  discount          Int       @default(0)
-  total             Int
-  
-  currency          String    @default("USD")
-  
-  shippingAddress   Json?
-  trackingNumber    String?
-  estimatedDelivery DateTime?
-  
-  paymentStatus     String    @default("pending")
-  paymentMethod     String?
-  paymentId         String?
-  
-  items             OrderItem[]
-  
-  metadata          Json?
-  notes             String?   @db.Text
-  
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
-  paidAt            DateTime?
-  
-  @@index([userId])
-  @@index([conversationId])
-  @@index([status])
-  @@index([paymentStatus])
-}
-
-model OrderItem {
-  id        String  @id @default(cuid())
-  orderId   String
-  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  
-  productId String?
-  product   Product? @relation(fields: [productId], references: [id])
-  
-  name      String
-  price     Int
-  quantity  Int
-  subtotal  Int
-  
-  variantId String?
-  options   Json?
-  
-  @@index([orderId])
-  @@index([productId])
-}
-
-model PaymentAttempt {
-  id                    String   @id @default(cuid())
-  userId                String
-  conversationId        String
-  
-  amount                Int
-  currency              String
-  status                String   @default("pending")
-  
-  stripePaymentLinkId   String?
-  stripePaymentIntentId String?
-  
-  metadata              Json?
-  
-  createdAt             DateTime @default(now())
-  completedAt           DateTime?
-  
-  @@index([conversationId])
-  @@index([status])
-}
-
-model Appointment {
-  id                    String   @id @default(cuid())
-  userId                String
-  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  conversationId        String?
-  conversation          Conversation? @relation(fields: [conversationId], references: [id])
-  
-  customerName          String
-  customerUsername      String?
-  customerEmail         String?
-  customerPhone         String?
-  
-  service               String
-  date                  DateTime
-  durationMinutes       Int      @default(60)
-  
-  status                String   @default("pending")
-  
-  googleCalendarEventId String?
-  
-  notes                 String?  @db.Text
-  
-  reminderSent          Boolean  @default(false)
-  
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
-  
-  @@index([userId])
-  @@index([conversationId])
-  @@index([date])
-  @@index([status])
-}
-
-model SupportTicket {
-  id              String   @id @default(cuid())
-  userId          String
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  conversationId  String?
-  conversation    Conversation? @relation(fields: [conversationId], references: [id])
-  
-  customerName    String
-  subject         String
-  description     String   @db.Text
-  
-  status          String   @default("open")
-  priority        String   @default("medium")
-  
-  assignedTo      String?
-  
-  zendeskTicketId String?
-  hubspotTicketId String?
-  
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  resolvedAt      DateTime?
-  
-  @@index([userId])
-  @@index([conversationId])
-  @@index([status])
-  @@index([priority])
-}
-
-model QueuedMessage {
-  id             String   @id @default(cuid())
-  conversationId String
-  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  
-  type           String
-  content        Json
-  
-  status         String   @default("pending")
-  scheduledFor   DateTime
-  sentAt         DateTime?
-  
-  error          String?
-  
-  createdAt      DateTime @default(now())
-  
-  @@index([conversationId])
-  @@index([status])
-  @@index([scheduledFor])
-}
