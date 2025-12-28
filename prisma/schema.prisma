@@ -1,5 +1,5 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
   previewFeatures = ["fullTextIndex"]
 }
 
@@ -28,21 +28,22 @@ model User {
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
 
-  instagramAccounts   InstagramAccount[]
-  automations         Automation[]
-  conversations       Conversation[]
-  contentPosts        ContentPost[]
-  tags                Tag[]
-  analytics           Analytics[]
-  quickReplies        QuickReply[]
-  messageTemplates    MessageTemplate[]
-  savedFilters        SavedFilter[]
-  products            Product[]
-  orders              Order[]
-  appointments        Appointment[]
-  supportTickets      SupportTicket[]
-  integrations        Integration[]
-  knowledgeDocuments  KnowledgeDocument[]
+  instagramAccounts  InstagramAccount[]
+  automations        Automation[]
+  conversations      Conversation[]
+  contentPosts       ContentPost[]
+  tags               Tag[]
+  analytics          Analytics[]
+  quickReplies       QuickReply[]
+  messageTemplates   MessageTemplate[]
+  savedFilters       SavedFilter[]
+  products           Product[]
+  orders             Order[]
+  appointments       Appointment[]
+  supportTickets     SupportTicket[]
+  integrations       Integration[]
+  knowledgeDocuments KnowledgeDocument[]
+  businessProfile    BusinessProfile?
 
   @@index([clerkId])
   @@index([email])
@@ -187,19 +188,19 @@ model Conversation {
   createdAt               DateTime  @default(now())
   updatedAt               DateTime  @updatedAt
 
-  instagramAccount    InstagramAccount    @relation(fields: [instagramAccountId], references: [id], onDelete: Cascade)
-  user                User                @relation(fields: [userId], references: [id], onDelete: Cascade)
-  messages            Message[]
-  conversationTags    ConversationTag[]
-  internalNotes       InternalNote[]
-  reminders           Reminder[]
-  aiSuggestions       AISuggestion[]
-  aiInteractions      AIInteraction[]
-  pendingAIResponses  PendingAIResponse[]
-  orders              Order[]
-  appointments        Appointment[]
-  supportTickets      SupportTicket[]
-  queuedMessages      QueuedMessage[]
+  instagramAccount   InstagramAccount    @relation(fields: [instagramAccountId], references: [id], onDelete: Cascade)
+  user               User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages           Message[]
+  conversationTags   ConversationTag[]
+  internalNotes      InternalNote[]
+  reminders          Reminder[]
+  aiSuggestions      AISuggestion[]
+  aiInteractions     AIInteraction[]
+  pendingAIResponses PendingAIResponse[]
+  orders             Order[]
+  appointments       Appointment[]
+  supportTickets     SupportTicket[]
+  queuedMessages     QueuedMessage[]
 
   @@index([userId])
   @@index([instagramAccountId])
@@ -393,122 +394,124 @@ model SavedFilter {
   filters   Json
   isDefault Boolean  @default(false)
   createdAt DateTime @default(now())
-  
-  user User @relation(fields: [userId], references: [id])
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
 }
 
 model KnowledgeDocument {
-  id        String   @id @default(cuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  title     String
-  content   String   @db.Text
-  type      String
-  tags      String[]
-  
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  title   String
+  content String   @db.Text
+  type    String
+  tags    String[]
+
   embedding Float[]
-  
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   @@index([userId])
 }
 
 model AIInteraction {
-  id             String   @id @default(cuid())
+  id             String       @id @default(cuid())
   conversationId String
   conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  
-  userMessage    String   @db.Text
-  aiResponse     String   @db.Text
-  
-  sentiment      String
-  confidence     Float
-  shouldHandoff  Boolean  @default(false)
-  
-  usedFunctions  String[]
-  metadata       Json?
-  
-  createdAt      DateTime @default(now())
-  
+
+  userMessage String @db.Text
+  aiResponse  String @db.Text
+
+  sentiment     String
+  confidence    Float
+  shouldHandoff Boolean @default(false)
+
+  usedFunctions String[]
+  metadata      Json?
+
+  createdAt DateTime @default(now())
+
   @@index([conversationId])
   @@index([createdAt])
 }
 
 model PendingAIResponse {
-  id             String   @id @default(cuid())
+  id             String       @id @default(cuid())
   conversationId String
   conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  
-  response       String   @db.Text
-  confidence     Float
-  sentiment      String
-  
-  status         String   @default("pending")
-  reviewedBy     String?
-  reviewedAt     DateTime?
-  
-  createdAt      DateTime @default(now())
-  
+
+  response   String @db.Text
+  confidence Float
+  sentiment  String
+
+  status     String    @default("pending")
+  reviewedBy String?
+  reviewedAt DateTime?
+
+  createdAt DateTime @default(now())
+
   @@index([conversationId])
   @@index([status])
 }
 
 model Integration {
-  id        String   @id @default(cuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  type      String
-  name      String
-  isActive  Boolean  @default(true)
-  
-  config    Json
-  metadata  Json?
-  
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type     String
+  name     String
+  isActive Boolean @default(true)
+
+  config   Json
+  metadata Json?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
+  @@unique([userId, type])
   @@index([userId])
   @@index([type])
 }
 
 model Product {
-  id             String   @id @default(cuid())
-  userId         String
-  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   name           String
-  description    String   @db.Text
+  description    String @db.Text
   price          Int
   compareAtPrice Int?
-  
-  imageUrl       String?
-  images         String[]
-  
-  category       String?
-  tags           String[]
-  sku            String?
-  barcode        String?
-  
-  stock          Int      @default(0)
-  isAvailable    Boolean  @default(true)
-  
-  hasVariants    Boolean  @default(false)
-  variants       ProductVariant[]
-  
-  slug           String?  @unique
-  
-  metadata       Json?
-  
-  orderItems     OrderItem[]
-  
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-  
+
+  imageUrl String?
+  images   String[]
+
+  category String?
+  tags     String[]
+  sku      String?
+  barcode  String?
+
+  stock       Int     @default(0)
+  isAvailable Boolean @default(true)
+
+  hasVariants Boolean          @default(false)
+  variants    ProductVariant[]
+
+  slug String? @unique
+
+  metadata Json?
+
+  orderItems OrderItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, sku])
   @@index([userId])
   @@index([category])
   @@index([isAvailable])
@@ -518,57 +521,58 @@ model ProductVariant {
   id        String  @id @default(cuid())
   productId String
   product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-  
-  name      String
-  price     Int?
-  sku       String?
-  stock     Int     @default(0)
-  
-  options   Json
-  
+
+  name  String
+  price Int?
+  sku   String?
+  stock Int     @default(0)
+
+  options Json
+
+  @@unique([productId, sku])
   @@index([productId])
 }
 
 model Order {
-  id                String    @id @default(cuid())
-  userId            String
-  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  conversationId    String?
-  conversation      Conversation? @relation(fields: [conversationId], references: [id])
-  
-  customerName      String
-  customerEmail     String?
-  customerPhone     String?
-  
-  orderNumber       String    @unique
-  status            String    @default("pending")
-  
-  subtotal          Int
-  tax               Int       @default(0)
-  shipping          Int       @default(0)
-  discount          Int       @default(0)
-  total             Int
-  
-  currency          String    @default("USD")
-  
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  conversationId String?
+  conversation   Conversation? @relation(fields: [conversationId], references: [id])
+
+  customerName  String
+  customerEmail String?
+  customerPhone String?
+
+  orderNumber String @unique
+  status      String @default("pending")
+
+  subtotal Int
+  tax      Int @default(0)
+  shipping Int @default(0)
+  discount Int @default(0)
+  total    Int
+
+  currency String @default("USD")
+
   shippingAddress   Json?
   trackingNumber    String?
   estimatedDelivery DateTime?
-  
-  paymentStatus     String    @default("pending")
-  paymentMethod     String?
-  paymentId         String?
-  
-  items             OrderItem[]
-  
-  metadata          Json?
-  notes             String?   @db.Text
-  
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
-  paidAt            DateTime?
-  
+
+  paymentStatus String  @default("pending")
+  paymentMethod String?
+  paymentId     String?
+
+  items OrderItem[]
+
+  metadata Json?
+  notes    String? @db.Text
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  paidAt    DateTime?
+
   @@index([userId])
   @@index([conversationId])
   @@index([status])
@@ -576,74 +580,74 @@ model Order {
 }
 
 model OrderItem {
-  id        String  @id @default(cuid())
-  orderId   String
-  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  
+  id      String @id @default(cuid())
+  orderId String
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
   productId String?
   product   Product? @relation(fields: [productId], references: [id])
-  
-  name      String
-  price     Int
-  quantity  Int
-  subtotal  Int
-  
+
+  name     String
+  price    Int
+  quantity Int
+  subtotal Int
+
   variantId String?
   options   Json?
-  
+
   @@index([orderId])
   @@index([productId])
 }
 
 model PaymentAttempt {
-  id                    String   @id @default(cuid())
-  userId                String
-  conversationId        String
-  
-  amount                Int
-  currency              String
-  status                String   @default("pending")
-  
+  id             String @id @default(cuid())
+  userId         String
+  conversationId String
+
+  amount   Int
+  currency String
+  status   String @default("pending")
+
   stripePaymentLinkId   String?
   stripePaymentIntentId String?
-  
-  metadata              Json?
-  
-  createdAt             DateTime @default(now())
-  completedAt           DateTime?
-  
+
+  metadata Json?
+
+  createdAt   DateTime  @default(now())
+  completedAt DateTime?
+
   @@index([conversationId])
   @@index([status])
 }
 
 model Appointment {
-  id                    String   @id @default(cuid())
-  userId                String
-  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  conversationId        String?
-  conversation          Conversation? @relation(fields: [conversationId], references: [id])
-  
-  customerName          String
-  customerUsername      String?
-  customerEmail         String?
-  customerPhone         String?
-  
-  service               String
-  date                  DateTime
-  durationMinutes       Int      @default(60)
-  
-  status                String   @default("pending")
-  
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  conversationId String?
+  conversation   Conversation? @relation(fields: [conversationId], references: [id])
+
+  customerName     String
+  customerUsername String?
+  customerEmail    String?
+  customerPhone    String?
+
+  service         String
+  date            DateTime
+  durationMinutes Int      @default(60)
+
+  status String @default("pending")
+
   googleCalendarEventId String?
-  
-  notes                 String?  @db.Text
-  
-  reminderSent          Boolean  @default(false)
-  
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
-  
+
+  notes String? @db.Text
+
+  reminderSent Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   @@index([userId])
   @@index([conversationId])
   @@index([date])
@@ -651,29 +655,29 @@ model Appointment {
 }
 
 model SupportTicket {
-  id              String   @id @default(cuid())
-  userId          String
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  conversationId  String?
-  conversation    Conversation? @relation(fields: [conversationId], references: [id])
-  
-  customerName    String
-  subject         String
-  description     String   @db.Text
-  
-  status          String   @default("open")
-  priority        String   @default("medium")
-  
-  assignedTo      String?
-  
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  conversationId String?
+  conversation   Conversation? @relation(fields: [conversationId], references: [id])
+
+  customerName String
+  subject      String
+  description  String @db.Text
+
+  status   String @default("open")
+  priority String @default("medium")
+
+  assignedTo String?
+
   zendeskTicketId String?
   hubspotTicketId String?
-  
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  resolvedAt      DateTime?
-  
+
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  resolvedAt DateTime?
+
   @@index([userId])
   @@index([conversationId])
   @@index([status])
@@ -681,22 +685,50 @@ model SupportTicket {
 }
 
 model QueuedMessage {
-  id             String   @id @default(cuid())
+  id             String       @id @default(cuid())
   conversationId String
   conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  
-  type           String
-  content        Json
-  
-  status         String   @default("pending")
-  scheduledFor   DateTime
-  sentAt         DateTime?
-  
-  error          String?
-  
-  createdAt      DateTime @default(now())
-  
+
+  type    String
+  content Json
+
+  status       String    @default("pending")
+  scheduledFor DateTime
+  sentAt       DateTime?
+
+  error String?
+
+  createdAt DateTime @default(now())
+
   @@index([conversationId])
   @@index([status])
   @@index([scheduledFor])
+}
+
+model BusinessProfile {
+  id     String @id @default(cuid())
+  userId String @unique
+
+  // Core Info
+  businessType String
+  businessName String
+  description  String @db.Text
+  industry     String
+
+  // AI Configuration
+  aiPersonality Json
+  knowledgeBase Json
+
+  // Features Enabled
+  enableProducts Boolean @default(false)
+  enableBooking  Boolean @default(false)
+  enablePayments Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }

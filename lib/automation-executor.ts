@@ -1523,6 +1523,22 @@ export class AutomationExecutor {
     // await this.instagramApi.hideComment(context.commentId, shouldHide)
   }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   private async executeAIResponse(actionData: any, context: ExecutionContext): Promise<void> {
     try {
       console.log("[Automation] 🤖 Executing AI Response with Commerce & MCP")
@@ -1810,6 +1826,30 @@ export class AutomationExecutor {
       throw error
     }
   }
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   private async executeAddTag(actionData: any, context: ExecutionContext): Promise<void> {
     const { tagName, tag } = actionData

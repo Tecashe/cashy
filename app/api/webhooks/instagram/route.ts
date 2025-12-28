@@ -5443,6 +5443,7 @@ import { prisma } from "@/lib/db"
 import { InstagramAPI } from "@/lib/instagram-api"
 import { AutomationExecutor } from "@/lib/automation-executor"
 import type { ExecutionContext } from "@/lib/automation-executor"
+import { AIResponseHandler } from "@/lib/ai-response-handler"
 
 // GET - Webhook verification
 export async function GET(request: NextRequest) {
@@ -6199,7 +6200,92 @@ function checkAutomationTriggers(automation: any, context: TriggerContext): bool
 
 
 
-async function executeAutomation(automation: any, context: TriggerContext, conversation: any, executionId: string) {
+// async function executeAutomation(automation: any, context: TriggerContext, conversation: any, executionId: string) {
+//   try {
+//     console.log("[Automation] 🚀 Executing:", automation.name)
+
+//     const instagramAPI = new InstagramAPI({
+//       accessToken: context.accessToken,
+//       instagramId: context.webhookPageId,
+//     })
+
+//     const executor = new AutomationExecutor(instagramAPI)
+
+//     const executionContext: ExecutionContext = {
+//       userId: conversation.userId,
+//       conversationId: conversation.id, // ✅ Added
+//       senderId: context.senderId,
+//       username: context.senderUsername, // ✅ Added
+//       name: context.senderName, // ✅ Added
+//       messageText: context.messageContent,
+//       commentId: context.triggerData?.commentId,
+//       mediaId: context.triggerData?.mediaId,
+//       storyId: context.triggerData?.storyId,
+//       triggerData: {
+//         participantName: conversation.participantName,
+//         participantUsername: conversation.participantUsername,
+//         username: context.senderUsername,
+//         name: context.senderName,
+//         ...context.triggerData,
+//       },
+//       conversationHistory: [],
+//       userTags: conversation.conversationTags.map((ct: any) => ct.tag.name),
+//       instagramAccountId: context.instagramAccountId,
+//     }
+
+//     for (const action of automation.actions) {
+//       try {
+//         const actionData = action.content || {}
+
+//         if (action.type === "DELAY" || action.type === "delay") {
+//           const delayMs = calculateDelay(actionData)
+
+//           if (delayMs > 60000) {
+//             const remainingActions = automation.actions.slice(automation.actions.indexOf(action) + 1)
+
+//             for (const futureAction of remainingActions) {
+//               if (futureAction.type === "SEND_MESSAGE") {
+//                 console.log("[Automation] ⏰ Scheduling delayed message for:", new Date(Date.now() + delayMs))
+//               }
+//             }
+//             break
+//           } else {
+//             await new Promise((resolve) => setTimeout(resolve, delayMs))
+//           }
+//         } else {
+//           await executor.executeAction(action.type, actionData, executionContext)
+//           await new Promise((resolve) => setTimeout(resolve, 1000))
+//         }
+//       } catch (error) {
+//         console.error(`[Automation] ❌ Action failed:`, error)
+//       }
+//     }
+
+//     await prisma.automationExecution.update({
+//       where: { id: executionId },
+//       data: { status: "success", completedAt: new Date() },
+//     })
+
+//     console.log(`[Automation] ✅ Completed: ${automation.name}`)
+//   } catch (error) {
+//     console.error("[Automation] ❌ Error:", error)
+//     await prisma.automationExecution.update({
+//       where: { id: executionId },
+//       data: {
+//         status: "failed",
+//         error: error instanceof Error ? error.message : "Unknown error",
+//         completedAt: new Date(),
+//       },
+//     })
+//   }
+// }
+
+async function executeAutomation(
+  automation: any,
+  context: TriggerContext,
+  conversation: any,
+  executionId: string
+) {
   try {
     console.log("[Automation] 🚀 Executing:", automation.name)
 
@@ -6212,10 +6298,10 @@ async function executeAutomation(automation: any, context: TriggerContext, conve
 
     const executionContext: ExecutionContext = {
       userId: conversation.userId,
-      conversationId: conversation.id, // ✅ Added
+      conversationId: conversation.id,
       senderId: context.senderId,
-      username: context.senderUsername, // ✅ Added
-      name: context.senderName, // ✅ Added
+      username: context.senderUsername,
+      name: context.senderName,
       messageText: context.messageContent,
       commentId: context.triggerData?.commentId,
       mediaId: context.triggerData?.mediaId,
@@ -6232,25 +6318,6 @@ async function executeAutomation(automation: any, context: TriggerContext, conve
       instagramAccountId: context.instagramAccountId,
     }
 
-    // const executionContext: ExecutionContext = {
-    //   userId: conversation.userId,
-    //   senderId: context.senderId,
-    //   messageText: context.messageContent,
-    //   commentId: context.triggerData?.commentId,
-    //   mediaId: context.triggerData?.mediaId,
-    //   storyId: context.triggerData?.storyId,
-    //   triggerData: {
-    //     participantName: conversation.participantName,
-    //     participantUsername: conversation.participantUsername,
-    //     username: context.senderUsername,
-    //     name: context.senderName,
-    //     ...context.triggerData,
-    //   },
-    //   conversationHistory: [],
-    //   userTags: conversation.conversationTags.map((ct: any) => ct.tag.name),
-    //   instagramAccountId: context.instagramAccountId,
-    // }
-
     for (const action of automation.actions) {
       try {
         const actionData = action.content || {}
@@ -6259,13 +6326,19 @@ async function executeAutomation(automation: any, context: TriggerContext, conve
           const delayMs = calculateDelay(actionData)
 
           if (delayMs > 60000) {
-            const remainingActions = automation.actions.slice(automation.actions.indexOf(action) + 1)
-
-            for (const futureAction of remainingActions) {
-              if (futureAction.type === "SEND_MESSAGE") {
-                console.log("[Automation] ⏰ Scheduling delayed message for:", new Date(Date.now() + delayMs))
-              }
-            }
+            // Schedule for later (implement queue system)
+            console.log("[Automation] ⏰ Scheduling delayed message for:", new Date(Date.now() + delayMs))
+            
+            // Save to message queue
+            await prisma.messageQueue.create({
+              data: {
+                conversationId: conversation.id,
+                messageContent: JSON.stringify(actionData),
+                recipientId: context.senderId,
+                scheduledFor: new Date(Date.now() + delayMs),
+                status: "pending",
+              },
+            })
             break
           } else {
             await new Promise((resolve) => setTimeout(resolve, delayMs))
@@ -6297,6 +6370,10 @@ async function executeAutomation(automation: any, context: TriggerContext, conve
     })
   }
 }
+
+
+
+
 
 function calculateDelay(actionData: any): number {
   const days = actionData.delayDays || 0

@@ -46,7 +46,11 @@
 //     "/(api|trpc)(.*)",
 //   ],
 // }
+
+
+
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server"
+import { NextResponse } from 'next/server'
 
 const isPublicRoute = createRouteMatcher([
   "/sign-in(.*)", 
@@ -57,11 +61,60 @@ const isPublicRoute = createRouteMatcher([
   "/terms",         // Add this if you have one
 ])
 
+const isOnboardingRoute = createRouteMatcher(['/onboarding'])
+
 export default clerkMiddleware(async (auth, request) => {
-  if (!isPublicRoute(request)) {
-    await auth.protect()
+  const { userId } = await auth()
+
+  // Allow public routes
+  if (isPublicRoute(request)) {
+    return NextResponse.next()
   }
+
+  // Require auth for protected routes
+  if (!userId && !isPublicRoute(request)) {
+    const signInUrl = new URL('/sign-in', request.url)
+    signInUrl.searchParams.set('redirect_url', request.url)
+    return NextResponse.redirect(signInUrl)
+  }
+
+  // Check onboarding status for authenticated users
+  if (userId && !isOnboardingRoute(request)) {
+    try {
+      // Check if user has completed onboarding
+      const response = await fetch(new URL('/api/onboarding', request.url), {
+        headers: {
+          'Authorization': request.headers.get('authorization') || '',
+        },
+      })
+
+      if (response.ok) {
+        const { isOnboarded } = await response.json()
+        
+        // Redirect to onboarding if not completed
+        if (!isOnboarded && !request.nextUrl.pathname.startsWith('/onboarding')) {
+          return NextResponse.redirect(new URL('/onboarding', request.url))
+        }
+
+        // Redirect from onboarding if already completed
+        if (isOnboarded && request.nextUrl.pathname.startsWith('/onboarding')) {
+          return NextResponse.redirect(new URL('/dashboard', request.url))
+        }
+      }
+    } catch (error) {
+      console.error('Onboarding check failed:', error)
+      // Continue to route on error
+    }
+  }
+
+  return NextResponse.next()
 })
+
+// export default clerkMiddleware(async (auth, request) => {
+//   if (!isPublicRoute(request)) {
+//     await auth.protect()
+//   }
+// })
 
 export const config = {
   matcher: [
@@ -69,3 +122,10 @@ export const config = {
     "/(api|trpc)(.*)",
   ],
 }
+
+
+
+
+
+
+

@@ -1427,9 +1427,6 @@ export function ActionConfigModal({ open, onClose, action, onSave, tags }: Actio
 
 
 
-        // Updated section for AI Response in ActionConfigModal
-        // Replace the entire AI Response section with this:
-
         {/* AI Response - REVOLUTIONARY VERSION */}
         {action.type === "ai_response" && (
           <div className="space-y-4">
