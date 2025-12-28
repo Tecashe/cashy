@@ -30,7 +30,7 @@ export default function MCPIntegrationSetup() {
       category: 'payments',
       icon: '💳',
       description: 'Accept payments and manage subscriptions',
-      status: 'disconnected', // disconnected, connecting, connected
+      status: 'disconnected', // disconnected, connecting,connected
       features: ['Payment links', 'Checkout sessions', 'Refunds', 'Customer management'],
       isPopular: true,
       requiresSetup: true,
