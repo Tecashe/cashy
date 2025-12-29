@@ -288,6 +288,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@clerk/nextjs/server"
 import { prisma } from "@/lib/db"
+import { ensureUserExists } from "@/lib/actions/user-sync"
 
 export async function POST(request: NextRequest) {
   console.log("\n🚀 ===== ONBOARDING POST REQUEST STARTED =====")
@@ -330,27 +331,24 @@ export async function POST(request: NextRequest) {
     console.log("📄 Business Name:", data.businessName)
     console.log("📄 Business Type:", data.businessType)
 
-    // Find user in database
-    console.log("\n🔍 Looking up user in database...")
-    const existingUser = await prisma.user.findUnique({
-      where: { clerkId: userId },
-      select: { id: true, email: true, clerkId: true }
-    })
+    // Ensure user exists in database (sync from Clerk if needed)
+    console.log("\n🔄 Ensuring user exists in database...")
+    const user = await ensureUserExists(userId)
     
-    if (!existingUser) {
-      console.log("❌ USER NOT FOUND IN DATABASE")
-      console.log("Clerk ID searched:", userId)
+    if (!user) {
+      console.log("❌ FAILED TO SYNC USER FROM CLERK")
       return NextResponse.json({ 
-        error: "User not found in database",
+        error: "Failed to create user in database",
         debug: { clerkId: userId }
-      }, { status: 404 })
+      }, { status: 500 })
     }
     
-    console.log("✅ User found in database:", existingUser.id)
+    console.log("✅ User confirmed in database:", user.id)
+    console.log("📧 User email:", user.email)
 
     // Update user with business profile
     console.log("\n💾 Updating user profile...")
-    const user = await prisma.user.update({
+    const updatedUser = await prisma.user.update({
       where: { clerkId: userId },
       data: {
         businessName: data.businessName,
@@ -365,7 +363,7 @@ export async function POST(request: NextRequest) {
         aiInstructions: buildAIInstructions(data),
       },
     })
-    console.log("✅ User profile updated:", user.id)
+    console.log("✅ User profile updated:", updatedUser.id)
 
     // Create knowledge documents if provided
     if (data.faqs) {
@@ -427,9 +425,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       user: {
-        id: user.id,
-        businessName: user.businessName,
-        businessType: user.businessType,
+        id: updatedUser.id,
+        businessName: updatedUser.businessName,
+        businessType: updatedUser.businessType,
       },
     })
   } catch (error) {
@@ -632,6 +630,15 @@ export async function GET(request: NextRequest) {
 
     const { userId } = session
     console.log("✅ Authenticated as:", userId)
+
+    // Ensure user exists in database
+    console.log("\n🔄 Ensuring user exists in database...")
+    const dbUser = await ensureUserExists(userId)
+    
+    if (!dbUser) {
+      console.log("❌ Failed to sync user from Clerk")
+      return NextResponse.json({ error: "Failed to sync user" }, { status: 500 })
+    }
 
     console.log("\n🔍 Fetching user profile...")
     const user = await prisma.user.findUnique({

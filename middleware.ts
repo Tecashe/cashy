@@ -57,8 +57,8 @@ const isPublicRoute = createRouteMatcher([
   "/sign-up(.*)",
   "/",
   "/api(.*)",  // Add this
-  "/privacy",           // Add this for your privacy policy issue
-  "/terms",         // Add this if you have one
+  "/privacy", // Add this for your privacy policy issue
+  "/terms",  // Add this if you have one
 ])
 
 const isOnboardingRoute = createRouteMatcher(['/onboarding'])
