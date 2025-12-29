@@ -49,16 +49,97 @@
 
 
 
+// import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server"
+// import { NextResponse } from 'next/server'
+
+// const isPublicRoute = createRouteMatcher([
+//   "/sign-in(.*)", 
+//   "/sign-up(.*)",
+//   "/",
+//   "/api(.*)",  // Add this
+//   "/privacy", // Add this for your privacy policy issue
+//   "/terms",  // Add this if you have one
+// ])
+
+// const isOnboardingRoute = createRouteMatcher(['/onboarding'])
+
+// export default clerkMiddleware(async (auth, request) => {
+//   const { userId } = await auth()
+
+//   // Allow public routes
+//   if (isPublicRoute(request)) {
+//     return NextResponse.next()
+//   }
+
+//   // Require auth for protected routes
+//   if (!userId && !isPublicRoute(request)) {
+//     const signInUrl = new URL('/sign-in', request.url)
+//     signInUrl.searchParams.set('redirect_url', request.url)
+//     return NextResponse.redirect(signInUrl)
+//   }
+
+//   // Check onboarding status for authenticated users
+//   if (userId && !isOnboardingRoute(request)) {
+//     try {
+//       // Check if user has completed onboarding
+//       const response = await fetch(new URL('/api/onboarding', request.url), {
+//         headers: {
+//           'Authorization': request.headers.get('authorization') || '',
+//         },
+//       })
+
+//       if (response.ok) {
+//         const { isOnboarded } = await response.json()
+        
+//         // Redirect to onboarding if not completed
+//         if (!isOnboarded && !request.nextUrl.pathname.startsWith('/onboarding')) {
+//           return NextResponse.redirect(new URL('/onboarding', request.url))
+//         }
+
+//         // Redirect from onboarding if already completed
+//         if (isOnboarded && request.nextUrl.pathname.startsWith('/onboarding')) {
+//           return NextResponse.redirect(new URL('/dashboard', request.url))
+//         }
+//       }
+//     } catch (error) {
+//       console.error('Onboarding check failed:', error)
+//       // Continue to route on error
+//     }
+//   }
+
+//   return NextResponse.next()
+// })
+
+// // export default clerkMiddleware(async (auth, request) => {
+// //   if (!isPublicRoute(request)) {
+// //     await auth.protect()
+// //   }
+// // })
+
+// export const config = {
+//   matcher: [
+//     "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
+//     "/(api|trpc)(.*)",
+//   ],
+// }
+
+
+
+
+
+
+
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server"
 import { NextResponse } from 'next/server'
+import { prisma } from "@/lib/db"
 
 const isPublicRoute = createRouteMatcher([
   "/sign-in(.*)", 
   "/sign-up(.*)",
   "/",
-  "/api(.*)",  // Add this
-  "/privacy", // Add this for your privacy policy issue
-  "/terms",  // Add this if you have one
+  "/api/webhooks(.*)", // Webhooks should be public (they use their own auth)
+  "/privacy",
+  "/terms",
 ])
 
 const isOnboardingRoute = createRouteMatcher(['/onboarding'])
@@ -72,49 +153,57 @@ export default clerkMiddleware(async (auth, request) => {
   }
 
   // Require auth for protected routes
-  if (!userId && !isPublicRoute(request)) {
+  if (!userId) {
     const signInUrl = new URL('/sign-in', request.url)
     signInUrl.searchParams.set('redirect_url', request.url)
     return NextResponse.redirect(signInUrl)
   }
 
-  // Check onboarding status for authenticated users
-  if (userId && !isOnboardingRoute(request)) {
+  // Check onboarding status for authenticated users (non-API routes)
+  if (userId && !request.nextUrl.pathname.startsWith('/api')) {
     try {
-      // Check if user has completed onboarding
-      const response = await fetch(new URL('/api/onboarding', request.url), {
-        headers: {
-          'Authorization': request.headers.get('authorization') || '',
+      // Direct database check - no API call needed
+      const user = await prisma.user.findUnique({
+        where: { clerkId: userId },
+        select: { 
+          id: true, 
+          businessName: true,
+          businessType: true 
         },
       })
 
-      if (response.ok) {
-        const { isOnboarded } = await response.json()
+      // If user doesn't exist in DB, sync them first
+      if (!user) {
+        console.log("[Middleware] User not in database, syncing...")
+        const { syncUserToDatabase } = await import("@/lib/actions/user-sync")
+        await syncUserToDatabase(userId)
+        
+        // After sync, redirect to onboarding
+        if (!isOnboardingRoute(request)) {
+          return NextResponse.redirect(new URL('/onboarding', request.url))
+        }
+      } else {
+        // Check if onboarded (has businessName and businessType)
+        const isOnboarded = !!(user.businessName && user.businessType)
         
         // Redirect to onboarding if not completed
-        if (!isOnboarded && !request.nextUrl.pathname.startsWith('/onboarding')) {
+        if (!isOnboarded && !isOnboardingRoute(request)) {
           return NextResponse.redirect(new URL('/onboarding', request.url))
         }
 
         // Redirect from onboarding if already completed
-        if (isOnboarded && request.nextUrl.pathname.startsWith('/onboarding')) {
+        if (isOnboarded && isOnboardingRoute(request)) {
           return NextResponse.redirect(new URL('/dashboard', request.url))
         }
       }
     } catch (error) {
-      console.error('Onboarding check failed:', error)
-      // Continue to route on error
+      console.error('[Middleware] Onboarding check failed:', error)
+      // Continue to route on error to avoid breaking the app
     }
   }
 
   return NextResponse.next()
 })
-
-// export default clerkMiddleware(async (auth, request) => {
-//   if (!isPublicRoute(request)) {
-//     await auth.protect()
-//   }
-// })
 
 export const config = {
   matcher: [
@@ -122,10 +211,3 @@ export const config = {
     "/(api|trpc)(.*)",
   ],
 }
-
-
-
-
-
-
-
