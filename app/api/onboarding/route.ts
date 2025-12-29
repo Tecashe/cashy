@@ -291,26 +291,26 @@ import { prisma } from "@/lib/db"
 import { ensureUserExists } from "@/lib/actions/user-sync"
 
 export async function POST(request: NextRequest) {
-  console.log("\n🚀 ===== ONBOARDING POST REQUEST STARTED =====")
+  // console.log("\n🚀 ===== ONBOARDING POST REQUEST STARTED =====")
   
   try {
     // Debug: Log request details
-    console.log("📍 Request URL:", request.url)
-    console.log("📍 Request Method:", request.method)
-    console.log("🍪 Has Cookies:", !!request.headers.get('cookie'))
-    console.log("🔑 Cookie Header:", request.headers.get('cookie')?.substring(0, 100) + "...")
+    // console.log("📍 Request URL:", request.url)
+    // console.log("📍 Request Method:", request.method)
+    // console.log("🍪 Has Cookies:", !!request.headers.get('cookie'))
+    // console.log("🔑 Cookie Header:", request.headers.get('cookie')?.substring(0, 100) + "...")
     
     // Attempt authentication
-    console.log("\n🔐 Attempting authentication...")
+    // console.log("\n🔐 Attempting authentication...")
     const session = await auth()
     
-    console.log("📊 Auth Session Object:", JSON.stringify(session, null, 2))
-    console.log("👤 User ID from session:", session?.userId)
-    console.log("✅ Has User ID:", !!session?.userId)
+    // console.log("📊 Auth Session Object:", JSON.stringify(session, null, 2))
+    // console.log("👤 User ID from session:", session?.userId)
+    // console.log("✅ Has User ID:", !!session?.userId)
     
     if (!session?.userId) {
-      console.log("\n❌ AUTHENTICATION FAILED - No userId in session")
-      console.log("Session state:", session)
+      // console.log("\n❌ AUTHENTICATION FAILED - No userId in session")
+      // console.log("Session state:", session)
       return NextResponse.json({ 
         error: "Unauthorized",
         debug: {
@@ -321,33 +321,33 @@ export async function POST(request: NextRequest) {
     }
 
     const { userId } = session
-    console.log("\n✅ AUTHENTICATED SUCCESSFULLY")
-    console.log("👤 Clerk User ID:", userId)
+    // console.log("\n✅ AUTHENTICATED SUCCESSFULLY")
+    // console.log("👤 Clerk User ID:", userId)
 
     // Parse request body
-    console.log("\n📦 Parsing request body...")
+    // console.log("\n📦 Parsing request body...")
     const data = await request.json()
-    console.log("📄 Request Data Keys:", Object.keys(data))
-    console.log("📄 Business Name:", data.businessName)
-    console.log("📄 Business Type:", data.businessType)
+    // console.log("📄 Request Data Keys:", Object.keys(data))
+    // console.log("📄 Business Name:", data.businessName)
+    // console.log("📄 Business Type:", data.businessType)
 
     // Ensure user exists in database (sync from Clerk if needed)
-    console.log("\n🔄 Ensuring user exists in database...")
+    // console.log("\n🔄 Ensuring user exists in database...")
     const user = await ensureUserExists(userId)
     
     if (!user) {
-      console.log("❌ FAILED TO SYNC USER FROM CLERK")
+      // console.log("❌ FAILED TO SYNC USER FROM CLERK")
       return NextResponse.json({ 
         error: "Failed to create user in database",
         debug: { clerkId: userId }
       }, { status: 500 })
     }
     
-    console.log("✅ User confirmed in database:", user.id)
-    console.log("📧 User email:", user.email)
+    // console.log("✅ User confirmed in database:", user.id)
+    // console.log("📧 User email:", user.email)
 
     // Update user with business profile
-    console.log("\n💾 Updating user profile...")
+    // console.log("\n💾 Updating user profile...")
     const updatedUser = await prisma.user.update({
       where: { clerkId: userId },
       data: {
@@ -363,11 +363,11 @@ export async function POST(request: NextRequest) {
         aiInstructions: buildAIInstructions(data),
       },
     })
-    console.log("✅ User profile updated:", updatedUser.id)
+    // console.log("✅ User profile updated:", updatedUser.id)
 
     // Create knowledge documents if provided
     if (data.faqs) {
-      console.log("\n📚 Creating FAQ knowledge document...")
+      // console.log("\n📚 Creating FAQ knowledge document...")
       await prisma.knowledgeDocument.create({
         data: {
           userId: user.id,
@@ -382,7 +382,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (data.policies) {
-      console.log("\n📋 Creating policies knowledge document...")
+      // console.log("\n📋 Creating policies knowledge document...")
       await prisma.knowledgeDocument.create({
         data: {
           userId: user.id,
@@ -398,7 +398,7 @@ export async function POST(request: NextRequest) {
 
     // Store API key if BYOK (encrypted)
     if (data.aiProvider === 'byok' && data.anthropicApiKey) {
-      console.log("\n🔐 Storing encrypted API key...")
+      // console.log("\n🔐 Storing encrypted API key...")
       const { encrypt } = await import("@/lib/encrypt")
       
       await prisma.integration.create({
@@ -419,7 +419,7 @@ export async function POST(request: NextRequest) {
     // Create default automations
     console.log("\n🤖 Creating default automations...")
     await createDefaultAutomations(user.id, data)
-    console.log("✅ Automations created")
+    // console.log("✅ Automations created")
 
     console.log("\n🎉 ===== ONBOARDING COMPLETED SUCCESSFULLY =====\n")
     return NextResponse.json({
@@ -431,11 +431,11 @@ export async function POST(request: NextRequest) {
       },
     })
   } catch (error) {
-    console.error("\n💥 ===== ONBOARDING ERROR =====")
-    console.error("Error Type:", error?.constructor?.name)
-    console.error("Error Message:", error instanceof Error ? error.message : String(error))
-    console.error("Error Stack:", error instanceof Error ? error.stack : 'No stack trace')
-    console.error("================================\n")
+    // console.error("\n💥 ===== ONBOARDING ERROR =====")
+    // console.error("Error Type:", error?.constructor?.name)
+    // console.error("Error Message:", error instanceof Error ? error.message : String(error))
+    // console.error("Error Stack:", error instanceof Error ? error.stack : 'No stack trace')
+    // console.error("================================\n")
     
     return NextResponse.json(
       { 
@@ -448,7 +448,7 @@ export async function POST(request: NextRequest) {
 }
 
 function buildAIInstructions(data: any): string {
-  console.log("🧠 Building AI instructions...")
+  // console.log("🧠 Building AI instructions...")
   const instructions = []
 
   // Base instruction
@@ -483,7 +483,7 @@ function buildAIInstructions(data: any): string {
 }
 
 async function createDefaultAutomations(userId: string, data: any) {
-  console.log("🤖 Looking for Instagram account...")
+  // console.log("🤖 Looking for Instagram account...")
   const instagramAccount = await prisma.instagramAccount.findFirst({
     where: { userId },
   })
@@ -493,12 +493,12 @@ async function createDefaultAutomations(userId: string, data: any) {
     return
   }
 
-  console.log("✅ Instagram account found:", instagramAccount.username)
+  // console.log("✅ Instagram account found:", instagramAccount.username)
   const automations = []
 
   // COACH: Welcome + Booking Flow
   if (data.businessType === 'coach' && data.enableBooking) {
-    console.log("📝 Adding coach automation (booking flow)")
+    // console.log("📝 Adding coach automation (booking flow)")
     automations.push({
       userId,
       instagramAccountId: instagramAccount.id,
@@ -532,7 +532,7 @@ async function createDefaultAutomations(userId: string, data: any) {
 
   // ECOMMERCE: Product Recommendations
   if (data.businessType === 'ecommerce' && data.enableProducts) {
-    console.log("📝 Adding ecommerce automation (product assistant)")
+    // console.log("📝 Adding ecommerce automation (product assistant)")
     automations.push({
       userId,
       instagramAccountId: instagramAccount.id,
@@ -567,7 +567,7 @@ async function createDefaultAutomations(userId: string, data: any) {
 
   // SERVICES: Lead Qualification
   if (data.businessType === 'services' && data.enableLeadQual) {
-    console.log("📝 Adding services automation (lead qualification)")
+    // console.log("📝 Adding services automation (lead qualification)")
     automations.push({
       userId,
       instagramAccountId: instagramAccount.id,
@@ -611,36 +611,36 @@ async function createDefaultAutomations(userId: string, data: any) {
 // ============================================
 
 export async function GET(request: NextRequest) {
-  console.log("\n🔍 ===== ONBOARDING GET REQUEST STARTED =====")
+  
   
   try {
-    console.log("📍 Request URL:", request.url)
-    console.log("🍪 Has Cookies:", !!request.headers.get('cookie'))
+    // console.log("📍 Request URL:", request.url)
+    // console.log("🍪 Has Cookies:", !!request.headers.get('cookie'))
     
-    console.log("\n🔐 Attempting authentication...")
+    // console.log("\n🔐 Attempting authentication...")
     const session = await auth()
     
-    console.log("📊 Auth Session:", !!session)
-    console.log("👤 User ID:", session?.userId)
+    // console.log("📊 Auth Session:", !!session)
+    // console.log("👤 User ID:", session?.userId)
     
     if (!session?.userId) {
-      console.log("❌ No authentication - returning 401")
+      // console.log("❌ No authentication - returning 401")
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
     const { userId } = session
-    console.log("✅ Authenticated as:", userId)
+    // console.log("✅ Authenticated as:", userId)
 
     // Ensure user exists in database
     console.log("\n🔄 Ensuring user exists in database...")
     const dbUser = await ensureUserExists(userId)
     
     if (!dbUser) {
-      console.log("❌ Failed to sync user from Clerk")
+      // console.log("❌ Failed to sync user from Clerk")
       return NextResponse.json({ error: "Failed to sync user" }, { status: 500 })
     }
 
-    console.log("\n🔍 Fetching user profile...")
+    // console.log("\n🔍 Fetching user profile...")
     const user = await prisma.user.findUnique({
       where: { clerkId: userId },
       select: {
@@ -655,22 +655,22 @@ export async function GET(request: NextRequest) {
     })
 
     if (!user) {
-      console.log("❌ User not found in database")
+      // console.log("❌ User not found in database")
       return NextResponse.json({ error: "User not found" }, { status: 404 })
     }
 
     const isOnboarded = !!(user?.businessName && user?.businessDescription)
-    console.log("✅ User found. Is onboarded:", isOnboarded)
+    // console.log("✅ User found. Is onboarded:", isOnboarded)
 
-    console.log("\n✅ ===== ONBOARDING GET COMPLETED =====\n")
+    // console.log("\n✅ ===== ONBOARDING GET COMPLETED =====\n")
     return NextResponse.json({
       isOnboarded,
       profile: user,
     })
   } catch (error) {
-    console.error("\n💥 ===== ONBOARDING GET ERROR =====")
-    console.error("Error:", error)
-    console.error("================================\n")
+    // console.error("\n💥 ===== ONBOARDING GET ERROR =====")
+    // console.error("Error:", error)
+    // console.error("================================\n")
     
     return NextResponse.json(
       { error: "Failed to check onboarding status" },
