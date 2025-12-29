@@ -127,22 +127,18 @@
 
 
 
-
-
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server"
 import { NextResponse } from 'next/server'
-import { prisma } from "@/lib/db"
 
 const isPublicRoute = createRouteMatcher([
   "/sign-in(.*)", 
   "/sign-up(.*)",
   "/",
-  "/api/webhooks(.*)", // Webhooks should be public (they use their own auth)
+  "/api/webhooks(.*)", // Webhooks are public (they use signature verification)
   "/privacy",
   "/terms",
+  "/onboarding(.*)", // Onboarding should be accessible
 ])
-
-const isOnboardingRoute = createRouteMatcher(['/onboarding'])
 
 export default clerkMiddleware(async (auth, request) => {
   const { userId } = await auth()
@@ -157,49 +153,6 @@ export default clerkMiddleware(async (auth, request) => {
     const signInUrl = new URL('/sign-in', request.url)
     signInUrl.searchParams.set('redirect_url', request.url)
     return NextResponse.redirect(signInUrl)
-  }
-
-  // Check onboarding status for authenticated users (non-API routes)
-  if (userId && !request.nextUrl.pathname.startsWith('/api')) {
-    try {
-      // Direct database check - no API call needed
-      const user = await prisma.user.findUnique({
-        where: { clerkId: userId },
-        select: { 
-          id: true, 
-          businessName: true,
-          businessType: true 
-        },
-      })
-
-      // If user doesn't exist in DB, sync them first
-      if (!user) {
-        console.log("[Middleware] User not in database, syncing...")
-        const { syncUserToDatabase } = await import("@/lib/actions/user-sync")
-        await syncUserToDatabase(userId)
-        
-        // After sync, redirect to onboarding
-        if (!isOnboardingRoute(request)) {
-          return NextResponse.redirect(new URL('/onboarding', request.url))
-        }
-      } else {
-        // Check if onboarded (has businessName and businessType)
-        const isOnboarded = !!(user.businessName && user.businessType)
-        
-        // Redirect to onboarding if not completed
-        if (!isOnboarded && !isOnboardingRoute(request)) {
-          return NextResponse.redirect(new URL('/onboarding', request.url))
-        }
-
-        // Redirect from onboarding if already completed
-        if (isOnboarded && isOnboardingRoute(request)) {
-          return NextResponse.redirect(new URL('/dashboard', request.url))
-        }
-      }
-    } catch (error) {
-      console.error('[Middleware] Onboarding check failed:', error)
-      // Continue to route on error to avoid breaking the app
-    }
   }
 
   return NextResponse.next()
