@@ -1444,7 +1444,7 @@ function SidebarContent({
           </div>
         ) : (
           <div className="relative h-12 w-full max-w-[200px]">
-            <Image src="/branded-original.jpg" alt="Logo" fill className="object-contain" />
+            <Image src="/branded-original.png" alt="Logo" fill className="object-contain" />
           </div>
         )}
       </div>
@@ -1795,12 +1795,12 @@ export function Sidebar() {
         <div className="flex h-16 items-center justify-between px-4 border-b border-border">
           {!isCollapsed && (
             <div className="relative h-10 w-full max-w-[160px]">
-              <Image src="/branded-original.jpg" alt="Logo" fill className="object-contain" />
+              <Image src="/branded-original.png" alt="Logo" fill className="object-contain" />
             </div>
           )}
           {isCollapsed && (
             <div className="relative h-10 w-10 mx-auto">
-              <Image src="/branded-original.jpg" alt="Logo" fill className="object-contain" />
+              <Image src="/branded-original.png" alt="Logo" fill className="object-contain" />
             </div>
           )}
           {!isCollapsed && (
