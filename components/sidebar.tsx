@@ -1440,7 +1440,7 @@ function SidebarContent({
       <div className="flex items-center justify-center border-b border-border p-4">
         {isCollapsed ? (
           <div className="relative h-10 w-10 shrink-0">
-            <Image src="/branded-original.jpg" alt="Logo" fill className="object-contain" />
+            <Image src="/branded-original.png" alt="Logo" fill className="object-contain" />
           </div>
         ) : (
           <div className="relative h-12 w-full max-w-[200px]">
