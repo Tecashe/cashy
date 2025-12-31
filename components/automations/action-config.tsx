@@ -1939,6 +1939,924 @@
 // }
 
 
+// "use client"
+
+// import { useState } from "react"
+// import {
+//   Dialog,
+//   DialogContent,
+//   DialogHeader,
+//   DialogTitle,
+//   DialogDescription,
+//   DialogFooter,
+// } from "@/components/ui/dialog"
+// import { Button } from "@/components/ui/button"
+// import { Input } from "@/components/ui/input"
+// import { Label } from "@/components/ui/label"
+// import { Textarea } from "@/components/ui/textarea"
+// import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+// import { Switch } from "@/components/ui/switch"
+// import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+// import { ACTION_TYPES, AI_TONES, AVAILABLE_VARIABLES } from "@/lib/constants/utomation-constants"
+// import type { ActionConfig as ActionConfigType } from "@/lib/types/automation"
+// import { ConditionBuilder } from "./condition-builder"
+// import { Plus, Info, Book, CheckCircle, ShoppingCart, Sparkles } from "lucide-react"
+// import { ScrollArea } from "@/components/ui/scroll-area"
+// import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip"
+// import { CarouselImageUploader } from "./carousel-image-uploader"
+// import { ImageUploadWithLibrary } from "./image-upload-with-library"
+// import React from "react"
+
+// interface ActionConfigModalProps {
+//   open: boolean
+//   onClose: () => void
+//   action: ActionConfigType
+//   onSave: (action: ActionConfigType) => void
+//   tags: any[]
+// }
+
+// export function ActionConfigModal({ open, onClose, action, onSave, tags }: ActionConfigModalProps) {
+//   const [config, setConfig] = useState(action.config)
+//   const actionInfo = ACTION_TYPES[action.type]
+
+//   const handleSave = () => {
+//     onSave({ ...action, config })
+//     onClose()
+//   }
+
+//   const insertVariable = (variable: string, field: "message" | "aiInstructions") => {
+//     const currentValue = config[field] || ""
+//     const textarea = document.querySelector(`textarea[data-field="${field}"]`) as HTMLTextAreaElement
+//     if (textarea) {
+//       const start = textarea.selectionStart
+//       const end = textarea.selectionEnd
+//       const newValue = currentValue.slice(0, start) + variable + currentValue.slice(end)
+//       setConfig({ ...config, [field]: newValue })
+
+//       setTimeout(() => {
+//         textarea.focus()
+//         textarea.setSelectionRange(start + variable.length, start + variable.length)
+//       }, 0)
+//     } else {
+//       setConfig({ ...config, [field]: currentValue + variable })
+//     }
+//   }
+
+//   return (
+//     <Dialog open={open} onOpenChange={onClose}>
+//       <DialogContent className="max-w-4xl max-h-[90vh] p-0 gap-0">
+//         <DialogHeader className="px-6 pt-6 pb-4 border-b border-border/50">
+//           <div className="flex items-start gap-3">
+//             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 ring-1 ring-primary/20">
+//               {React.createElement(actionInfo.icon, { className: "h-5 w-5 text-primary" })}
+//             </div>
+//             <div className="flex-1">
+//               <DialogTitle className="text-xl font-semibold flex items-center gap-2">
+//                 {actionInfo.label}
+//                 <TooltipProvider>
+//                   <Tooltip>
+//                     <TooltipTrigger asChild>
+//                       <Info className="h-4 w-4 text-muted-foreground" />
+//                     </TooltipTrigger>
+//                     <TooltipContent>
+//                       <p className="max-w-xs">{actionInfo.description}</p>
+//                     </TooltipContent>
+//                   </Tooltip>
+//                 </TooltipProvider>
+//               </DialogTitle>
+//               <DialogDescription className="mt-1">{actionInfo.description}</DialogDescription>
+//             </div>
+//           </div>
+//         </DialogHeader>
+
+//         <ScrollArea className="flex-1 px-6 py-6 max-h-[calc(90vh-180px)]">
+//           <div className="space-y-6">
+//             {/* Send Message */}
+//             {action.type === "send_message" && (
+//               <Card className="border-border/50">
+//                 <CardHeader>
+//                   <CardTitle className="text-base">Message Content</CardTitle>
+//                   <CardDescription>Compose your automated message</CardDescription>
+//                 </CardHeader>
+//                 <CardContent className="space-y-4">
+//                   <div className="space-y-2">
+//                     <Label htmlFor="message">Message *</Label>
+//                     <Textarea
+//                       id="message"
+//                       data-field="message"
+//                       placeholder="Hi {first_name}! Thanks for reaching out..."
+//                       value={config.message || ""}
+//                       onChange={(e) => setConfig({ ...config, message: e.target.value })}
+//                       rows={6}
+//                       className="resize-none"
+//                     />
+//                     <p className="text-xs text-muted-foreground">{(config.message || "").length} characters</p>
+//                   </div>
+//                   <div className="space-y-2">
+//                     <Label className="text-sm">Insert Variables</Label>
+//                     <div className="flex flex-wrap gap-2">
+//                       {AVAILABLE_VARIABLES.map((variable) => (
+//                         <Button
+//                           key={variable.value}
+//                           variant="outline"
+//                           size="sm"
+//                           type="button"
+//                           onClick={() => insertVariable(variable.value, "message")}
+//                           className="border-border/50 hover:border-primary/30"
+//                         >
+//                           <Plus className="mr-1 h-3 w-3" />
+//                           {variable.label}
+//                         </Button>
+//                       ))}
+//                     </div>
+//                   </div>
+//                 </CardContent>
+//               </Card>
+//             )}
+
+//             {/* Send Image */}
+//             {action.type === "send_image" && (
+//               <Card className="border-border/50">
+//                 <CardHeader>
+//                   <CardTitle className="text-base">Image Settings</CardTitle>
+//                   <CardDescription>Upload or select an image from your library</CardDescription>
+//                 </CardHeader>
+//                 <CardContent className="space-y-4">
+//                   <div className="space-y-2">
+//                     <Label>Image *</Label>
+//                     <ImageUploadWithLibrary
+//                       value={config.imageUrl || ""}
+//                       onChange={(url) => setConfig({ ...config, imageUrl: url })}
+//                     />
+//                   </div>
+//                   <div className="space-y-2">
+//                     <Label htmlFor="imageCaption">Caption (optional)</Label>
+//                     <Textarea
+//                       id="imageCaption"
+//                       placeholder="Add a caption to your image..."
+//                       value={config.message || ""}
+//                       onChange={(e) => setConfig({ ...config, message: e.target.value })}
+//                       rows={3}
+//                     />
+//                   </div>
+//                 </CardContent>
+//               </Card>
+//             )}
+
+//             {/* Send Carousel */}
+//             {action.type === "send_carousel" && (
+//               <Card className="border-border/50">
+//                 <CardHeader>
+//                   <CardTitle className="text-base">Carousel Images</CardTitle>
+//                   <CardDescription>Upload and arrange multiple images (2-10 images)</CardDescription>
+//                 </CardHeader>
+//                 <CardContent>
+//                   <CarouselImageUploader
+//                     images={
+//                       config.carouselImages?.map((url: string, index: number) => ({
+//                         id: `img-${index}`,
+//                         url,
+//                       })) || []
+//                     }
+//                     onImagesChange={(images) => {
+//                       setConfig({
+//                         ...config,
+//                         carouselImages: images.map((img) => img.url),
+//                       })
+//                     }}
+//                     maxImages={10}
+//                   />
+//                 </CardContent>
+//               </Card>
+//             )}
+
+//             {/* Reply to Comment */}
+//             {action.type === "reply_to_comment" && (
+//               <Card className="border-border/50">
+//                 <CardHeader>
+//                   <CardTitle className="text-base">Comment Reply</CardTitle>
+//                   <CardDescription>Configure your automated comment reply</CardDescription>
+//                 </CardHeader>
+//                 <CardContent className="space-y-4">
+//                   <div className="space-y-2">
+//                     <Label htmlFor="reply">Reply Message *</Label>
+//                     <Textarea
+//                       id="reply"
+//                       data-field="message"
+//                       placeholder="Thanks for your comment! Check your DMs..."
+//                       value={config.message || ""}
+//                       onChange={(e) => setConfig({ ...config, message: e.target.value })}
+//                       rows={4}
+//                     />
+//                     <p className="text-xs text-muted-foreground">Keep replies short and engaging</p>
+//                   </div>
+//                   <div className="space-y-2">
+//                     <Label className="text-sm">Insert Variables</Label>
+//                     <div className="flex flex-wrap gap-2">
+//                       {AVAILABLE_VARIABLES.map((variable) => (
+//                         <Button
+//                           key={variable.value}
+//                           variant="outline"
+//                           size="sm"
+//                           type="button"
+//                           onClick={() => insertVariable(variable.value, "message")}
+//                           className="border-border/50 hover:border-primary/30"
+//                         >
+//                           <Plus className="mr-1 h-3 w-3" />
+//                           {variable.label}
+//                         </Button>
+//                       ))}
+//                     </div>
+//                   </div>
+//                 </CardContent>
+//               </Card>
+//             )}
+
+//             {/* Hide Comment */}
+//             {action.type === "hide_comment" && (
+//               <Card className="border-border/50">
+//                 <CardHeader>
+//                   <CardTitle className="text-base">Comment Moderation</CardTitle>
+//                   <CardDescription>Control comment visibility</CardDescription>
+//                 </CardHeader>
+//                 <CardContent>
+//                   <div className="flex items-center justify-between rounded-lg border p-4">
+//                     <div className="space-y-0.5">
+//                       <Label>Hide Comment</Label>
+//                       <p className="text-sm text-muted-foreground">Hide offensive or spam comments automatically</p>
+//                     </div>
+//                     <Switch
+//                       checked={config.shouldHide !== false}
+//                       onCheckedChange={(checked) => setConfig({ ...config, shouldHide: checked })}
+//                     />
+//                   </div>
+//                 </CardContent>
+//               </Card>
+//             )}
+
+//             {/* AI Response - REVOLUTIONARY VERSION */}
+//             {action.type === "ai_response" && (
+//               <div className="space-y-6">
+//                 {/* Main Explainer Banner */}
+//                 <div className="rounded-lg border-2 border-purple-500/30 bg-gradient-to-r from-purple-50 via-blue-50 to-indigo-50 dark:from-purple-950/20 dark:via-blue-950/20 dark:to-indigo-950/20 p-6">
+//                   <div className="flex items-start gap-4">
+//                     <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-purple-500 to-blue-500 shadow-lg">
+//                       <Sparkles className="h-6 w-6 text-white" />
+//                     </div>
+//                     <div className="space-y-2">
+//                       <h3 className="text-lg font-semibold text-foreground">AI-Powered Customer Assistant</h3>
+//                       <p className="text-sm text-muted-foreground leading-relaxed">
+//                         Your AI assistant will automatically respond to customer messages in Instagram DMs. It can
+//                         answer questions, provide product information, process payments, book appointments, and more -
+//                         all while maintaining your brand voice.
+//                       </p>
+//                     </div>
+//                   </div>
+//                 </div>
+
+//                 {/* Quick Setup: Commerce Mode */}
+//                 <Card className="border-2 border-primary/20 bg-gradient-to-br from-background to-muted/30">
+//                   <CardHeader>
+//                     <div className="flex items-start justify-between">
+//                       <div className="flex items-center gap-3">
+//                         <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 ring-1 ring-primary/20">
+//                           <ShoppingCart className="h-5 w-5 text-primary" />
+//                         </div>
+//                         <div>
+//                           <CardTitle className="text-base">Enable AI Commerce Mode</CardTitle>
+//                           <CardDescription className="mt-1">
+//                             Turn your AI into a complete sales assistant
+//                           </CardDescription>
+//                         </div>
+//                       </div>
+//                       <Switch
+//                         checked={config.enableCommerce || false}
+//                         onCheckedChange={(checked) => {
+//                           setConfig({
+//                             ...config,
+//                             enableCommerce: checked,
+//                             enablePayments: checked,
+//                             enableProductCatalog: checked,
+//                             enableAppointments: checked,
+//                             mcpEnabled: checked,
+//                           })
+//                         }}
+//                         className="data-[state=checked]:bg-green-600"
+//                       />
+//                     </div>
+//                   </CardHeader>
+//                   <CardContent>
+//                     <div className="space-y-3">
+//                       <p className="text-sm text-muted-foreground">When enabled, your AI can:</p>
+//                       <div className="grid gap-2">
+//                         <div
+//                           className={`flex items-center gap-3 rounded-lg border p-3 transition-all ${config.enableCommerce ? "bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-900" : "bg-muted/50"}`}
+//                         >
+//                           <div
+//                             className={`flex h-8 w-8 items-center justify-center rounded-lg ${config.enableCommerce ? "bg-green-100 dark:bg-green-900/30" : "bg-muted"}`}
+//                           >
+//                             <CheckCircle
+//                               className={`h-4 w-4 ${config.enableCommerce ? "text-green-600" : "text-muted-foreground"}`}
+//                             />
+//                           </div>
+//                           <div className="flex-1">
+//                             <p className="text-sm font-medium">Show & search your product catalog</p>
+//                             <p className="text-xs text-muted-foreground">AI helps customers find products they want</p>
+//                           </div>
+//                         </div>
+
+//                         <div
+//                           className={`flex items-center gap-3 rounded-lg border p-3 transition-all ${config.enableCommerce ? "bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-900" : "bg-muted/50"}`}
+//                         >
+//                           <div
+//                             className={`flex h-8 w-8 items-center justify-center rounded-lg ${config.enableCommerce ? "bg-green-100 dark:bg-green-900/30" : "bg-muted"}`}
+//                           >
+//                             <CheckCircle
+//                               className={`h-4 w-4 ${config.enableCommerce ? "text-green-600" : "text-muted-foreground"}`}
+//                             />
+//                           </div>
+//                           <div className="flex-1">
+//                             <p className="text-sm font-medium">Create payment links instantly</p>
+//                             <p className="text-xs text-muted-foreground">Customers can checkout directly in DMs</p>
+//                           </div>
+//                         </div>
+
+//                         <div
+//                           className={`flex items-center gap-3 rounded-lg border p-3 transition-all ${config.enableCommerce ? "bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-900" : "bg-muted/50"}`}
+//                         >
+//                           <div
+//                             className={`flex h-8 w-8 items-center justify-center rounded-lg ${config.enableCommerce ? "bg-green-100 dark:bg-green-900/30" : "bg-muted"}`}
+//                           >
+//                             <CheckCircle
+//                               className={`h-4 w-4 ${config.enableCommerce ? "text-green-600" : "text-muted-foreground"}`}
+//                             />
+//                           </div>
+//                           <div className="flex-1">
+//                             <p className="text-sm font-medium">Schedule appointments & bookings</p>
+//                             <p className="text-xs text-muted-foreground">
+//                               Perfect for services, consultations, or demos
+//                             </p>
+//                           </div>
+//                         </div>
+
+//                         <div
+//                           className={`flex items-center gap-3 rounded-lg border p-3 transition-all ${config.enableCommerce ? "bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-900" : "bg-muted/50"}`}
+//                         >
+//                           <div
+//                             className={`flex h-8 w-8 items-center justify-center rounded-lg ${config.enableCommerce ? "bg-green-100 dark:bg-green-900/30" : "bg-muted"}`}
+//                           >
+//                             <CheckCircle
+//                               className={`h-4 w-4 ${config.enableCommerce ? "text-green-600" : "text-muted-foreground"}`}
+//                             />
+//                           </div>
+//                           <div className="flex-1">
+//                             <p className="text-sm font-medium">Update customer records automatically</p>
+//                             <p className="text-xs text-muted-foreground">Capture leads and sync data to your CRM</p>
+//                           </div>
+//                         </div>
+//                       </div>
+//                     </div>
+//                   </CardContent>
+//                 </Card>
+
+//                 {/* AI Personality Settings */}
+//                 <Card className="border-border/50">
+//                   <CardHeader>
+//                     <div className="flex items-center gap-3">
+//                       <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 ring-1 ring-primary/20">
+//                         <Sparkles className="h-5 w-5 text-primary" />
+//                       </div>
+//                       <div>
+//                         <CardTitle className="text-base">AI Personality & Tone</CardTitle>
+//                         <CardDescription className="mt-1">
+//                           Define how your AI communicates with customers
+//                         </CardDescription>
+//                       </div>
+//                     </div>
+//                   </CardHeader>
+//                   <CardContent className="space-y-5">
+//                     <div className="space-y-3">
+//                       <Label htmlFor="tone" className="text-sm font-medium">
+//                         Conversation Tone
+//                       </Label>
+//                       <Select
+//                         value={config.tone || "professional"}
+//                         onValueChange={(value) => setConfig({ ...config, tone: value })}
+//                       >
+//                         <SelectTrigger id="tone" className="h-11">
+//                           <SelectValue />
+//                         </SelectTrigger>
+//                         <SelectContent>
+//                           {AI_TONES.map((tone) => (
+//                             <SelectItem key={tone.value} value={tone.value}>
+//                               <div className="flex flex-col items-start">
+//                                 <span className="font-medium">{tone.label}</span>
+//                                 <span className="text-xs text-muted-foreground">{tone.description}</span>
+//                               </div>
+//                             </SelectItem>
+//                           ))}
+//                         </SelectContent>
+//                       </Select>
+//                       <p className="text-xs text-muted-foreground">Choose how formal or casual your AI sounds</p>
+//                     </div>
+
+//                     <div className="space-y-3">
+//                       <Label htmlFor="systemPrompt" className="text-sm font-medium">
+//                         Custom AI Personality (Optional)
+//                       </Label>
+//                       <Textarea
+//                         id="systemPrompt"
+//                         placeholder={`Example: "You are Emma, a friendly sales assistant for Bella's Boutique. You're enthusiastic about fashion and love helping customers find their perfect style."`}
+//                         value={config.systemPrompt || ""}
+//                         onChange={(e) => setConfig({ ...config, systemPrompt: e.target.value })}
+//                         rows={4}
+//                         className="resize-none font-sans text-sm"
+//                       />
+//                       <p className="text-xs text-muted-foreground">
+//                         Describe your brand voice and AI character. Leave empty to use default personality.
+//                       </p>
+//                     </div>
+
+//                     <div className="space-y-3">
+//                       <Label htmlFor="instructions" className="text-sm font-medium">
+//                         Special Instructions (Optional)
+//                       </Label>
+//                       <Textarea
+//                         id="instructions"
+//                         data-field="aiInstructions"
+//                         placeholder={`Example: "Always ask about customer budget before recommending products. Mention our free shipping on orders over $50. Keep responses under 3 sentences."`}
+//                         value={config.aiInstructions || ""}
+//                         onChange={(e) => setConfig({ ...config, aiInstructions: e.target.value })}
+//                         rows={4}
+//                         className="resize-none"
+//                       />
+//                       <p className="text-xs text-muted-foreground">
+//                         Add specific rules or guidelines for your AI to follow
+//                       </p>
+//                     </div>
+//                   </CardContent>
+//                 </Card>
+
+//                 {/* Commerce Security Settings - Only show when commerce is enabled */}
+//                 {config.enableCommerce && (
+//                   <Card className="border-amber-500/20 bg-amber-50/50 dark:bg-amber-950/10">
+//                     <CardHeader>
+//                       <div className="flex items-center gap-3">
+//                         <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-500/10 ring-1 ring-amber-500/20">
+//                           <ShoppingCart className="h-5 w-5 text-amber-600 dark:text-amber-500" />
+//                         </div>
+//                         <div>
+//                           <CardTitle className="text-base">Payment & Security Settings</CardTitle>
+//                           <CardDescription className="mt-1">Control how AI handles transactions</CardDescription>
+//                         </div>
+//                       </div>
+//                     </CardHeader>
+//                     <CardContent className="space-y-5">
+//                       <div className="space-y-3">
+//                         <Label htmlFor="maxOrderValue" className="text-sm font-medium">
+//                           Maximum Order Value
+//                         </Label>
+//                         <div className="flex items-center gap-3">
+//                           <div className="relative flex-1 max-w-xs">
+//                             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-lg font-medium text-muted-foreground">
+//                               $
+//                             </span>
+//                             <Input
+//                               id="maxOrderValue"
+//                               type="number"
+//                               placeholder="500"
+//                               value={(config.maxOrderValue || 50000) / 100}
+//                               onChange={(e) =>
+//                                 setConfig({
+//                                   ...config,
+//                                   maxOrderValue: Math.round(Number.parseFloat(e.target.value || "0") * 100),
+//                                 })
+//                               }
+//                               className="h-11 pl-8 text-base"
+//                               min="0"
+//                               step="10"
+//                             />
+//                           </div>
+//                         </div>
+//                         <div className="rounded-lg bg-amber-100 dark:bg-amber-900/20 p-3">
+//                           <p className="text-xs text-amber-900 dark:text-amber-200">
+//                             <strong>Why this matters:</strong> Orders above $
+//                             {((config.maxOrderValue || 50000) / 100).toFixed(2)} will be flagged for manual review. This
+//                             prevents accidental high-value transactions and protects both you and your customers.
+//                           </p>
+//                         </div>
+//                       </div>
+
+//                       <div className="space-y-3">
+//                         <div className="flex items-start justify-between gap-4 rounded-lg border border-border/50 bg-background p-4">
+//                           <div className="space-y-1 flex-1">
+//                             <Label className="text-sm font-medium">Request Payment Confirmation</Label>
+//                             <p className="text-xs text-muted-foreground">
+//                               AI will ask customers "Ready to checkout?" before creating payment links. Prevents
+//                               accidental purchases.
+//                             </p>
+//                           </div>
+//                           <Switch
+//                             checked={config.requirePaymentConfirmation !== false}
+//                             onCheckedChange={(checked) =>
+//                               setConfig({
+//                                 ...config,
+//                                 requirePaymentConfirmation: checked,
+//                               })
+//                             }
+//                             className="data-[state=checked]:bg-green-600"
+//                           />
+//                         </div>
+//                       </div>
+
+//                       <div className="space-y-3">
+//                         <div className="flex items-start justify-between gap-4 rounded-lg border border-border/50 bg-background p-4">
+//                           <div className="space-y-1 flex-1">
+//                             <Label className="text-sm font-medium">Check Product Availability</Label>
+//                             <p className="text-xs text-muted-foreground">
+//                               AI will verify stock levels before recommending products to avoid disappointing customers
+//                             </p>
+//                           </div>
+//                           <Switch
+//                             checked={config.checkAvailability !== false}
+//                             onCheckedChange={(checked) =>
+//                               setConfig({
+//                                 ...config,
+//                                 checkAvailability: checked,
+//                               })
+//                             }
+//                             className="data-[state=checked]:bg-green-600"
+//                           />
+//                         </div>
+//                       </div>
+//                     </CardContent>
+//                   </Card>
+//                 )}
+
+//                 {/* Knowledge Base */}
+//                 <Card className="border-border/50">
+//                   <CardHeader>
+//                     <div className="flex items-center gap-3">
+//                       <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 ring-1 ring-primary/20">
+//                         <Book className="h-5 w-5 text-primary" />
+//                       </div>
+//                       <div>
+//                         <CardTitle className="text-base">Business Knowledge Base</CardTitle>
+//                         <CardDescription className="mt-1">
+//                           Give AI access to your FAQs, policies, and business info
+//                         </CardDescription>
+//                       </div>
+//                     </div>
+//                   </CardHeader>
+//                   <CardContent className="space-y-4">
+//                     <div className="flex items-start justify-between gap-4 rounded-lg border p-4">
+//                       <div className="space-y-1 flex-1">
+//                         <Label className="text-sm font-medium">Enable Knowledge Base</Label>
+//                         <p className="text-xs text-muted-foreground">
+//                           AI will use your uploaded FAQs, return policies, shipping info, and product details to answer
+//                           customer questions accurately
+//                         </p>
+//                       </div>
+//                       <Switch
+//                         checked={config.aiKnowledgeBase || false}
+//                         onCheckedChange={(checked) => setConfig({ ...config, aiKnowledgeBase: checked })}
+//                         className="data-[state=checked]:bg-green-600"
+//                       />
+//                     </div>
+
+//                     {config.aiKnowledgeBase && (
+//                       <div className="rounded-lg bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900 p-4">
+//                         <div className="flex items-start gap-3">
+//                           <Info className="h-5 w-5 text-blue-600 shrink-0 mt-0.5" />
+//                           <div className="space-y-2">
+//                             <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
+//                               Knowledge Base is Active
+//                             </p>
+//                             <p className="text-xs text-blue-800 dark:text-blue-200 leading-relaxed">
+//                               Your AI will search through your business knowledge to provide accurate, on-brand answers.
+//                               Upload FAQs and policies in the Knowledge Base section of your dashboard.
+//                             </p>
+//                           </div>
+//                         </div>
+//                       </div>
+//                     )}
+//                   </CardContent>
+//                 </Card>
+
+//                 {/* Response Behavior */}
+//                 <Card className="border-border/50">
+//                   <CardHeader>
+//                     <div className="flex items-center gap-3">
+//                       <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 ring-1 ring-primary/20">
+//                         <Info className="h-5 w-5 text-primary" />
+//                       </div>
+//                       <div>
+//                         <CardTitle className="text-base">Response Behavior</CardTitle>
+//                         <CardDescription className="mt-1">Configure when human assistance is needed</CardDescription>
+//                       </div>
+//                     </div>
+//                   </CardHeader>
+//                   <CardContent className="space-y-4">
+//                     <div className="space-y-3">
+//                       <div className="flex items-start justify-between gap-4 rounded-lg border p-4">
+//                         <div className="space-y-1 flex-1">
+//                           <Label className="text-sm font-medium">Auto-escalate Frustrated Customers</Label>
+//                           <p className="text-xs text-muted-foreground">
+//                             If AI detects anger or frustration, it will notify you and offer to connect the customer
+//                             with a human
+//                           </p>
+//                         </div>
+//                         <Switch
+//                           checked={config.escalateFrustratedCustomers !== false}
+//                           onCheckedChange={(checked) =>
+//                             setConfig({
+//                               ...config,
+//                               escalateFrustratedCustomers: checked,
+//                             })
+//                           }
+//                           className="data-[state=checked]:bg-green-600"
+//                         />
+//                       </div>
+//                     </div>
+
+//                     <div className="space-y-3">
+//                       <Label htmlFor="maxResponseLength" className="text-sm font-medium">
+//                         Maximum Response Length
+//                       </Label>
+//                       <div className="flex items-center gap-3">
+//                         <Input
+//                           id="maxResponseLength"
+//                           type="number"
+//                           placeholder="1000"
+//                           value={config.maxResponseLength || 1000}
+//                           onChange={(e) =>
+//                             setConfig({
+//                               ...config,
+//                               maxResponseLength: Number.parseInt(e.target.value || "1000"),
+//                             })
+//                           }
+//                           className="max-w-xs"
+//                           min="100"
+//                           max="2000"
+//                           step="50"
+//                         />
+//                         <span className="text-sm text-muted-foreground">characters</span>
+//                       </div>
+//                       <p className="text-xs text-muted-foreground">
+//                         Instagram DMs have a 1000 character limit. Longer messages will be split.
+//                       </p>
+//                     </div>
+//                   </CardContent>
+//                 </Card>
+
+//                 {/* What Happens Next - Educational */}
+//                 <div className="rounded-lg border-2 border-dashed border-primary/30 bg-gradient-to-br from-primary/5 to-primary/10 p-6">
+//                   <div className="flex items-start gap-4">
+//                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/20">
+//                       <Info className="h-5 w-5 text-primary" />
+//                     </div>
+//                     <div className="space-y-3 flex-1">
+//                       <h4 className="font-semibold text-foreground">How Your AI Assistant Works</h4>
+//                       <div className="space-y-2 text-sm text-muted-foreground">
+//                         <div className="flex gap-2">
+//                           <span className="font-semibold text-primary shrink-0">1.</span>
+//                           <p>Customer sends a message to your Instagram account</p>
+//                         </div>
+//                         <div className="flex gap-2">
+//                           <span className="font-semibold text-primary shrink-0">2.</span>
+//                           <p>AI reads their message and checks your Knowledge Base for relevant info</p>
+//                         </div>
+//                         <div className="flex gap-2">
+//                           <span className="font-semibold text-primary shrink-0">3.</span>
+//                           <p>
+//                             If commerce is enabled, AI can search products, create payment links, or book appointments
+//                           </p>
+//                         </div>
+//                         <div className="flex gap-2">
+//                           <span className="font-semibold text-primary shrink-0">4.</span>
+//                           <p>AI responds instantly in your brand voice, handling the conversation naturally</p>
+//                         </div>
+//                         <div className="flex gap-2">
+//                           <span className="font-semibold text-primary shrink-0">5.</span>
+//                           <p>If the customer seems frustrated or requests human help, you'll be notified immediately</p>
+//                         </div>
+//                       </div>
+//                     </div>
+//                   </div>
+//                 </div>
+//               </div>
+//             )}
+
+//             {/* Add Tag */}
+//             {action.type === "add_tag" && (
+//               <Card className="border-border/50">
+//                 <CardHeader>
+//                   <CardTitle className="text-base">Tag Selection</CardTitle>
+//                   <CardDescription>Choose a tag to apply to the conversation</CardDescription>
+//                 </CardHeader>
+//                 <CardContent className="space-y-2">
+//                   <Label htmlFor="tag">Tag *</Label>
+//                   <Select value={config.tag || ""} onValueChange={(value) => setConfig({ ...config, tag: value })}>
+//                     <SelectTrigger id="tag">
+//                       <SelectValue placeholder="Select a tag" />
+//                     </SelectTrigger>
+//                     <SelectContent>
+//                       {tags.length === 0 ? (
+//                         <div className="p-2 text-sm text-muted-foreground">No tags available</div>
+//                       ) : (
+//                         tags.map((tag) => (
+//                           <SelectItem key={tag.id} value={tag.id}>
+//                             <div className="flex items-center gap-2">
+//                               <div className="h-3 w-3 rounded-full" style={{ backgroundColor: tag.color }} />
+//                               {tag.name}
+//                             </div>
+//                           </SelectItem>
+//                         ))
+//                       )}
+//                     </SelectContent>
+//                   </Select>
+//                   {tags.length === 0 && (
+//                     <p className="text-xs text-muted-foreground">Create tags first in the Tags section</p>
+//                   )}
+//                 </CardContent>
+//               </Card>
+//             )}
+
+//             {/* Delay */}
+//             {action.type === "delay" && (
+//               <Card className="border-border/50">
+//                 <CardHeader>
+//                   <CardTitle className="text-base">Delay Duration</CardTitle>
+//                   <CardDescription>Set how long to wait before the next action</CardDescription>
+//                 </CardHeader>
+//                 <CardContent>
+//                   <div className="grid grid-cols-3 gap-4">
+//                     <div className="space-y-2">
+//                       <Label htmlFor="days">Days</Label>
+//                       <Input
+//                         id="days"
+//                         type="number"
+//                         min="0"
+//                         placeholder="0"
+//                         value={config.delayDays || ""}
+//                         onChange={(e) => setConfig({ ...config, delayDays: Number.parseInt(e.target.value) || 0 })}
+//                       />
+//                     </div>
+//                     <div className="space-y-2">
+//                       <Label htmlFor="hours">Hours</Label>
+//                       <Input
+//                         id="hours"
+//                         type="number"
+//                         min="0"
+//                         max="23"
+//                         placeholder="0"
+//                         value={config.delayHours || ""}
+//                         onChange={(e) => setConfig({ ...config, delayHours: Number.parseInt(e.target.value) || 0 })}
+//                       />
+//                     </div>
+//                     <div className="space-y-2">
+//                       <Label htmlFor="minutes">Minutes</Label>
+//                       <Input
+//                         id="minutes"
+//                         type="number"
+//                         min="0"
+//                         max="59"
+//                         placeholder="0"
+//                         value={config.delayMinutes || ""}
+//                         onChange={(e) => setConfig({ ...config, delayMinutes: Number.parseInt(e.target.value) || 0 })}
+//                       />
+//                     </div>
+//                   </div>
+//                   <p className="mt-3 text-sm text-muted-foreground">
+//                     Total delay:{" "}
+//                     {(config.delayDays || 0) * 24 * 60 + (config.delayHours || 0) * 60 + (config.delayMinutes || 0)}{" "}
+//                     minutes
+//                   </p>
+//                 </CardContent>
+//               </Card>
+//             )}
+
+//             {/* Conditional Branch */}
+//             {action.type === "condition" && (
+//               <Card className="border-border/50">
+//                 <CardHeader>
+//                   <CardTitle className="text-base">Conditional Logic</CardTitle>
+//                   <CardDescription>Create IF/THEN/ELSE branches based on conditions</CardDescription>
+//                 </CardHeader>
+//                 <CardContent>
+//                   <ConditionBuilder
+//                     conditionGroups={config.conditionGroups || []}
+//                     onChange={(groups) => setConfig({ ...config, conditionGroups: groups })}
+//                   />
+//                 </CardContent>
+//               </Card>
+//             )}
+
+//             {/* Human Handoff */}
+//             {action.type === "human_handoff" && (
+//               <Card className="border-border/50">
+//                 <CardHeader>
+//                   <CardTitle className="text-base">Human Handoff</CardTitle>
+//                   <CardDescription>Transfer conversation to live agent</CardDescription>
+//                 </CardHeader>
+//                 <CardContent>
+//                   <div className="rounded-lg border bg-muted/50 p-4">
+//                     <p className="text-sm text-muted-foreground">
+//                       When this action is triggered, the conversation will be flagged for human review and removed from
+//                       automation. You can add a notification message to alert your team.
+//                     </p>
+//                   </div>
+//                   <div className="mt-4 space-y-2">
+//                     <Label htmlFor="handoffMessage">Handoff Message (optional)</Label>
+//                     <Textarea
+//                       id="handoffMessage"
+//                       placeholder="A team member will be with you shortly..."
+//                       value={config.message || ""}
+//                       onChange={(e) => setConfig({ ...config, message: e.target.value })}
+//                       rows={3}
+//                     />
+//                   </div>
+//                 </CardContent>
+//               </Card>
+//             )}
+
+//             {/* Webhook */}
+//             {action.type === "webhook" && (
+//               <Card className="border-border/50">
+//                 <CardHeader>
+//                   <CardTitle className="text-base">Webhook Configuration</CardTitle>
+//                   <CardDescription>Send data to external services</CardDescription>
+//                 </CardHeader>
+//                 <CardContent className="space-y-4">
+//                   <div className="space-y-2">
+//                     <Label htmlFor="webhookUrl">Webhook URL *</Label>
+//                     <Input
+//                       id="webhookUrl"
+//                       placeholder="https://api.example.com/webhook"
+//                       value={config.webhookUrl || ""}
+//                       onChange={(e) => setConfig({ ...config, webhookUrl: e.target.value })}
+//                     />
+//                   </div>
+
+//                   <div className="space-y-2">
+//                     <Label htmlFor="method">HTTP Method</Label>
+//                     <Select
+//                       value={config.webhookMethod || "POST"}
+//                       onValueChange={(value) => setConfig({ ...config, webhookMethod: value as "GET" | "POST" })}
+//                     >
+//                       <SelectTrigger id="method">
+//                         <SelectValue />
+//                       </SelectTrigger>
+//                       <SelectContent>
+//                         <SelectItem value="GET">GET</SelectItem>
+//                         <SelectItem value="POST">POST</SelectItem>
+//                       </SelectContent>
+//                     </Select>
+//                   </div>
+
+//                   <div className="space-y-2">
+//                     <Label htmlFor="webhookBody">Request Body (JSON)</Label>
+//                     <Textarea
+//                       id="webhookBody"
+//                       placeholder='{"event": "automation_triggered", "user": "{username}"}'
+//                       value={config.webhookBody || ""}
+//                       onChange={(e) => setConfig({ ...config, webhookBody: e.target.value })}
+//                       rows={6}
+//                       className="font-mono text-sm"
+//                     />
+//                     <p className="text-xs text-muted-foreground">
+//                       You can use variables like {"{username}"}, {"{message}"}, etc.
+//                     </p>
+//                   </div>
+//                 </CardContent>
+//               </Card>
+//             )}
+//           </div>
+//         </ScrollArea>
+
+//         <DialogFooter className="border-t border-border/50 px-6 py-4">
+//           <div className="flex w-full gap-3">
+//             <Button variant="outline" onClick={onClose} className="flex-1 bg-transparent">
+//               Cancel
+//             </Button>
+//             <Button onClick={handleSave} className="flex-1 shadow-sm">
+//               Save Action
+//             </Button>
+//           </div>
+//         </DialogFooter>
+//       </DialogContent>
+//     </Dialog>
+//   )
+// }
+
+
+
+
+
+
+
+
+
 "use client"
 
 import { useState } from "react"
@@ -1976,7 +2894,24 @@ interface ActionConfigModalProps {
 }
 
 export function ActionConfigModal({ open, onClose, action, onSave, tags }: ActionConfigModalProps) {
-  const [config, setConfig] = useState(action.config)
+  const [config, setConfig] = useState(() => {
+    // If action.config has the modern structure from ai-dashboard, use it
+    // Otherwise use legacy config structure
+    return (
+      action.config || {
+        tone: "friendly",
+        systemPrompt: "",
+        aiInstructions: "",
+        enableCommerce: false,
+        maxOrderValue: 50000,
+        requirePaymentConfirmation: true,
+        aiKnowledgeBase: true,
+        enableAutoHandoff: true,
+        useEmojis: true,
+      }
+    )
+  })
+
   const actionInfo = ACTION_TYPES[action.type]
 
   const handleSave = () => {
