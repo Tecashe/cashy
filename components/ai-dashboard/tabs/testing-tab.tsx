@@ -18,12 +18,29 @@ declare global {
   }
 }
 
-export function TestingTab({ config }: { config: any }) {
+export function TestingTab({ automationId }: { automationId: string | null }) {
   const [message, setMessage] = useState("")
   const [loading, setLoading] = useState(false)
   const [response, setResponse] = useState<any>(null)
   const [puterLoaded, setPuterLoaded] = useState(false)
+  const [config, setConfig] = useState<any>(null)
   const { toast } = useToast()
+
+  useEffect(() => {
+    const loadConfig = async () => {
+      if (!automationId) return
+
+      try {
+        const automation = await fetch(`/api/automations/${automationId}`).then((r) => r.json())
+        const aiAction = automation.actions?.find((a: any) => a.type === "ai_response")
+        setConfig(aiAction?.config || {})
+      } catch (error) {
+        console.error("Failed to load AI config:", error)
+      }
+    }
+
+    loadConfig()
+  }, [automationId])
 
   useEffect(() => {
     const script = document.createElement("script")
@@ -238,8 +255,9 @@ export function TestingTab({ config }: { config: any }) {
           <Card className="p-6 bg-amber-50 dark:bg-amber-950 border-amber-200 dark:border-amber-800">
             <h3 className="font-semibold mb-2 text-amber-900 dark:text-amber-100">Important Note</h3>
             <p className="text-sm text-amber-800 dark:text-amber-200">
-              Puter.js is CLIENT-SIDE only and perfect for testing your AI personality and responses. For PRODUCTION
-              Instagram automation, switch to the "Production Testing" tab and add your API keys.
+              Puter.js is CLIENT-SIDE only and perfect for testing your AI personality and responses in the browser. For
+              REAL Instagram automation (when DMs arrive), you MUST use the "Production Testing" tab with API keys
+              because Instagram webhooks hit your server, not the browser.
             </p>
           </Card>
         </TabsContent>
