@@ -487,6 +487,8 @@
 
 // lib/ai-response-handler.ts
 
+// lib/ai-response-handler.ts
+
 import Anthropic from "@anthropic-ai/sdk"
 import { prisma } from "@/lib/db"
 import fetch from "node-fetch"
@@ -569,7 +571,7 @@ export class AIResponseHandler {
     this.anthropic = new Anthropic({
       apiKey: process.env.ANTHROPIC_API_KEY,
     })
-    this.deepseekApiKey = process.env.DEEPSEEK_API_KEY
+    this.deepseekApiKey = process.env.DEEPSEEK_API_KEY || process.env.NEXT_PUBLIC_DEEPSEEK_API_KEY
   }
 
   async generateResponse(
@@ -603,47 +605,52 @@ export class AIResponseHandler {
       let usedProvider = "anthropic"
 
       try {
-        response = await this.anthropic.messages.create({
-          model: config.model || "claude-sonnet-4-20250514",
-          max_tokens: config.maxTokens || 500,
-          temperature: config.temperature || 0.7,
-          system: systemPrompt,
-          messages: [
-            ...(knowledgeContext
-              ? [
-                  {
-                    role: "user" as const,
-                    content: `Relevant information from knowledge base:\n${knowledgeContext}`,
-                  },
-                  {
-                    role: "assistant" as const,
-                    content: "I'll use this information to help answer the customer's question.",
-                  },
-                ]
-              : []),
-            ...messages,
-            {
-              role: "user" as const,
-              content: context.messageText,
-            },
-          ],
-          tools: tools.length > 0 ? tools : undefined,
-        })
-      } catch (anthropicError) {
-        console.error("[AI] Anthropic error, trying DeepSeek fallback:", anthropicError)
+        const controller = new AbortController()
+        const timeoutId = setTimeout(() => controller.abort(), 30000)
+
+        response = await this.anthropic.messages.create(
+          {
+            model: config.model || "claude-sonnet-4-20250514",
+            max_tokens: config.maxTokens || 500,
+            temperature: config.temperature || 0.7,
+            system: systemPrompt,
+            messages: [
+              ...(knowledgeContext
+                ? [
+                    {
+                      role: "user" as const,
+                      content: `Relevant information from knowledge base:\n${knowledgeContext}`,
+                    },
+                    {
+                      role: "assistant" as const,
+                      content: "I'll use this information to help answer the customer's question.",
+                    },
+                  ]
+                : []),
+              ...messages,
+              {
+                role: "user" as const,
+                content: context.messageText,
+              },
+            ],
+            tools: tools.length > 0 ? tools : undefined,
+          },
+          { signal: controller.signal },
+        )
+        clearTimeout(timeoutId)
+      } catch (anthropicError: any) {
+        console.error(`[AI] Anthropic error (${anthropicError.name}):`, anthropicError.message)
 
         if (this.deepseekApiKey) {
-          response = await this.callDeepSeek(systemPrompt, messages, context.messageText, config)
-          usedProvider = "deepseek"
-        } else {
-          return {
-            response:
-              "I'm sorry, I'm having trouble connecting to my AI service right now. Please try again in a moment, or I can connect you with a human team member.",
-            shouldHandoff: true,
-            confidence: 0.0,
-            sentiment: "error",
-            usedFunctions: [],
+          try {
+            response = await this.callDeepSeek(systemPrompt, messages, context.messageText, config)
+            usedProvider = "deepseek"
+          } catch (deepseekError: any) {
+            console.error(`[AI] DeepSeek fallback failed:`, deepseekError.message)
+            return this.getFallbackResponse()
           }
+        } else {
+          return this.getFallbackResponse()
         }
       }
 
@@ -999,37 +1006,62 @@ Return:
     currentMessage: string,
     config: AIResponseConfig,
   ): Promise<any> {
-    const response = await fetch("https://api.deepseek.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${this.deepseekApiKey}`,
-      },
-      body: JSON.stringify({
-        model: "deepseek-chat",
-        messages: [
-          { role: "system", content: systemPrompt },
-          ...messages.map((m) => ({ role: m.role, content: m.content })),
-          { role: "user", content: currentMessage },
-        ],
-        max_tokens: config.maxTokens || 500,
-        temperature: config.temperature || 0.7,
-      }),
-    })
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), 20000)
 
-    if (!response.ok) {
-      throw new Error(`DeepSeek API error: ${response.statusText}`)
-    }
-
-    const data = (await response.json()) as DeepSeekResponse
-
-    return {
-      content: [
-        {
-          type: "text",
-          text: data.choices[0].message.content,
+    try {
+      const response = await fetch("https://api.deepseek.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${this.deepseekApiKey}`,
         },
-      ],
+        body: JSON.stringify({
+          model: "deepseek-chat",
+          messages: [
+            { role: "system", content: systemPrompt },
+            ...messages.map((m) => ({ role: m.role, content: m.content })),
+            { role: "user", content: currentMessage },
+          ],
+          max_tokens: config.maxTokens || 500,
+          temperature: config.temperature || 0.7,
+          stream: false,
+        }),
+        signal: controller.signal,
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(`DeepSeek API error: ${response.status} ${JSON.stringify(errorData)}`)
+      }
+
+      const data = (await response.json()) as DeepSeekResponse
+
+      if (!data.choices?.[0]?.message?.content) {
+        throw new Error("Invalid response format from DeepSeek")
+      }
+
+      return {
+        content: [
+          {
+            type: "text",
+            text: data.choices[0].message.content,
+          },
+        ],
+      }
+    } finally {
+      clearTimeout(timeout)
+    }
+  }
+
+  private getFallbackResponse() {
+    return {
+      response:
+        "I'm sorry, I'm having trouble connecting to my AI service right now. Please try again in a moment, or I can connect you with a human team member.",
+      shouldHandoff: true,
+      confidence: 0.0,
+      sentiment: "error",
+      usedFunctions: [],
     }
   }
 }
