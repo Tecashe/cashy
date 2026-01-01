@@ -3795,39 +3795,54 @@ private async executeAIResponse(actionData: any, context: ExecutionContext): Pro
       await this.instagramApi.sendMessage(context.senderId, aiResult.response)
 
       // 🔥 13. SEND PRODUCT CAROUSEL IF PRESENT (FIXED)
-        if (aiResult.carousel && aiResult.carousel.rawCards && aiResult.carousel.rawCards.length > 0) {
-          console.log("[Automation] 🎠 Sending product carousel with", aiResult.carousel.rawCards.length, "items")
+        // 🔥 SEND PRODUCTS AS IMAGES (Instagram doesn't support carousels in DMs)
+      if (aiResult.carousel && aiResult.carousel.rawCards && aiResult.carousel.rawCards.length > 0) {
+        console.log("[Automation] 🎠 Sending", aiResult.carousel.rawCards.length, "products")
 
+        const maxProducts = Math.min(aiResult.carousel.rawCards.length, 5)
+        
+        for (let i = 0; i < maxProducts; i++) {
+          const card = aiResult.carousel.rawCards[i]
+          
           try {
-            // Direct call - no token check needed!
-            await this.instagramApi.sendGenericTemplate(context.senderId, aiResult.carousel.rawCards)
-            console.log("[Automation] ✅ Carousel sent successfully")
-          } catch (carouselError) {
-            console.error("[Automation] ❌ Carousel send error:", carouselError)
-            
-            // Fallback: send as sequential images
-            console.log("[Automation] 📸 Falling back to sequential images")
-            for (const card of aiResult.carousel.rawCards.slice(0, 5)) {
-              try {
-                if (card.image_url) {
-                  await this.instagramApi.sendImageMessage(context.senderId, card.image_url)
-                  
-                  // Build caption text
-                  let caption = `*${card.title}*`
-                  if (card.subtitle) caption += `\n${card.subtitle}`
-                  if (card.buttons?.[0]?.url) caption += `\n\n🔗 ${card.buttons[0].url}`
-                  
-                  await this.instagramApi.sendTextMessage(context.senderId, caption)
-                  
-                  // Delay between messages
-                  await new Promise((resolve) => setTimeout(resolve, 1000))
+            // Send product image
+            if (card.image_url) {
+              await this.instagramApi.sendImageMessage(context.senderId, card.image_url)
+              
+              // Build caption with product info
+              let caption = `*${card.title}*`
+              
+              if (card.subtitle) {
+                caption += `\n${card.subtitle}`
+              }
+              
+              // Add button link if exists
+              if (card.buttons && card.buttons.length > 0) {
+                const button = card.buttons[0]
+                if (button.url) {
+                  caption += `\n\n🔗 View: ${button.url}`
+                } else if (button.title) {
+                  caption += `\n\n💬 ${button.title}`
                 }
-              } catch (imgError) {
-                console.error("[Automation] Failed to send image:", imgError)
+              }
+              
+              await this.instagramApi.sendTextMessage(context.senderId, caption)
+              
+              console.log(`[Automation] ✅ Sent product ${i + 1}/${maxProducts}:`, card.title)
+              
+              // Rate limit protection - wait between messages
+              if (i < maxProducts - 1) {
+                await new Promise((resolve) => setTimeout(resolve, 1500))
               }
             }
+          } catch (error) {
+            console.error(`[Automation] ❌ Failed to send product ${i + 1}:`, error)
+            // Continue with next product even if one fails
           }
         }
+        
+        console.log("[Automation] ✅ Finished sending all products")
+      }
       // if (aiResult.carousel && aiResult.carousel.rawCards && aiResult.carousel.rawCards.length > 0) {
       //   console.log("[Automation] 🎠 Sending product carousel with", aiResult.carousel.rawCards.length, "items")
 
