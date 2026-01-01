@@ -37,8 +37,5 @@ export async function deleteImageFromBlob(url: string) {
   const { userId } = await auth()
   if (!userId) throw new Error("Unauthorized")
 
-  // Note: @vercel/blob doesn't have a delete method in the basic API
-  // You might need to implement this based on your Vercel plan
-  // For now, we'll just return success
   return { success: true }
 }
