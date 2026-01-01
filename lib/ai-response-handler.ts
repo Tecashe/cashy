@@ -3165,7 +3165,6 @@ Return:
     console.log(`[AI] 🎠 Building carousel with ${productsToShow.length} products`)
 
     const cards = createProductCarouselCards(productsToShow)
-
     return {
       title: "Product Recommendations",
       items: cards.map((card) => ({
