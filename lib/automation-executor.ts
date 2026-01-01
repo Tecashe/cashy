@@ -3172,326 +3172,733 @@ export class AutomationExecutor {
     // await this.instagramApi.hideComment(context.commentId, shouldHide)
   }
 
-  private async executeAIResponse(actionData: any, context: ExecutionContext): Promise<void> {
-    try {
-      console.log("[Automation] 🤖 Executing AI Response with Commerce & MCP")
 
-      // 1. Get conversation history
-      const conversationHistory = await prisma.message.findMany({
-        where: { conversationId: context.conversationId },
-        orderBy: { timestamp: "desc" },
-        take: actionData.historyDepth || 20,
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  // private async executeAIResponse(actionData: any, context: ExecutionContext): Promise<void> {
+  //   try {
+  //     console.log("[Automation] 🤖 Executing AI Response with Commerce & MCP")
+
+  //     // 1. Get conversation history
+  //     const conversationHistory = await prisma.message.findMany({
+  //       where: { conversationId: context.conversationId },
+  //       orderBy: { timestamp: "desc" },
+  //       take: actionData.historyDepth || 20,
+  //       select: {
+  //         content: true,
+  //         sender: true,
+  //       },
+  //     })
+
+  //     // Reverse to get chronological order
+  //     const history = conversationHistory.reverse().map((msg) => ({
+  //       role: msg.sender === "participant" ? "participant" : "assistant",
+  //       content: msg.content,
+  //     }))
+
+  //     // 2. Get conversation context with commerce data
+  //     const conversation = await prisma.conversation.findUnique({
+  //       where: { id: context.conversationId },
+  //       include: {
+  //         conversationTags: {
+  //           include: { tag: true },
+  //         },
+  //         orders: {
+  //           orderBy: { createdAt: "desc" },
+  //           take: 5,
+  //           include: {
+  //             items: {
+  //               include: {
+  //                 product: true,
+  //               },
+  //             },
+  //           },
+  //         },
+  //         appointments: {
+  //           orderBy: { date: "desc" },
+  //           take: 3,
+  //         },
+  //         supportTickets: {
+  //           orderBy: { createdAt: "desc" },
+  //           take: 3,
+  //         },
+  //       },
+  //     })
+
+  //     if (!conversation) {
+  //       throw new Error("Conversation not found")
+  //     }
+
+  //     // 3. Get user's previous interactions for personalization
+  //     const previousInteractions = await prisma.message.findMany({
+  //       where: {
+  //         conversation: {
+  //           instagramAccountId: context.instagramAccountId,
+  //           participantId: context.senderId,
+  //         },
+  //       },
+  //       orderBy: { timestamp: "desc" },
+  //       take: 50,
+  //     })
+
+  //     // 4. Prepare AI config (merge action config with defaults)
+  //     const aiConfig = {
+  //       model: actionData.model || "claude-sonnet-4-20250514",
+  //       tone: actionData.tone || "professional",
+  //       language: actionData.language || "auto",
+  //       maxTokens: actionData.maxTokens || 2000,
+  //       temperature: actionData.temperature || 0.7,
+
+  //       systemPrompt: actionData.systemPrompt,
+  //       customInstructions: actionData.aiInstructions || actionData.customInstructions,
+  //       exampleConversations: actionData.exampleConversations || [],
+
+  //       // 🔥 COMMERCE FEATURES
+  //       enableCommerce: actionData.enableCommerce || false,
+  //       enablePayments: actionData.enablePayments || false,
+  //       enableAppointments: actionData.enableAppointments || false,
+  //       enableProductCatalog: actionData.enableProductCatalog || false,
+  //       mcpEnabled: actionData.mcpEnabled || false,
+
+  //       maxOrderValue: actionData.maxOrderValue || 500000, // $5000 in cents
+  //       requirePaymentConfirmation: actionData.requirePaymentConfirmation !== false,
+
+  //       useKnowledgeBase: actionData.aiKnowledgeBase || actionData.useKnowledgeBase || false,
+  //       knowledgeBaseDocs: actionData.knowledgeBaseDocs || [],
+
+  //       autoHandoff: actionData.autoHandoff !== false,
+  //       handoffTriggers: actionData.handoffTriggers || ["frustrated", "angry", "wants_human"],
+  //       maxTurns: actionData.maxTurns || 10,
+  //       confidenceThreshold: actionData.confidenceThreshold || 0.7,
+  //       useConversationHistory: actionData.useConversationHistory !== false,
+  //       historyDepth: actionData.historyDepth || 20,
+
+  //       contentFiltering: actionData.contentFiltering !== false,
+  //       sensitiveTopics: actionData.sensitiveTopics || [],
+  //       requireApproval: actionData.requireApproval || false,
+
+  //       useEmojis: actionData.useEmojis !== false,
+  //       responseLength: actionData.responseLength || "medium",
+  //       includeQuestions: actionData.includeQuestions !== false,
+  //       personalizeResponses: actionData.personalizeResponses !== false,
+
+  //       enabledFunctions: actionData.enabledFunctions || [],
+  //     }
+
+  //     // 5. Enhanced context with commerce data
+  //     const enhancedContext = {
+  //       conversationId: context.conversationId,
+  //       participantName: context.triggerData?.participantName || context.name || "there",
+  //       participantUsername: context.triggerData?.participantUsername || context.username,
+  //       messageText: context.messageText || "",
+  //       conversationHistory: history,
+  //       userTags: conversation.conversationTags.map((ct) => ct.tag.name),
+  //       previousInteractions,
+
+  //       // Commerce data
+  //       orderHistory: conversation.orders,
+  //       customerEmail: conversation.customerEmail,
+  //       customerPhone: conversation.customerPhone,
+  //       recentAppointments: conversation.appointments,
+  //       supportTickets: conversation.supportTickets,
+  //     }
+
+  //     // 6. Generate AI response
+  //     let aiResult
+  //     try {
+  //       aiResult = await aiResponseHandler.generateResponse(aiConfig, enhancedContext)
+  //     } catch (error) {
+  //       console.log("[Automation] Main AI failed, trying Puter.js fallback:", error)
+  //       const puterResponse = await callPuterAI(
+  //         context.messageText || "",
+  //         aiConfig.systemPrompt || "You are a helpful AI assistant.",
+  //       )
+
+  //       if (puterResponse.success) {
+  //         aiResult = {
+  //           response: puterResponse.response,
+  //           confidence: 0.8,
+  //           shouldHandoff: false,
+  //           sentiment: "neutral",
+  //         }
+  //       } else {
+  //         throw new Error("All AI providers failed")
+  //       }
+  //     }
+
+  //     console.log("[Automation] AI Response generated:", {
+  //       responseLength: aiResult.response.length,
+  //       confidence: aiResult.confidence,
+  //       shouldHandoff: aiResult.shouldHandoff,
+  //       sentiment: aiResult.sentiment || "neutral",
+  //       actionsExecuted: (aiResult as any).actions?.length || 0,
+  //     })
+
+  //     // 7. Execute any commerce actions that AI decided to take
+  //     const actions = (aiResult as any).actions
+  //     if (actions && Array.isArray(actions) && actions.length > 0) {
+  //       for (const action of actions) {
+  //         console.log(`[Automation] 🎯 AI executed: ${action.tool}`)
+
+  //         // Handle product carousel
+  //         if (action.tool === "send_product_carousel" && action.result?.success) {
+  //           const queuedMessage = await prisma.queuedMessage.findFirst({
+  //             where: {
+  //               conversationId: context.conversationId,
+  //               status: "pending",
+  //               type: "carousel",
+  //             },
+  //             orderBy: { createdAt: "desc" },
+  //           })
+
+  //           if (queuedMessage && typeof this.instagramApi.sendGenericTemplate === "function") {
+  //             const carouselData = JSON.parse(queuedMessage.content as string)
+  //             await this.instagramApi.sendGenericTemplate(context.senderId, carouselData.elements)
+
+  //             await prisma.queuedMessage.update({
+  //               where: { id: queuedMessage.id },
+  //               data: { status: "sent", sentAt: new Date() },
+  //             })
+  //           }
+  //         }
+
+  //         // Handle payment links
+  //         if (action.tool === "create_payment_link" && action.result?.success) {
+  //           await this.instagramApi.sendMessage(
+  //             context.senderId,
+  //             `💳 Secure payment link: ${action.result.payment_url}\n\nClick to complete your purchase. Link expires in 24 hours.`,
+  //           )
+  //         }
+
+  //         // Handle appointment bookings
+  //         if (action.tool === "book_appointment" && action.result?.success) {
+  //           await this.instagramApi.sendMessage(
+  //             context.senderId,
+  //             action.result.confirmation_message || "✅ Your appointment has been booked!",
+  //           )
+  //         }
+  //       }
+  //     }
+
+  //     // 8. Check if approval is required
+  //     if (aiConfig.requireApproval) {
+  //       await prisma.pendingAIResponse.create({
+  //         data: {
+  //           conversationId: context.conversationId,
+  //           response: aiResult.response,
+  //           confidence: aiResult.confidence,
+  //           sentiment: aiResult.sentiment || "neutral",
+  //           status: "pending",
+  //         },
+  //       })
+
+  //       console.log("[Automation] AI response queued for approval")
+  //       return
+  //     }
+
+  //     // 9. Check if handoff is needed
+  //     if (aiResult.shouldHandoff) {
+  //       console.log("[Automation] Handoff triggered:", aiResult.sentiment || "unknown")
+
+  //       await prisma.conversation.update({
+  //         where: { id: context.conversationId },
+  //         data: {
+  //           needsHumanReview: true,
+  //           handoffReason: aiResult.sentiment || "unknown",
+  //         },
+  //       })
+
+  //       if (actionData.handoffMessage) {
+  //         await this.instagramApi.sendMessage(context.senderId, actionData.handoffMessage)
+  //       } else {
+  //         await this.instagramApi.sendMessage(
+  //           context.senderId,
+  //           "Thanks for your patience! I'm connecting you with a team member who can assist you further.",
+  //         )
+  //       }
+
+  //       return
+  //     }
+
+  //     // 10. Send the AI response
+  //     if (aiResult.response) {
+  //       await this.instagramApi.sendMessage(context.senderId, aiResult.response)
+
+  //       if (aiResult.carousel && aiResult.carousel.rawCards && aiResult.carousel.rawCards.length > 0) {
+  //         console.log("[Automation] 🎠 Sending native Instagram carousel")
+
+  //         const pageAccessToken = process.env.INSTAGRAM_PAGE_ACCESS_TOKEN
+  //         if (pageAccessToken) {
+  //           await sendInstagramCarousel(context.senderId, aiResult.carousel.rawCards, pageAccessToken)
+  //         } else {
+  //           console.warn("[Automation] Cannot send carousel: INSTAGRAM_PAGE_ACCESS_TOKEN missing")
+  //           // Fallback for missing token: send images sequentially
+  //           for (const item of aiResult.carousel.items.slice(0, 3)) {
+  //             if (item.image_url) {
+  //               await this.instagramApi.sendImageMessage(context.senderId, item.image_url)
+  //               await this.instagramApi.sendTextMessage(
+  //                 context.senderId,
+  //                 `*${item.title}*\n${item.price || ""}\n${item.action_url}`,
+  //               )
+  //             }
+  //           }
+  //         }
+  //       }
+
+  //       // 11. Save AI response to conversation
+  //       await prisma.message.create({
+  //         data: {
+  //           conversationId: context.conversationId,
+  //           content: aiResult.response,
+  //           sender: "business",
+  //           isFromUser: true,
+  //           sentByAI: true,
+  //           messageType: "text",
+  //           timestamp: new Date(),
+  //           metadata: {
+  //             confidence: aiResult.confidence,
+  //             sentiment: aiResult.sentiment || "neutral",
+  //             usedFunctions: (aiResult as any).usedFunctions || [],
+  //             actions: (aiResult as any).actions || [],
+  //           },
+  //         },
+  //       })
+  //     }
+
+  //     // 12. Log interaction for analytics
+  //     await aiResponseHandler.logInteraction(context.conversationId, context.messageText || "", aiResult.response, {
+  //       confidence: aiResult.confidence,
+  //       sentiment: aiResult.sentiment || "neutral",
+  //       shouldHandoff: aiResult.shouldHandoff,
+  //       usedFunctions: (aiResult as any).usedFunctions || [],
+  //     })
+
+  //     console.log("[Automation] ✅ AI response sent successfully")
+  //   } catch (error) {
+  //     console.error("[Automation] ❌ AI Response error:", error)
+
+  //     // Fallback message
+  //     await this.instagramApi.sendMessage(
+  //       context.senderId,
+  //       "I apologize, but I'm having trouble processing that right now. Let me connect you with someone who can help.",
+  //     )
+
+  //     // Trigger human handoff on error
+  //     await prisma.conversation.update({
+  //       where: { id: context.conversationId },
+  //       data: {
+  //         needsHumanReview: true,
+  //         handoffReason: "ai_error",
+  //       },
+  //     })
+
+  //     throw error
+  //   }
+  // }
+
+  // ============================================================================
+// PART 1: automation-executor.ts - executeAIResponse method (COMPLETE FIX)
+// ============================================================================
+
+private async executeAIResponse(actionData: any, context: ExecutionContext): Promise<void> {
+  try {
+    console.log("[Automation] 🤖 Executing AI Response with Commerce & MCP")
+
+    // 1. Get conversation history
+    const conversationHistory = await prisma.message.findMany({
+      where: { conversationId: context.conversationId },
+      orderBy: { timestamp: "desc" },
+      take: actionData.historyDepth || 20,
+      select: {
+        content: true,
+        sender: true,
+      },
+    })
+
+    const history = conversationHistory.reverse().map((msg) => ({
+      role: msg.sender === "participant" ? "participant" : "assistant",
+      content: msg.content,
+    }))
+
+    // 2. Get conversation context with commerce data
+    const conversation = await prisma.conversation.findUnique({
+      where: { id: context.conversationId },
+      include: {
+        conversationTags: {
+          include: { tag: true },
+        },
+        orders: {
+          orderBy: { createdAt: "desc" },
+          take: 5,
+          include: {
+            items: {
+              include: {
+                product: true,
+              },
+            },
+          },
+        },
+        appointments: {
+          orderBy: { date: "desc" },
+          take: 3,
+        },
+        supportTickets: {
+          orderBy: { createdAt: "desc" },
+          take: 3,
+        },
+      },
+    })
+
+    if (!conversation) {
+      throw new Error("Conversation not found")
+    }
+
+    // 3. Get user's previous interactions
+    const previousInteractions = await prisma.message.findMany({
+      where: {
+        conversation: {
+          instagramAccountId: context.instagramAccountId,
+          participantId: context.senderId,
+        },
+      },
+      orderBy: { timestamp: "desc" },
+      take: 50,
+    })
+
+    // 🔥 4. FETCH KNOWLEDGE BASE DOCUMENTS (NEW)
+    let knowledgeDocuments: any[] = []
+    if (actionData.aiKnowledgeBase || actionData.useKnowledgeBase) {
+      console.log("[Automation] 📚 Loading knowledge base documents...")
+      
+      knowledgeDocuments = await prisma.knowledgeDocument.findMany({
+        where: { 
+          userId: context.userId,
+        },
         select: {
+          id: true,
+          title: true,
           content: true,
-          sender: true,
+          type: true,
+          tags: true,
         },
+        orderBy: { updatedAt: "desc" },
+        take: 50, // Limit to avoid token overflow
       })
 
-      // Reverse to get chronological order
-      const history = conversationHistory.reverse().map((msg) => ({
-        role: msg.sender === "participant" ? "participant" : "assistant",
-        content: msg.content,
-      }))
+      console.log(`[Automation] 📚 Loaded ${knowledgeDocuments.length} knowledge documents`)
+    }
 
-      // 2. Get conversation context with commerce data
-      const conversation = await prisma.conversation.findUnique({
-        where: { id: context.conversationId },
-        include: {
-          conversationTags: {
-            include: { tag: true },
-          },
-          orders: {
-            orderBy: { createdAt: "desc" },
-            take: 5,
-            include: {
-              items: {
-                include: {
-                  product: true,
-                },
-              },
-            },
-          },
-          appointments: {
-            orderBy: { date: "desc" },
-            take: 3,
-          },
-          supportTickets: {
-            orderBy: { createdAt: "desc" },
-            take: 3,
-          },
+    // 🔥 5. FETCH PRODUCTS IF COMMERCE IS ENABLED (NEW)
+    let products: any[] = []
+    if (actionData.enableCommerce || actionData.enableProductCatalog) {
+      console.log("[Automation] 🛍️ Loading product catalog...")
+      
+      products = await prisma.product.findMany({
+        where: { 
+          userId: context.userId,
+          isAvailable: true,
         },
-      })
-
-      if (!conversation) {
-        throw new Error("Conversation not found")
-      }
-
-      // 3. Get user's previous interactions for personalization
-      const previousInteractions = await prisma.message.findMany({
-        where: {
-          conversation: {
-            instagramAccountId: context.instagramAccountId,
-            participantId: context.senderId,
-          },
+        select: {
+          id: true,
+          name: true,
+          description: true,
+          price: true,
+          stock: true,
+          category: true,
+          images: true,
+          sku: true,
         },
-        orderBy: { timestamp: "desc" },
-        take: 50,
+        orderBy: { createdAt: "desc" },
+        take: 100,
       })
 
-      // 4. Prepare AI config (merge action config with defaults)
-      const aiConfig = {
-        model: actionData.model || "claude-sonnet-4-20250514",
-        tone: actionData.tone || "professional",
-        language: actionData.language || "auto",
-        maxTokens: actionData.maxTokens || 2000,
-        temperature: actionData.temperature || 0.7,
+      console.log(`[Automation] 🛍️ Loaded ${products.length} products`)
+    }
 
-        systemPrompt: actionData.systemPrompt,
-        customInstructions: actionData.aiInstructions || actionData.customInstructions,
-        exampleConversations: actionData.exampleConversations || [],
+    // 🔥 6. GET BUSINESS INFORMATION (NEW)
+    const user = await prisma.user.findUnique({
+      where: { id: context.userId },
+      select: {
+        businessName: true,
+        businessDescription: true,
+        businessType: true,
+        businessIndustry: true,
+      },
+    })
 
-        // 🔥 COMMERCE FEATURES
-        enableCommerce: actionData.enableCommerce || false,
-        enablePayments: actionData.enablePayments || false,
-        enableAppointments: actionData.enableAppointments || false,
-        enableProductCatalog: actionData.enableProductCatalog || false,
-        mcpEnabled: actionData.mcpEnabled || false,
+    // 7. Prepare AI config
+    const aiConfig = {
+      model: actionData.model || actionData.aiModel || "claude-sonnet-4-20250514",
+      tone: actionData.tone || "professional",
+      language: actionData.language || "auto",
+      maxTokens: actionData.maxTokens || 2000,
+      temperature: actionData.temperature || 0.7,
 
-        maxOrderValue: actionData.maxOrderValue || 500000, // $5000 in cents
-        requirePaymentConfirmation: actionData.requirePaymentConfirmation !== false,
+      systemPrompt: actionData.systemPrompt,
+      customInstructions: actionData.aiInstructions || actionData.customInstructions,
+      exampleConversations: actionData.exampleConversations || [],
 
-        useKnowledgeBase: actionData.aiKnowledgeBase || actionData.useKnowledgeBase || false,
-        knowledgeBaseDocs: actionData.knowledgeBaseDocs || [],
+      enableCommerce: actionData.enableCommerce || false,
+      enablePayments: actionData.enablePayments || false,
+      enableAppointments: actionData.enableAppointments || false,
+      enableProductCatalog: actionData.enableProductCatalog || false,
+      mcpEnabled: actionData.mcpEnabled || false,
 
-        autoHandoff: actionData.autoHandoff !== false,
-        handoffTriggers: actionData.handoffTriggers || ["frustrated", "angry", "wants_human"],
-        maxTurns: actionData.maxTurns || 10,
-        confidenceThreshold: actionData.confidenceThreshold || 0.7,
-        useConversationHistory: actionData.useConversationHistory !== false,
-        historyDepth: actionData.historyDepth || 20,
+      maxOrderValue: actionData.maxOrderValue || 500000,
+      requirePaymentConfirmation: actionData.requirePaymentConfirmation !== false,
 
-        contentFiltering: actionData.contentFiltering !== false,
-        sensitiveTopics: actionData.sensitiveTopics || [],
-        requireApproval: actionData.requireApproval || false,
+      useKnowledgeBase: actionData.aiKnowledgeBase || actionData.useKnowledgeBase || false,
+      knowledgeBaseDocs: actionData.knowledgeBaseDocs || [],
 
-        useEmojis: actionData.useEmojis !== false,
-        responseLength: actionData.responseLength || "medium",
-        includeQuestions: actionData.includeQuestions !== false,
-        personalizeResponses: actionData.personalizeResponses !== false,
+      autoHandoff: actionData.autoHandoff !== false,
+      handoffTriggers: actionData.handoffTriggers || ["frustrated", "angry", "wants_human"],
+      maxTurns: actionData.maxTurns || 10,
+      confidenceThreshold: actionData.confidenceThreshold || 0.7,
+      useConversationHistory: actionData.useConversationHistory !== false,
+      historyDepth: actionData.historyDepth || 20,
 
-        enabledFunctions: actionData.enabledFunctions || [],
-      }
+      contentFiltering: actionData.contentFiltering !== false,
+      sensitiveTopics: actionData.sensitiveTopics || [],
+      requireApproval: actionData.requireApproval || false,
 
-      // 5. Enhanced context with commerce data
-      const enhancedContext = {
-        conversationId: context.conversationId,
-        participantName: context.triggerData?.participantName || context.name || "there",
-        participantUsername: context.triggerData?.participantUsername || context.username,
-        messageText: context.messageText || "",
-        conversationHistory: history,
-        userTags: conversation.conversationTags.map((ct) => ct.tag.name),
-        previousInteractions,
+      useEmojis: actionData.useEmojis !== false,
+      responseLength: actionData.responseLength || "medium",
+      includeQuestions: actionData.includeQuestions !== false,
+      personalizeResponses: actionData.personalizeResponses !== false,
 
-        // Commerce data
-        orderHistory: conversation.orders,
-        customerEmail: conversation.customerEmail,
-        customerPhone: conversation.customerPhone,
-        recentAppointments: conversation.appointments,
-        supportTickets: conversation.supportTickets,
-      }
+      enabledFunctions: actionData.enabledFunctions || [],
+    }
 
-      // 6. Generate AI response
-      let aiResult
-      try {
-        aiResult = await aiResponseHandler.generateResponse(aiConfig, enhancedContext)
-      } catch (error) {
-        console.log("[Automation] Main AI failed, trying Puter.js fallback:", error)
-        const puterResponse = await callPuterAI(
-          context.messageText || "",
-          aiConfig.systemPrompt || "You are a helpful AI assistant.",
-        )
+    // 🔥 8. ENHANCED CONTEXT WITH EVERYTHING (UPDATED)
+    const enhancedContext = {
+      conversationId: context.conversationId,
+      participantName: context.triggerData?.participantName || context.name || "there",
+      participantUsername: context.triggerData?.participantUsername || context.username,
+      messageText: context.messageText || "",
+      conversationHistory: history,
+      userTags: conversation.conversationTags.map((ct) => ct.tag.name),
+      previousInteractions,
+      userId: context.userId, // ✅ Important for product search
 
-        if (puterResponse.success) {
-          aiResult = {
-            response: puterResponse.response,
-            confidence: 0.8,
-            shouldHandoff: false,
-            sentiment: "neutral",
-          }
-        } else {
-          throw new Error("All AI providers failed")
-        }
-      }
+      // Commerce data - Convert null to undefined
+      orderHistory: conversation.orders,
+      customerEmail: conversation.customerEmail ?? undefined,
+      customerPhone: conversation.customerPhone ?? undefined,
+      recentAppointments: conversation.appointments,
+      supportTickets: conversation.supportTickets,
 
-      console.log("[Automation] AI Response generated:", {
-        responseLength: aiResult.response.length,
-        confidence: aiResult.confidence,
-        shouldHandoff: aiResult.shouldHandoff,
-        sentiment: aiResult.sentiment || "neutral",
-        actionsExecuted: (aiResult as any).actions?.length || 0,
-      })
+      // 🔥 NEW: KNOWLEDGE BASE AND PRODUCTS
+      knowledgeBase: knowledgeDocuments,
+      products: products,
+      
+      // 🔥 NEW: BUSINESS CONTEXT - Convert null to undefined
+      businessName: user?.businessName ?? undefined,
+      businessDescription: user?.businessDescription ?? undefined,
+      businessType: user?.businessType ?? undefined,
+      businessIndustry: user?.businessIndustry ?? undefined,
+    }
 
-      // 7. Execute any commerce actions that AI decided to take
-      const actions = (aiResult as any).actions
-      if (actions && Array.isArray(actions) && actions.length > 0) {
-        for (const action of actions) {
-          console.log(`[Automation] 🎯 AI executed: ${action.tool}`)
+    console.log("[Automation] 📊 Context prepared:", {
+      knowledgeDocsCount: knowledgeDocuments.length,
+      productsCount: products.length,
+      historyLength: history.length,
+      hasBusinessInfo: !!user?.businessName,
+    })
 
-          // Handle product carousel
-          if (action.tool === "send_product_carousel" && action.result?.success) {
-            const queuedMessage = await prisma.queuedMessage.findFirst({
-              where: {
-                conversationId: context.conversationId,
-                status: "pending",
-                type: "carousel",
-              },
-              orderBy: { createdAt: "desc" },
-            })
-
-            if (queuedMessage && typeof this.instagramApi.sendGenericTemplate === "function") {
-              const carouselData = JSON.parse(queuedMessage.content as string)
-              await this.instagramApi.sendGenericTemplate(context.senderId, carouselData.elements)
-
-              await prisma.queuedMessage.update({
-                where: { id: queuedMessage.id },
-                data: { status: "sent", sentAt: new Date() },
-              })
-            }
-          }
-
-          // Handle payment links
-          if (action.tool === "create_payment_link" && action.result?.success) {
-            await this.instagramApi.sendMessage(
-              context.senderId,
-              `💳 Secure payment link: ${action.result.payment_url}\n\nClick to complete your purchase. Link expires in 24 hours.`,
-            )
-          }
-
-          // Handle appointment bookings
-          if (action.tool === "book_appointment" && action.result?.success) {
-            await this.instagramApi.sendMessage(
-              context.senderId,
-              action.result.confirmation_message || "✅ Your appointment has been booked!",
-            )
-          }
-        }
-      }
-
-      // 8. Check if approval is required
-      if (aiConfig.requireApproval) {
-        await prisma.pendingAIResponse.create({
-          data: {
-            conversationId: context.conversationId,
-            response: aiResult.response,
-            confidence: aiResult.confidence,
-            sentiment: aiResult.sentiment || "neutral",
-            status: "pending",
-          },
-        })
-
-        console.log("[Automation] AI response queued for approval")
-        return
-      }
-
-      // 9. Check if handoff is needed
-      if (aiResult.shouldHandoff) {
-        console.log("[Automation] Handoff triggered:", aiResult.sentiment || "unknown")
-
-        await prisma.conversation.update({
-          where: { id: context.conversationId },
-          data: {
-            needsHumanReview: true,
-            handoffReason: aiResult.sentiment || "unknown",
-          },
-        })
-
-        if (actionData.handoffMessage) {
-          await this.instagramApi.sendMessage(context.senderId, actionData.handoffMessage)
-        } else {
-          await this.instagramApi.sendMessage(
-            context.senderId,
-            "Thanks for your patience! I'm connecting you with a team member who can assist you further.",
-          )
-        }
-
-        return
-      }
-
-      // 10. Send the AI response
-      if (aiResult.response) {
-        await this.instagramApi.sendMessage(context.senderId, aiResult.response)
-
-        if (aiResult.carousel && aiResult.carousel.rawCards && aiResult.carousel.rawCards.length > 0) {
-          console.log("[Automation] 🎠 Sending native Instagram carousel")
-
-          const pageAccessToken = process.env.INSTAGRAM_PAGE_ACCESS_TOKEN
-          if (pageAccessToken) {
-            await sendInstagramCarousel(context.senderId, aiResult.carousel.rawCards, pageAccessToken)
-          } else {
-            console.warn("[Automation] Cannot send carousel: INSTAGRAM_PAGE_ACCESS_TOKEN missing")
-            // Fallback for missing token: send images sequentially
-            for (const item of aiResult.carousel.items.slice(0, 3)) {
-              if (item.image_url) {
-                await this.instagramApi.sendImageMessage(context.senderId, item.image_url)
-                await this.instagramApi.sendTextMessage(
-                  context.senderId,
-                  `*${item.title}*\n${item.price || ""}\n${item.action_url}`,
-                )
-              }
-            }
-          }
-        }
-
-        // 11. Save AI response to conversation
-        await prisma.message.create({
-          data: {
-            conversationId: context.conversationId,
-            content: aiResult.response,
-            sender: "business",
-            isFromUser: true,
-            sentByAI: true,
-            messageType: "text",
-            timestamp: new Date(),
-            metadata: {
-              confidence: aiResult.confidence,
-              sentiment: aiResult.sentiment || "neutral",
-              usedFunctions: (aiResult as any).usedFunctions || [],
-              actions: (aiResult as any).actions || [],
-            },
-          },
-        })
-      }
-
-      // 12. Log interaction for analytics
-      await aiResponseHandler.logInteraction(context.conversationId, context.messageText || "", aiResult.response, {
-        confidence: aiResult.confidence,
-        sentiment: aiResult.sentiment || "neutral",
-        shouldHandoff: aiResult.shouldHandoff,
-        usedFunctions: (aiResult as any).usedFunctions || [],
-      })
-
-      console.log("[Automation] ✅ AI response sent successfully")
+    // 9. Generate AI response
+    let aiResult
+    try {
+      aiResult = await aiResponseHandler.generateResponse(aiConfig, enhancedContext)
     } catch (error) {
-      console.error("[Automation] ❌ AI Response error:", error)
-
-      // Fallback message
-      await this.instagramApi.sendMessage(
-        context.senderId,
-        "I apologize, but I'm having trouble processing that right now. Let me connect you with someone who can help.",
+      console.log("[Automation] Main AI failed, trying Puter.js fallback:", error)
+      const puterResponse = await callPuterAI(
+        context.messageText || "",
+        aiConfig.systemPrompt || "You are a helpful AI assistant.",
       )
 
-      // Trigger human handoff on error
+      if (puterResponse.success) {
+        aiResult = {
+          response: puterResponse.response,
+          confidence: 0.8,
+          shouldHandoff: false,
+          sentiment: "neutral",
+        }
+      } else {
+        throw new Error("All AI providers failed")
+      }
+    }
+
+    console.log("[Automation] AI Response generated:", {
+      responseLength: aiResult.response.length,
+      confidence: aiResult.confidence,
+      shouldHandoff: aiResult.shouldHandoff,
+      sentiment: aiResult.sentiment || "neutral",
+      hasCarousel: !!aiResult.carousel,
+      actionsExecuted: (aiResult as any).actions?.length || 0,
+    })
+
+    // 10. Check if approval is required
+    if (aiConfig.requireApproval) {
+      await prisma.pendingAIResponse.create({
+        data: {
+          conversationId: context.conversationId,
+          response: aiResult.response,
+          confidence: aiResult.confidence,
+          sentiment: aiResult.sentiment || "neutral",
+          status: "pending",
+        },
+      })
+
+      console.log("[Automation] AI response queued for approval")
+      return
+    }
+
+    // 11. Check if handoff is needed
+    if (aiResult.shouldHandoff) {
+      console.log("[Automation] Handoff triggered:", aiResult.sentiment || "unknown")
+
       await prisma.conversation.update({
         where: { id: context.conversationId },
         data: {
           needsHumanReview: true,
-          handoffReason: "ai_error",
+          handoffReason: aiResult.sentiment || "unknown",
         },
       })
 
-      throw error
+      if (actionData.handoffMessage) {
+        await this.instagramApi.sendMessage(context.senderId, actionData.handoffMessage)
+      } else {
+        await this.instagramApi.sendMessage(
+          context.senderId,
+          "Thanks for your patience! I'm connecting you with a team member who can assist you further.",
+        )
+      }
+
+      return
     }
+
+    // 12. Send the AI response
+    if (aiResult.response) {
+      await this.instagramApi.sendMessage(context.senderId, aiResult.response)
+
+      // 🔥 13. SEND PRODUCT CAROUSEL IF PRESENT (FIXED)
+      if (aiResult.carousel && aiResult.carousel.rawCards && aiResult.carousel.rawCards.length > 0) {
+        console.log("[Automation] 🎠 Sending product carousel with", aiResult.carousel.rawCards.length, "items")
+
+        const pageAccessToken = process.env.INSTAGRAM_PAGE_ACCESS_TOKEN
+        if (pageAccessToken) {
+          try {
+            // Use the sendGenericTemplate method to send carousel
+            if (typeof this.instagramApi.sendGenericTemplate === "function") {
+              await this.instagramApi.sendGenericTemplate(context.senderId, aiResult.carousel.rawCards)
+              console.log("[Automation] ✅ Carousel sent successfully")
+            } else {
+              console.warn("[Automation] sendGenericTemplate not available, sending as sequential images")
+              // Fallback: send images sequentially
+              for (const card of aiResult.carousel.rawCards.slice(0, 5)) {
+                if (card.image_url) {
+                  await this.instagramApi.sendImageMessage(context.senderId, card.image_url)
+                  await this.instagramApi.sendTextMessage(
+                    context.senderId,
+                    `*${card.title}*\n${card.subtitle || ""}\n${card.buttons?.[0]?.url || ""}`,
+                  )
+                  await new Promise((resolve) => setTimeout(resolve, 1000))
+                }
+              }
+            }
+          } catch (carouselError) {
+            console.error("[Automation] ❌ Carousel send error:", carouselError)
+            // Non-blocking error - continue execution
+          }
+        } else {
+          console.warn("[Automation] Cannot send carousel: INSTAGRAM_PAGE_ACCESS_TOKEN missing")
+        }
+      }
+
+      // 14. Save AI response to conversation
+      await prisma.message.create({
+        data: {
+          conversationId: context.conversationId,
+          content: aiResult.response,
+          sender: "business",
+          isFromUser: true,
+          sentByAI: true,
+          messageType: "text",
+          timestamp: new Date(),
+          metadata: {
+            confidence: aiResult.confidence,
+            sentiment: aiResult.sentiment || "neutral",
+            usedFunctions: (aiResult as any).usedFunctions || [],
+            hasCarousel: !!aiResult.carousel,
+          },
+        },
+      })
+    }
+
+    // 15. Log interaction for analytics
+    await aiResponseHandler.logInteraction(
+      context.conversationId, 
+      context.messageText || "", 
+      aiResult.response, 
+      {
+        confidence: aiResult.confidence,
+        sentiment: aiResult.sentiment || "neutral",
+        shouldHandoff: aiResult.shouldHandoff,
+        usedFunctions: (aiResult as any).usedFunctions || [],
+        hasCarousel: !!aiResult.carousel,
+      }
+    )
+
+    console.log("[Automation] ✅ AI response sent successfully")
+  } catch (error) {
+    console.error("[Automation] ❌ AI Response error:", error)
+
+    await this.instagramApi.sendMessage(
+      context.senderId,
+      "I apologize, but I'm having trouble processing that right now. Let me connect you with someone who can help.",
+    )
+
+    await prisma.conversation.update({
+      where: { id: context.conversationId },
+      data: {
+        needsHumanReview: true,
+        handoffReason: "ai_error",
+      },
+    })
+
+    throw error
   }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   private async executeAddTag(actionData: any, context: ExecutionContext): Promise<void> {
     const { tagName, tag } = actionData
