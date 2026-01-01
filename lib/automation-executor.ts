@@ -3795,38 +3795,71 @@ private async executeAIResponse(actionData: any, context: ExecutionContext): Pro
       await this.instagramApi.sendMessage(context.senderId, aiResult.response)
 
       // 🔥 13. SEND PRODUCT CAROUSEL IF PRESENT (FIXED)
-      if (aiResult.carousel && aiResult.carousel.rawCards && aiResult.carousel.rawCards.length > 0) {
-        console.log("[Automation] 🎠 Sending product carousel with", aiResult.carousel.rawCards.length, "items")
+        if (aiResult.carousel && aiResult.carousel.rawCards && aiResult.carousel.rawCards.length > 0) {
+          console.log("[Automation] 🎠 Sending product carousel with", aiResult.carousel.rawCards.length, "items")
 
-        const pageAccessToken = process.env.INSTAGRAM_PAGE_ACCESS_TOKEN
-        if (pageAccessToken) {
           try {
-            // Use the sendGenericTemplate method to send carousel
-            if (typeof this.instagramApi.sendGenericTemplate === "function") {
-              await this.instagramApi.sendGenericTemplate(context.senderId, aiResult.carousel.rawCards)
-              console.log("[Automation] ✅ Carousel sent successfully")
-            } else {
-              console.warn("[Automation] sendGenericTemplate not available, sending as sequential images")
-              // Fallback: send images sequentially
-              for (const card of aiResult.carousel.rawCards.slice(0, 5)) {
-                if (card.image_url) {
-                  await this.instagramApi.sendImageMessage(context.senderId, card.image_url)
-                  await this.instagramApi.sendTextMessage(
-                    context.senderId,
-                    `*${card.title}*\n${card.subtitle || ""}\n${card.buttons?.[0]?.url || ""}`,
-                  )
-                  await new Promise((resolve) => setTimeout(resolve, 1000))
-                }
-              }
-            }
+            // Direct call - no token check needed!
+            await this.instagramApi.sendGenericTemplate(context.senderId, aiResult.carousel.rawCards)
+            console.log("[Automation] ✅ Carousel sent successfully")
           } catch (carouselError) {
             console.error("[Automation] ❌ Carousel send error:", carouselError)
-            // Non-blocking error - continue execution
+            
+            // Fallback: send as sequential images
+            console.log("[Automation] 📸 Falling back to sequential images")
+            for (const card of aiResult.carousel.rawCards.slice(0, 5)) {
+              try {
+                if (card.image_url) {
+                  await this.instagramApi.sendImageMessage(context.senderId, card.image_url)
+                  
+                  // Build caption text
+                  let caption = `*${card.title}*`
+                  if (card.subtitle) caption += `\n${card.subtitle}`
+                  if (card.buttons?.[0]?.url) caption += `\n\n🔗 ${card.buttons[0].url}`
+                  
+                  await this.instagramApi.sendTextMessage(context.senderId, caption)
+                  
+                  // Delay between messages
+                  await new Promise((resolve) => setTimeout(resolve, 1000))
+                }
+              } catch (imgError) {
+                console.error("[Automation] Failed to send image:", imgError)
+              }
+            }
           }
-        } else {
-          console.warn("[Automation] Cannot send carousel: INSTAGRAM_PAGE_ACCESS_TOKEN missing")
         }
-      }
+      // if (aiResult.carousel && aiResult.carousel.rawCards && aiResult.carousel.rawCards.length > 0) {
+      //   console.log("[Automation] 🎠 Sending product carousel with", aiResult.carousel.rawCards.length, "items")
+
+      //   const pageAccessToken = process.env.INSTAGRAM_PAGE_ACCESS_TOKEN
+      //   if (pageAccessToken) {
+      //     try {
+      //       // Use the sendGenericTemplate method to send carousel
+      //       if (typeof this.instagramApi.sendGenericTemplate === "function") {
+      //         await this.instagramApi.sendGenericTemplate(context.senderId, aiResult.carousel.rawCards)
+      //         console.log("[Automation] ✅ Carousel sent successfully")
+      //       } else {
+      //         console.warn("[Automation] sendGenericTemplate not available, sending as sequential images")
+      //         // Fallback: send images sequentially
+      //         for (const card of aiResult.carousel.rawCards.slice(0, 5)) {
+      //           if (card.image_url) {
+      //             await this.instagramApi.sendImageMessage(context.senderId, card.image_url)
+      //             await this.instagramApi.sendTextMessage(
+      //               context.senderId,
+      //               `*${card.title}*\n${card.subtitle || ""}\n${card.buttons?.[0]?.url || ""}`,
+      //             )
+      //             await new Promise((resolve) => setTimeout(resolve, 1000))
+      //           }
+      //         }
+      //       }
+      //     } catch (carouselError) {
+      //       console.error("[Automation] ❌ Carousel send error:", carouselError)
+      //       // Non-blocking error - continue execution
+      //     }
+      //   } else {
+      //     console.warn("[Automation] Cannot send carousel: INSTAGRAM_PAGE_ACCESS_TOKEN missing")
+      //   }
+      // }
 
       // 14. Save AI response to conversation
       await prisma.message.create({
