@@ -28,6 +28,9 @@ model User {
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
 
+  stripeCustomerId    String?
+  paymentMethods      PaymentMethod[]
+
   instagramAccounts  InstagramAccount[]
   automations        Automation[]
   conversations      Conversation[]
@@ -45,9 +48,32 @@ model User {
   knowledgeDocuments KnowledgeDocument[]
   businessProfile    BusinessProfile?
 
+  payments           Payment[] // added payments relationship
+  subscription       Subscription? // added subscription relationship
+
+
   @@index([clerkId])
   @@index([email])
   @@index([subscriptionTier])
+}
+
+model PaymentMethod {
+  id                      String   @id @default(cuid())
+  userId                  String
+  user                    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  stripePaymentMethodId   String   @unique
+  last4                   String
+  brand                   String
+  expiryMonth             Int
+  expiryYear              Int
+  isDefault               Boolean  @default(false)
+
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  @@index([userId])
+  @@index([isDefault])
 }
 
 model InstagramAccount {
@@ -731,4 +757,48 @@ model BusinessProfile {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+}
+
+
+
+
+
+
+model Payment {
+  id                      String   @id @default(cuid())
+  userId                  String
+  user                    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  amount                  Int      // amount in cents
+  currency                String   @default("usd")
+  status                  String   @default("pending") // pending, succeeded, failed
+  description             String?
+  stripePaymentIntentId   String   @unique
+  
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model Subscription {
+  id                      String   @id @default(cuid())
+  userId                  String   @unique
+  user                    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  tier                    String   @default("free") // free, pro, enterprise
+  status                  String   @default("active") // active, canceled, past_due
+  currentPeriodStart      DateTime
+  currentPeriodEnd        DateTime
+  cancelAtPeriodEnd       Boolean  @default(false)
+  canceledAt              DateTime?
+  stripeSubscriptionId    String?  @unique
+  
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  @@index([status])
+  @@index([tier])
 }
