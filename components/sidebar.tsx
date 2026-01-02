@@ -1631,7 +1631,7 @@ function SidebarContent({
                     <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border-2 border-dashed border-border">
                       <Plus className="h-4 w-4 text-muted-foreground" />
                     </div>
-                    <span className="text-sm text-foreground font-medium">Connect Account</span>
+                    <span className="text-sm text-foreground font-medium">Add Account</span>
                   </Link>
                 </DropdownMenuItem>
               </DropdownMenuContent>
