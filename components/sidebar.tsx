@@ -1387,11 +1387,11 @@ const navigation: NavigationItem[] = [
   //     },
   //   ],
   // },
-  // {
-  //   name: "AI-settings",
-  //   href: "/ai-dashboard",
-  //   icon: FileText,
-  // },
+  {
+    name: "AI-settings",
+    href: "/ai-dashboard",
+    icon: FileText,
+  },
   {
     name: "Accounts",
     href: "/accounts",
