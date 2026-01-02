@@ -11,7 +11,7 @@ const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
 interface PaymentModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  tier: "pro" | "enterprise"
+  tier: "free"|"pro" | "enterprise"
   onSuccess?: () => void
   clientSecret: string | null
   isLoading?: boolean

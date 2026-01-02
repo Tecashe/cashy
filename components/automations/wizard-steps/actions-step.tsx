@@ -651,10 +651,16 @@ import { Plus, GripVertical, Trash2, Workflow, ChevronUp, ChevronDown } from "lu
 import { ACTION_TYPES } from "@/lib/constants/automations"
 import { ActionSelector } from "../action-selector"
 import { ActionConfigModal } from "../action-config"
+import { UpgradeModal } from "./upgrade-modal"
 import type { AutomationFlow, ActionConfig, ActionType } from "@/lib/types/automation"
 import { motion, AnimatePresence } from "framer-motion"
 import { useConfirm } from "../confirm-dialog"
-import { isFeatureAvailable, getMinimumTierForFeature, type SubscriptionTier } from "@/lib/tier-config"
+import { 
+  isFeatureAvailable, 
+  getMinimumTierForFeature, 
+  getActionBenefits,
+  type SubscriptionTier 
+} from "@/lib/tier-config"
 
 interface ActionsStepProps {
   flow: AutomationFlow
@@ -663,9 +669,18 @@ interface ActionsStepProps {
   userTier?: SubscriptionTier
 }
 
+interface UpgradeModalState {
+  open: boolean
+  actionType: ActionType | null
+}
+
 export function ActionsStep({ flow, setFlow, tags, userTier = "free" }: ActionsStepProps) {
   const [showSelector, setShowSelector] = useState(false)
   const [editingAction, setEditingAction] = useState<number | null>(null)
+  const [upgradeModal, setUpgradeModal] = useState<UpgradeModalState>({
+    open: false,
+    actionType: null,
+  })
   const { confirm, dialog } = useConfirm()
 
   const canAddAction = (type: ActionType): boolean => {
@@ -675,16 +690,12 @@ export function ActionsStep({ flow, setFlow, tags, userTier = "free" }: ActionsS
   const handleAddAction = async (type: ActionType) => {
     if (!canAddAction(type)) {
       const requiredTier = getMinimumTierForFeature("action", type)
-      await confirm({
-        title: "Plan Upgrade Required",
-        description: `This action requires the ${requiredTier} plan. Upgrade now to unlock advanced automation features.`,
-        confirmText: "Upgrade Now",
-        cancelText: "Cancel",
-        variant: "default",
-        onConfirm: () => {
-          // Handle upgrade flow
-          window.location.href = "/billing"
-        },
+      const actionInfo = ACTION_TYPES[type]
+      
+      // Show beautiful upgrade modal instead of browser confirm
+      setUpgradeModal({
+        open: true,
+        actionType: type,
       })
       return
     }
@@ -887,6 +898,19 @@ export function ActionsStep({ flow, setFlow, tags, userTier = "free" }: ActionsS
             action={flow.actions[editingAction]}
             onSave={(action) => handleUpdateAction(editingAction, action)}
             tags={tags}
+          />
+        )}
+
+        {upgradeModal.open && upgradeModal.actionType && (
+          <UpgradeModal
+            open={upgradeModal.open}
+            onClose={() => setUpgradeModal({ open: false, actionType: null })}
+            featureName={ACTION_TYPES[upgradeModal.actionType].label}
+            requiredTier={getMinimumTierForFeature("action", upgradeModal.actionType)}
+            benefits={getActionBenefits(
+              upgradeModal.actionType,
+              getMinimumTierForFeature("action", upgradeModal.actionType)
+            )}
           />
         )}
       </div>
