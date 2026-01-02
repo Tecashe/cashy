@@ -24,7 +24,7 @@ export default async function SubscriptionPage() {
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Choose Your Plan</h1>
+        <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Choose YourPlan</h1>
         <p className="mt-2 text-slate-600 dark:text-slate-400">Upgrade to unlock powerful automation features</p>
       </div>
 
