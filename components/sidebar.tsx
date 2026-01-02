@@ -1360,38 +1360,38 @@ const navigation: NavigationItem[] = [
     href: "/automations",
     icon: Zap,
   },
-  {
-    name: "Content Hub",
-    href: "/content",
-    icon: ImageIcon,
-  },
-  {
-    name: "Media Library",
-    href: "/media",
-    icon: Grid3x3,
-  },
-  {
-    name: "Integrations",
-    href: "/dashboard/integrations",
-    icon: Boxes,
-    subItems: [
-      {
-        name: "Calendly",
-        href: "/dashboard/integrations/calendly",
-        icon: Calendar,
-      },
-      {
-        name: "Shopify",
-        href: "/dashboard/integrations/shopify",
-        icon: ShoppingBag,
-      },
-    ],
-  },
-  {
-    name: "Templates",
-    href: "/dashboard/templates",
-    icon: FileText,
-  },
+  // {
+  //   name: "Content Hub",
+  //   href: "/content",
+  //   icon: ImageIcon,
+  // },
+  // {
+  //   name: "Media Library",
+  //   href: "/media",
+  //   icon: Grid3x3,
+  // },
+  // {
+  //   name: "Integrations",
+  //   href: "/dashboard/integrations",
+  //   icon: Boxes,
+  //   subItems: [
+  //     {
+  //       name: "Calendly",
+  //       href: "/dashboard/integrations/calendly",
+  //       icon: Calendar,
+  //     },
+  //     {
+  //       name: "Shopify",
+  //       href: "/dashboard/integrations/shopify",
+  //       icon: ShoppingBag,
+  //     },
+  //   ],
+  // },
+  // {
+  //   name: "AI-settings",
+  //   href: "/ai-dashboard",
+  //   icon: FileText,
+  // },
   {
     name: "Accounts",
     href: "/accounts",
