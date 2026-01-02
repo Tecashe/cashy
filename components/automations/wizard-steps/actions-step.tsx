@@ -651,7 +651,7 @@ import { Plus, GripVertical, Trash2, Workflow, ChevronUp, ChevronDown } from "lu
 import { ACTION_TYPES } from "@/lib/constants/automations"
 import { ActionSelector } from "../action-selector"
 import { ActionConfigModal } from "../action-config"
-import { UpgradeModal } from "./upgrade-modal"
+import { UpgradeModal } from "../../billing/upgrade-dialog"
 import type { AutomationFlow, ActionConfig, ActionType } from "@/lib/types/automation"
 import { motion, AnimatePresence } from "framer-motion"
 import { useConfirm } from "../confirm-dialog"
