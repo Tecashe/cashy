@@ -95,7 +95,7 @@ export function createProductCarouselCards(products: any[]): CarouselCard[] {
   return products.map((product) => ({
     title: product.name,
     subtitle: product.description || `$${product.price}`,
-    image_url: product.imageUrl || "/placeholder.svg",
+    image_url: product.images[0] || "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800",
     buttons: [
       {
         type: "web_url",
