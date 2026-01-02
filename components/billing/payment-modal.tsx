@@ -29,6 +29,15 @@ export function PaymentModal({
     clientSecret: clientSecret || "",
   })
 
+//   const options = {
+//   clientSecret: clientSecret,
+//   onComplete: () => {
+//     // This callback is for EmbeddedCheckoutProvider, not EmbeddedCheckout
+//     onSuccess?.()
+//     onOpenChange(false)
+//   }
+// }
+
   useEffect(() => {
     if (clientSecret) {
       setOptions({ clientSecret })
@@ -51,18 +60,38 @@ export function PaymentModal({
     )
   }
 
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle>Complete Your Payment</DialogTitle>
-          <DialogDescription>Upgrade to the {tier} plan to unlock premium features</DialogDescription>
-        </DialogHeader>
+  // return (
+  //   <Dialog open={open} onOpenChange={onOpenChange}>
+  //     <DialogContent className="max-w-md">
+  //       <DialogHeader>
+  //         <DialogTitle>Complete Your Payment</DialogTitle>
+  //         <DialogDescription>Upgrade to the {tier} plan to unlock premium features</DialogDescription>
+  //       </DialogHeader>
 
-        <EmbeddedCheckoutProvider stripe={stripePromise} options={options}>
-          <EmbeddedCheckout onComplete={onSuccess} />
-        </EmbeddedCheckoutProvider>
-      </DialogContent>
-    </Dialog>
-  )
+  //       <EmbeddedCheckoutProvider stripe={stripePromise} options={options}>
+  //         <EmbeddedCheckout
+  //           onComplete={() => {
+  //             onSuccess?.()
+  //             onOpenChange(false)
+  //           }}
+  //         />
+  //       </EmbeddedCheckoutProvider>
+  //     </DialogContent>
+  //   </Dialog>
+  // )
+  
+return (
+  <Dialog open={open} onOpenChange={onOpenChange}>
+    <DialogContent className="max-w-md">
+      <DialogHeader>
+        <DialogTitle>Complete Your Payment</DialogTitle>
+        <DialogDescription>Upgrade to the {tier} plan</DialogDescription>
+      </DialogHeader>
+
+      <EmbeddedCheckoutProvider stripe={stripePromise} options={options}>
+        <EmbeddedCheckout />
+      </EmbeddedCheckoutProvider>
+    </DialogContent>
+  </Dialog>
+)
 }

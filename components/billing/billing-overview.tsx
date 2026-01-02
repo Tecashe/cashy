@@ -25,7 +25,9 @@ export function BillingOverview({ userId }: { userId: string }) {
         setData({
           tier: subRes.data.user.subscriptionTier,
           status: subRes.data.subscription?.status || "active",
-          currentPeriodEnd: subRes.data.subscription?.currentPeriodEnd,
+          currentPeriodEnd: subRes.data.subscription?.currentPeriodEnd
+            ? new Date(subRes.data.subscription.currentPeriodEnd)
+            : null,
           totalSpent: statsRes.data.totalSpent / 100,
           paymentCount: statsRes.data.paymentCount,
         })
@@ -63,7 +65,7 @@ export function BillingOverview({ userId }: { userId: string }) {
     },
     {
       label: "Next Billing Date",
-      value: data.currentPeriodEnd ? formatDate(new Date(data.currentPeriodEnd)) : "N/A",
+      value: data.currentPeriodEnd ? formatDate(data.currentPeriodEnd) : "N/A",
       subtext: "Renews automatically",
     },
     {

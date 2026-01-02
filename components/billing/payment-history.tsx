@@ -16,7 +16,7 @@ interface Payment {
   createdAt: Date
 }
 
-const statusConfig = {
+const statusConfig: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
   succeeded: { label: "Completed", variant: "default" },
   pending: { label: "Pending", variant: "secondary" },
   failed: { label: "Failed", variant: "destructive" },
@@ -68,29 +68,30 @@ export function PaymentHistory({ userId }: { userId: string }) {
                 </tr>
               </thead>
               <tbody>
-                {payments.map((payment) => (
-                  <tr key={payment.id} className="border-b border-border/30 hover:bg-muted/20 transition-colors">
-                    <td className="py-4 px-4">
-                      <span className="text-foreground">{formatDate(new Date(payment.createdAt))}</span>
-                    </td>
-                    <td className="py-4 px-4">
-                      <span className="text-foreground">{payment.description || "Subscription"}</span>
-                    </td>
-                    <td className="py-4 px-4 text-right">
-                      <span className="font-medium">
-                        ${(payment.amount / 100).toFixed(2)} {payment.currency.toUpperCase()}
-                      </span>
-                    </td>
-                    <td className="py-4 px-4 text-center">
-                      <Badge variant={statusConfig[payment.status as keyof typeof statusConfig]?.variant || "outline"}>
-                        {statusConfig[payment.status as keyof typeof statusConfig]?.label || payment.status}
-                      </Badge>
-                    </td>
-                    <td className="py-4 px-4 text-center">
-                      <button className="text-primary hover:underline text-xs font-medium">Download</button>
-                    </td>
-                  </tr>
-                ))}
+                {payments.map((payment) => {
+                  const config = statusConfig[payment.status] || { label: payment.status, variant: "outline" as const }
+                  return (
+                    <tr key={payment.id} className="border-b border-border/30 hover:bg-muted/20 transition-colors">
+                      <td className="py-4 px-4">
+                        <span className="text-foreground">{formatDate(new Date(payment.createdAt))}</span>
+                      </td>
+                      <td className="py-4 px-4">
+                        <span className="text-foreground">{payment.description || "Subscription"}</span>
+                      </td>
+                      <td className="py-4 px-4 text-right">
+                        <span className="font-medium">
+                          ${(payment.amount / 100).toFixed(2)} {payment.currency.toUpperCase()}
+                        </span>
+                      </td>
+                      <td className="py-4 px-4 text-center">
+                        <Badge variant={config.variant}>{config.label}</Badge>
+                      </td>
+                      <td className="py-4 px-4 text-center">
+                        <button className="text-primary hover:underline text-xs font-medium">Download</button>
+                      </td>
+                    </tr>
+                  )
+                })}
               </tbody>
             </table>
           </div>

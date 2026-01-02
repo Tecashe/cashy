@@ -98,9 +98,11 @@ interface TriggerSelectorProps {
   onClose: () => void
   onSelect: (type: TriggerType) => void
   existingTriggers?: TriggerType[]
+  userTier: "pro" | "enterprise" | "free"
+  canAddTrigger: (type: TriggerType) => boolean
 }
 
-export function TriggerSelector({ open, onClose, onSelect, existingTriggers = [] }: TriggerSelectorProps) {
+export function TriggerSelector({ open, onClose, userTier, onSelect, existingTriggers = [] }: TriggerSelectorProps) {
   const handleSelect = (type: TriggerType) => {
     onSelect(type)
     onClose()
