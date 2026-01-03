@@ -26,25 +26,39 @@ const handleUpgradeOrDowngrade = async (targetTier: SubscriptionTier) => {
     setProcessingTier(targetTier)
 
     if (targetTier === "free") {
-      // Downgrade to free
+      // Show confirmation dialog first
+      const confirmed = window.confirm(
+        "Are you sure you want to downgrade to Free? You'll lose access to premium features."
+      )
+      if (!confirmed) return
+
       const res = await fetch("/api/subscriptions/downgrade", {
         method: "POST",
       })
 
       if (!res.ok) {
-        toast.error("Failed to downgrade subscription")
+        const error = await res.json()
+        toast.error(error.details || "Failed to downgrade subscription")
         return
       }
 
-      toast.success("Downgraded to Free plan")
-      window.location.reload()
+      toast.success("Successfully downgraded to Free plan!")
+      
+      // Show loading state before reload
+      setTimeout(() => {
+        window.location.reload()
+      }, 1500)
     } else {
-      // Upgrade to pro or enterprise
+      // Show loading toast
+      const loadingToast = toast.loading(`Upgrading to ${TIER_DISPLAY[targetTier].name}...`)
+
       const res = await fetch("/api/subscriptions/upgrade", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ tier: targetTier }),
       })
+
+      toast.dismiss(loadingToast)
 
       if (!res.ok) {
         const error = await res.json()
@@ -56,22 +70,27 @@ const handleUpgradeOrDowngrade = async (targetTier: SubscriptionTier) => {
 
       // If checkout is required, redirect to Stripe Checkout
       if (data.requiresCheckout && data.checkoutUrl) {
-        window.location.href = data.checkoutUrl
+        toast.success("Redirecting to payment...")
+        setTimeout(() => {
+          window.location.href = data.checkoutUrl
+        }, 500)
         return
       }
 
-      toast.success(`Upgraded to ${TIER_DISPLAY[targetTier].name} plan`)
-      window.location.reload()
+      // Show success and reload
+      toast.success(`Successfully upgraded to ${TIER_DISPLAY[targetTier].name} plan!`)
+      setTimeout(() => {
+        window.location.reload()
+      }, 1500)
     }
   } catch (error) {
     console.error("Error:", error)
-    toast.error("Something went wrong")
+    toast.error("Something went wrong. Please try again.")
   } finally {
     setLoading(false)
     setProcessingTier(null)
   }
 }
-
   return (
     <div className="space-y-6">
       <div>
