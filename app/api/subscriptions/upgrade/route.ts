@@ -88,8 +88,8 @@ import Stripe from "stripe"
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
 
 const PRICE_IDS = {
-  pro: process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID || "price_1QmIW9DyVRYWFW9zMT4wQ8Xy",
-  enterprise: process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID || "price_1QmIW9DyVRYWFW9zMT4wQ8Xy",
+  pro: process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID || "price_1RREVGGLBdyWcD0JxyZCsUlv",
+  enterprise: process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID || "price_1RREVGGLBdyWcD0JxyZCsUlv",
 }
 
 export async function POST(request: Request) {
