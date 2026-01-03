@@ -2075,8 +2075,6 @@
 
 "use client"
 
-import type React from "react"
-
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
@@ -2114,7 +2112,6 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import Image from "next/image"
 import { toast } from "sonner"
-import { InstagramAvatar } from "./instagram-avatar"
 
 interface InstagramAccount {
   id: string
@@ -2179,6 +2176,46 @@ const navigation: NavigationItem[] = [
   },
 ]
 
+// Utility function to proxy Instagram images
+function proxyInstagramImage(url: string | null | undefined): string {
+  if (!url) return ""
+  if (url.includes("cdninstagram.com")) {
+    return `/api/proxy/image?url=${encodeURIComponent(url)}`
+  }
+  return url
+}
+
+// Cookie utilities
+function getCookie(name: string): string | null {
+  if (typeof document === "undefined") return null
+  const value = `; ${document.cookie}`
+  const parts = value.split(`; ${name}=`)
+  if (parts.length === 2) return parts.pop()?.split(";").shift() || null
+  return null
+}
+
+function setCookie(name: string, value: string) {
+  if (typeof document === "undefined") return
+  const d = new Date()
+  d.setTime(d.getTime() + 30 * 24 * 60 * 60 * 1000) // 30 days
+  const expires = "expires=" + d.toUTCString()
+  document.cookie = `${name}=${value};${expires};path=/`
+}
+
+interface SidebarContentProps {
+  isCollapsed: boolean
+  pathname: string | null
+  navigation: NavigationItem[]
+  openSubmenus: Record<string, boolean>
+  toggleSubmenu: (name: string) => void
+  accounts: InstagramAccount[]
+  selectedAccount: InstagramAccount | null
+  loading: boolean
+  handleAccountSwitch: (account: InstagramAccount) => void
+  currentTier: string
+  onNavigate?: () => void
+}
+
 function SidebarContent({
   isCollapsed,
   pathname,
@@ -2191,19 +2228,7 @@ function SidebarContent({
   handleAccountSwitch,
   currentTier,
   onNavigate,
-}: {
-  isCollapsed: boolean
-  pathname: string | null
-  navigation: NavigationItem[]
-  openSubmenus: Record<string, boolean>
-  toggleSubmenu: (name: string) => void
-  accounts: InstagramAccount[]
-  selectedAccount: InstagramAccount | null
-  loading: boolean
-  handleAccountSwitch: (account: InstagramAccount) => void
-  currentTier: string
-  onNavigate?: () => void
-}) {
+}: SidebarContentProps) {
   return (
     <>
       {/* Navigation */}
@@ -2313,6 +2338,7 @@ function SidebarContent({
         })}
       </nav>
 
+      {/* Account Selector */}
       {!isCollapsed && (
         <div className="border-t border-border p-4">
           {loading ? (
@@ -2320,7 +2346,7 @@ function SidebarContent({
               <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
             </div>
           ) : accounts.length === 0 ? (
-            <Link href="/api/auth/instagram/connect" onClick={onNavigate}>
+            <a href="/api/auth/instagram/connect">
               <Button
                 variant="outline"
                 className="w-full justify-start gap-3 h-auto p-3 hover:bg-accent rounded-xl transition-all hover:shadow-md dark:hover:shadow-black/30 bg-transparent"
@@ -2330,7 +2356,7 @@ function SidebarContent({
                 </div>
                 <span className="text-sm text-foreground font-medium">Connect Instagram</span>
               </Button>
-            </Link>
+            </a>
           ) : (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -2338,18 +2364,12 @@ function SidebarContent({
                   variant="ghost"
                   className="w-full justify-start gap-3 h-auto p-3 hover:bg-accent rounded-xl transition-all hover:shadow-md dark:hover:shadow-black/30"
                 >
-                  {/* <Avatar className="h-9 w-9 shrink-0 border-2 border-border shadow-md">
-                    <AvatarImage src={selectedAccount?.profilePicUrl || ""} />
+                  <Avatar className="h-9 w-9 shrink-0 border-2 border-border shadow-md">
+                    <AvatarImage src={proxyInstagramImage(selectedAccount?.profilePicUrl)} />
                     <AvatarFallback className="bg-foreground text-background font-semibold text-xs">
                       {selectedAccount?.username.substring(0, 2).toUpperCase()}
                     </AvatarFallback>
-                  </Avatar> */}
-                  <InstagramAvatar
-                      src={selectedAccount?.profilePicUrl||""}
-                      alt={selectedAccount?.username || ""}
-                      fallback={selectedAccount?.username.substring(0, 2).toUpperCase() || ""}
-                      className="h-9 w-9 shrink-0 border-2 border-border shadow-md"
-                    />
+                  </Avatar>
                   <div className="flex flex-1 flex-col items-start text-left min-w-0">
                     <div className="flex items-center gap-1.5 w-full min-w-0">
                       <span className="text-sm font-semibold text-foreground truncate">
@@ -2373,7 +2393,7 @@ function SidebarContent({
                     className="flex items-center gap-3 p-3 cursor-pointer focus:bg-accent rounded-lg transition-all"
                   >
                     <Avatar className="h-8 w-8 shrink-0 shadow-sm">
-                      <AvatarImage src={account.profilePicUrl || ""} />
+                      <AvatarImage src={proxyInstagramImage(account.profilePicUrl)} />
                       <AvatarFallback className="bg-foreground text-background text-xs font-semibold">
                         {account.username.substring(0, 2).toUpperCase()}
                       </AvatarFallback>
@@ -2391,15 +2411,15 @@ function SidebarContent({
                 ))}
                 <DropdownMenuSeparator className="bg-border" />
                 <DropdownMenuItem asChild>
-                  <Link
+                  <a
                     href={currentTier === "free" ? "/billing" : "/api/auth/instagram/connect"}
                     className="flex items-center gap-3 p-3 cursor-pointer focus:bg-accent rounded-lg transition-all"
                     onClick={(e) => {
                       if (currentTier === "free") {
                         e.preventDefault()
                         toast.error("Upgrade to Pro to add a second account")
+                        onNavigate?.()
                       }
-                      onNavigate?.()
                     }}
                   >
                     {currentTier === "free" ? (
@@ -2414,7 +2434,7 @@ function SidebarContent({
                     <span className="text-sm text-foreground font-medium">
                       {currentTier === "free" ? "Upgrade for Multiple Accounts" : "Add Account"}
                     </span>
-                  </Link>
+                  </a>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -2459,7 +2479,7 @@ function SidebarContent({
         <div className="flex flex-col items-center gap-3 border-t border-border p-3">
           {selectedAccount ? (
             <Avatar className="h-9 w-9 border-2 border-border shadow-md">
-              <AvatarImage src={selectedAccount.profilePicUrl || ""} />
+              <AvatarImage src={proxyInstagramImage(selectedAccount.profilePicUrl)} />
               <AvatarFallback className="bg-foreground text-background text-xs font-semibold">
                 {selectedAccount.username.substring(0, 2).toUpperCase()}
               </AvatarFallback>
@@ -2545,8 +2565,6 @@ export function Sidebar() {
   const handleAccountSwitch = async (account: InstagramAccount) => {
     setSelectedAccount(account)
     setCookie("selectedInstagramAccountId", account.id)
-
-    // Trigger a page refresh to reload data for the new account
     window.location.reload()
   }
 
@@ -2559,15 +2577,30 @@ export function Sidebar() {
 
   return (
     <>
+      {/* Mobile Menu */}
       <div className="lg:hidden">
         <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
           <SheetTrigger asChild>
-            <Button variant="ghost" size="icon" className="fixed top-4 left-4 z-40 h-10 w-10 lg:hidden">
+            <Button
+              variant="outline"
+              size="icon"
+              className="fixed top-4 left-4 z-50 h-10 w-10 bg-card border-border shadow-lg hover:bg-accent"
+            >
               <Menu className="h-5 w-5" />
             </Button>
           </SheetTrigger>
           <SheetContent side="left" className="w-72 p-0 bg-card border-border">
             <div className="flex h-full flex-col">
+              {/* Mobile Header */}
+              <div className="flex h-16 items-center justify-between px-4 border-b border-border">
+                <div className="flex items-center gap-3">
+                  <div className="relative h-10 w-10 shrink-0">
+                    <Image src="/branded-original.png" alt="Logo" fill className="object-contain" />
+                  </div>
+                  <span className="text-lg font-bold text-foreground">Yazzil</span>
+                </div>
+              </div>
+
               <SidebarContent
                 isCollapsed={false}
                 pathname={pathname}
@@ -2586,12 +2619,14 @@ export function Sidebar() {
         </Sheet>
       </div>
 
+      {/* Desktop Sidebar */}
       <div
         className={cn(
           "hidden lg:flex h-full flex-col border-r border-border bg-card transition-all duration-300",
           isCollapsed ? "w-20" : "w-72",
         )}
       >
+        {/* Desktop Header */}
         <div className="flex h-16 items-center justify-between px-4 border-b border-border">
           {!isCollapsed && (
             <div className="flex items-center gap-3 flex-1">
@@ -2649,20 +2684,4 @@ export function Sidebar() {
       </div>
     </>
   )
-}
-
-function getCookie(name: string): string | null {
-  if (typeof document === "undefined") return null
-  const value = `; ${document.cookie}`
-  const parts = value.split(`; ${name}=`)
-  if (parts.length === 2) return parts.pop()?.split(";").shift() || null
-  return null
-}
-
-function setCookie(name: string, value: string) {
-  if (typeof document === "undefined") return
-  const d = new Date()
-  d.setTime(d.getTime() + 30 * 24 * 60 * 60 * 1000) // 30 days
-  const expires = "expires=" + d.toUTCString()
-  document.cookie = `${name}=${value};${expires};path=/`
 }
