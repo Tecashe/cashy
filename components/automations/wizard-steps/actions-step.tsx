@@ -960,7 +960,7 @@ interface UpgradeModalState {
   actionType: ActionType | null
 }
 
-export function ActionsStep({ flow, setFlow, tags, userTier = "free" }: ActionsStepProps) {
+export function ActionsStep({ flow, setFlow, tags, userTier = "pro" }: ActionsStepProps) {
   const [showSelector, setShowSelector] = useState(false)
   const [editingAction, setEditingAction] = useState<number | null>(null)
   const [upgradeModal, setUpgradeModal] = useState<UpgradeModalState>({
