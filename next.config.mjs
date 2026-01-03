@@ -32,7 +32,6 @@ const nextConfig = {
   output: 'standalone',
   staticPageGenerationTimeout: 120,
   reactStrictMode: true,
-  swcMinify: true,
   
   env: {
     NEXT_PUBLIC_APP_URL: process.env.VERCEL_URL 
@@ -40,13 +39,11 @@ const nextConfig = {
       : 'http://localhost:3000',
   },
   
-  webpack: (config) => {
-    config.externals.push({
-      bufferutil: 'bufferutil',
-      'utf-8-validate': 'utf-8-validate',
-    })
-    return config
-  },
+  // Add empty turbopack config to silence the warning
+  turbopack: {},
+  
+  // Remove webpack config as it's not needed for Turbopack
+  // If you need custom webpack config, migrate to Turbopack config
 };
 
 export default nextConfig;
