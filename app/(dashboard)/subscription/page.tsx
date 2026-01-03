@@ -12,7 +12,7 @@ async function getCurrentSubscription(userId: string) {
     where: { clerkId: userId },
     select: { subscriptionTier: true, subscriptionStatus: true },
   })
-  return user?.subscriptionTier || "free"
+  return user?.subscriptionTier||"unknown"
 }
 
 export default async function SubscriptionPage() {
