@@ -138,6 +138,28 @@
   }
 }
 
+
+@layer components {
+  /* Command palette, dropdowns, popovers */
+  [cmdk-root],
+  [data-radix-popper-content-wrapper] > *,
+  [role="dialog"]:not([data-state="closed"]),
+  .popover-content,
+  .dropdown-menu-content,
+  .select-content {
+    background: #141414 !important;
+    backdrop-filter: blur(12px);
+  }
+  
+  /* Ensure z-index is high enough */
+  [cmdk-root] {
+    z-index: 50;
+  }
+}
+
+
+
+
 /* Scroll animations */
 @keyframes fade-in-up {
   from {
