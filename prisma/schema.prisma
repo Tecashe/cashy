@@ -50,6 +50,7 @@ model User {
 
   payments           Payment[] // added payments relationship
   subscription       Subscription? // added subscription relationship
+  notifications      Notification[]
 
 
   @@index([clerkId])
@@ -801,4 +802,26 @@ model Subscription {
 
   @@index([status])
   @@index([tier])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  type      String
+  title     String
+  message   String
+  icon      String?
+  data      Json?
+  isRead    Boolean  @default(false)
+  actionUrl String?
+  createdAt DateTime @default(now())
+  readAt    DateTime?
+
+  // Relationship
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Indexes
+  @@index([userId])
+  @@index([isRead])
+  @@index([createdAt])
 }

@@ -73,7 +73,7 @@ import { redirect } from "next/navigation"
 import { Sidebar } from "@/components/sidebar"
 import { Header } from "@/components/header"
 import { ensureUserExists } from "@/lib/actions/user-sync"
-import { prisma } from "@/lib/db"
+import { NotificationPopup } from "@/components/notifications/notification-popup"
 
 export default async function DashboardLayout({ children }: { children: ReactNode }) {
   // Get authenticated user from Clerk
