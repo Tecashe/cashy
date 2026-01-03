@@ -2114,6 +2114,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import Image from "next/image"
 import { toast } from "sonner"
+import { InstagramAvatar } from "./instagram-avatar"
 
 interface InstagramAccount {
   id: string
@@ -2337,12 +2338,18 @@ function SidebarContent({
                   variant="ghost"
                   className="w-full justify-start gap-3 h-auto p-3 hover:bg-accent rounded-xl transition-all hover:shadow-md dark:hover:shadow-black/30"
                 >
-                  <Avatar className="h-9 w-9 shrink-0 border-2 border-border shadow-md">
+                  {/* <Avatar className="h-9 w-9 shrink-0 border-2 border-border shadow-md">
                     <AvatarImage src={selectedAccount?.profilePicUrl || ""} />
                     <AvatarFallback className="bg-foreground text-background font-semibold text-xs">
                       {selectedAccount?.username.substring(0, 2).toUpperCase()}
                     </AvatarFallback>
-                  </Avatar>
+                  </Avatar> */}
+                  <InstagramAvatar
+                      src={selectedAccount?.profilePicUrl||""}
+                      alt={selectedAccount?.username || ""}
+                      fallback={selectedAccount?.username.substring(0, 2).toUpperCase() || ""}
+                      className="h-9 w-9 shrink-0 border-2 border-border shadow-md"
+                    />
                   <div className="flex flex-1 flex-col items-start text-left min-w-0">
                     <div className="flex items-center gap-1.5 w-full min-w-0">
                       <span className="text-sm font-semibold text-foreground truncate">
