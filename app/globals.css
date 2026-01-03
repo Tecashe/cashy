@@ -136,6 +136,17 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  /* Ensure mobile menu button is visible */
+  .lg\:hidden {
+    display: block !important;
+  }
+  
+  @media (min-width: 1024px) {
+    .lg\:hidden {
+      display: none !important;
+    }
+  }
 }
 
 

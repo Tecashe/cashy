@@ -20,54 +20,57 @@ export function SubscriptionTiers({ currentTier, userId }: SubscriptionTiersProp
 
   const tiers: SubscriptionTier[] = ["free", "pro", "enterprise"]
 
-  const handleUpgradeOrDowngrade = async (targetTier: SubscriptionTier) => {
-    try {
-      setLoading(true)
-      setProcessingTier(targetTier)
+const handleUpgradeOrDowngrade = async (targetTier: SubscriptionTier) => {
+  try {
+    setLoading(true)
+    setProcessingTier(targetTier)
 
-      if (targetTier === "free") {
-        // Downgrade to free
-        const res = await fetch("/api/subscriptions/downgrade", {
-          method: "POST",
-        })
+    if (targetTier === "free") {
+      // Downgrade to free
+      const res = await fetch("/api/subscriptions/downgrade", {
+        method: "POST",
+      })
 
-        if (!res.ok) {
-          toast.error("Failed to downgrade subscription")
-          return
-        }
-
-        toast.success("Downgraded to Free plan")
-      } else {
-        // Upgrade to pro or enterprise
-        const res = await fetch("/api/subscriptions/upgrade", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ tier: targetTier }),
-        })
-
-        if (!res.ok) {
-          toast.error("Failed to upgrade subscription")
-          return
-        }
-
-        const data = await res.json()
-
-        // If invoice needs payment, redirect to Stripe checkout
-        if (data.subscription?.latest_invoice?.payment_intent?.client_secret) {
-          window.location.href = `/billing/checkout?clientSecret=${data.subscription.latest_invoice.payment_intent.client_secret}`
-        } else {
-          toast.success(`Upgraded to ${TIER_DISPLAY[targetTier].name} plan`)
-          window.location.reload()
-        }
+      if (!res.ok) {
+        toast.error("Failed to downgrade subscription")
+        return
       }
-    } catch (error) {
-      console.error("Error:", error)
-      toast.error("Something went wrong")
-    } finally {
-      setLoading(false)
-      setProcessingTier(null)
+
+      toast.success("Downgraded to Free plan")
+      window.location.reload()
+    } else {
+      // Upgrade to pro or enterprise
+      const res = await fetch("/api/subscriptions/upgrade", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tier: targetTier }),
+      })
+
+      if (!res.ok) {
+        const error = await res.json()
+        toast.error(error.details || "Failed to upgrade subscription")
+        return
+      }
+
+      const data = await res.json()
+
+      // If checkout is required, redirect to Stripe Checkout
+      if (data.requiresCheckout && data.checkoutUrl) {
+        window.location.href = data.checkoutUrl
+        return
+      }
+
+      toast.success(`Upgraded to ${TIER_DISPLAY[targetTier].name} plan`)
+      window.location.reload()
     }
+  } catch (error) {
+    console.error("Error:", error)
+    toast.error("Something went wrong")
+  } finally {
+    setLoading(false)
+    setProcessingTier(null)
   }
+}
 
   return (
     <div className="space-y-6">
