@@ -952,7 +952,7 @@ interface ActionsStepProps {
   flow: AutomationFlow
   setFlow: (flow: AutomationFlow) => void
   tags: any[]
-  userTier?: SubscriptionTier
+  userTier: SubscriptionTier
 }
 
 interface UpgradeModalState {
@@ -960,7 +960,7 @@ interface UpgradeModalState {
   actionType: ActionType | null
 }
 
-export function ActionsStep({ flow, setFlow, tags, userTier = "pro" }: ActionsStepProps) {
+export function ActionsStep({ flow, setFlow, tags, userTier}: ActionsStepProps) {
   const [showSelector, setShowSelector] = useState(false)
   const [editingAction, setEditingAction] = useState<number | null>(null)
   const [upgradeModal, setUpgradeModal] = useState<UpgradeModalState>({
