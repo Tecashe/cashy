@@ -2205,21 +2205,6 @@ function SidebarContent({
 }) {
   return (
     <>
-      <div className="flex items-center justify-center border-b border-border p-4">
-        {isCollapsed ? (
-          <div className="relative h-10 w-10 shrink-0">
-            <Image src="/branded-original.png" alt="Logo" fill className="object-contain" />
-          </div>
-        ) : (
-          <div className="flex items-center gap-3 w-full">
-            <div className="relative h-10 w-10 shrink-0">
-              <Image src="/branded-original.png" alt="Logo" fill className="object-contain" />
-            </div>
-            <span className="text-lg font-bold text-foreground">Yazzil</span>
-          </div>
-        )}
-      </div>
-
       {/* Navigation */}
       <nav className="flex-1 space-y-1 overflow-y-auto p-3">
         {navigation.map((item) => {
@@ -2602,8 +2587,11 @@ export function Sidebar() {
       >
         <div className="flex h-16 items-center justify-between px-4 border-b border-border">
           {!isCollapsed && (
-            <div className="relative h-10 w-full max-w-[160px]">
-              <Image src="/branded-original.png" alt="Logo" fill className="object-contain" />
+            <div className="flex items-center gap-3 flex-1">
+              <div className="relative h-10 w-10 shrink-0">
+                <Image src="/branded-original.png" alt="Logo" fill className="object-contain" />
+              </div>
+              <span className="text-lg font-bold text-foreground">Yazzil</span>
             </div>
           )}
           {isCollapsed && (
@@ -2636,18 +2624,21 @@ export function Sidebar() {
           </div>
         )}
 
-        <SidebarContent
-          isCollapsed={isCollapsed}
-          pathname={pathname}
-          navigation={navigation}
-          openSubmenus={openSubmenus}
-          toggleSubmenu={toggleSubmenu}
-          accounts={accounts}
-          selectedAccount={selectedAccount}
-          loading={loading}
-          handleAccountSwitch={handleAccountSwitch}
-          currentTier={currentTier}
-        />
+        <div className="flex h-full flex-col">
+          <SidebarContent
+            isCollapsed={isCollapsed}
+            pathname={pathname}
+            navigation={navigation}
+            openSubmenus={openSubmenus}
+            toggleSubmenu={toggleSubmenu}
+            accounts={accounts}
+            selectedAccount={selectedAccount}
+            loading={loading}
+            handleAccountSwitch={handleAccountSwitch}
+            currentTier={currentTier}
+            onNavigate={() => {}}
+          />
+        </div>
       </div>
     </>
   )
