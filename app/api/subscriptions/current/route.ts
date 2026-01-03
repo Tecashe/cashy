@@ -1,0 +1,145 @@
+// import { auth } from "@clerk/nextjs/server"
+// import { NextResponse } from "next/server"
+// import Stripe from "stripe"
+
+// const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
+
+// export async function GET() {
+//   try {
+//     const { userId } = await auth()
+
+//     if (!userId) {
+//       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+//     }
+
+//     // Get customer from metadata
+//     const customers = await stripe.customers.list({
+//       email: userId,
+//       limit: 1,
+//     })
+
+//     if (!customers.data.length) {
+//       return NextResponse.json({
+//         tier: "free",
+//         status: "inactive",
+//         subscription: null,
+//         customer: null,
+//       })
+//     }
+
+//     const customer = customers.data[0]
+
+//     // Get subscriptions
+//     const subscriptions = await stripe.subscriptions.list({
+//       customer: customer.id,
+//       limit: 1,
+//       status: "all",
+//     })
+
+//     const subscription = subscriptions.data[0] || null
+
+//     // Determine tier from subscription
+//     let tier = "free"
+//     if (subscription && subscription.status === "active") {
+//       const priceId = subscription.items.data[0]?.price.id
+//       if (priceId?.includes("pro")) {
+//         tier = "pro"
+//       } else if (priceId?.includes("enterprise")) {
+//         tier = "enterprise"
+//       }
+//     }
+// //yguyg
+//     return NextResponse.json({
+//       tier,
+//       status: subscription?.status || "inactive",
+//       subscription: subscription
+//         ? {
+//             id: subscription.id,
+//             status: subscription.status,
+//             currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+//             currentPeriodStart: new Date(subscription.current_period_start * 1000),
+//           }
+//         : null,
+//       customer: {
+//         id: customer.id,
+//         email: customer.email,
+//       },
+//     })
+//   } catch (error) {
+//     console.error("Error fetching subscription:", error)
+//     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+//   }
+// }
+
+import { auth } from "@clerk/nextjs/server"
+import { NextResponse } from "next/server"
+import Stripe from "stripe"
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
+
+export async function GET() {
+  try {
+    const { userId } = await auth()
+
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    // Get customer from metadata
+    const customers = await stripe.customers.list({
+      email: userId,
+      limit: 1,
+    })
+
+    if (!customers.data.length) {
+      return NextResponse.json({
+        tier: "free",
+        status: "inactive",
+        subscription: null,
+        customer: null,
+      })
+    }
+
+    const customer = customers.data[0]
+
+    // Get subscriptions
+    const subscriptions = await stripe.subscriptions.list({
+      customer: customer.id,
+      limit: 1,
+      status: "all",
+    })
+
+    const subscription = subscriptions.data[0] || null
+
+    // Determine tier from subscription
+    let tier = "free"
+    if (subscription && subscription.status === "active") {
+      const priceId = subscription.items.data[0]?.price.id
+      if (priceId?.includes("pro")) {
+        tier = "pro"
+      } else if (priceId?.includes("enterprise")) {
+        tier = "enterprise"
+      }
+    }
+
+    return NextResponse.json({
+      tier,
+      status: subscription?.status || "inactive",
+      subscription: subscription
+        ? {
+            id: subscription.id,
+            status: subscription.status,
+            currentPeriodEnd: new Date(subscription.items.data[0].current_period_end * 1000),
+            currentPeriodStart: new Date(subscription.items.data[0].current_period_start * 1000),
+          }
+        : null,
+      customer: {
+        id: customer.id,
+        email: customer.email,
+      },
+    })
+  } catch (error) {
+    console.error("Error fetching subscription:", error)
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+  }
+}

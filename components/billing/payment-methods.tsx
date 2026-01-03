@@ -128,79 +128,247 @@
 // }
 
 
+// "use client"
+
+// import { useEffect, useState } from "react"
+// import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+// import { Button } from "@/components/ui/button"
+// import { Badge } from "@/components/ui/badge"
+// import { getPaymentMethods, setDefaultPaymentMethod, deletePaymentMethod } from "@/lib/payment-actions"
+// import { useToast } from "@/hooks/use-toast"
+
+// interface PaymentMethod {
+//   id: string
+//   type: string
+//   brand: string
+//   last4: string
+//   expiryMonth: number
+//   expiryYear: number
+//   isDefault: boolean
+//   createdAt: Date
+// }
+
+// export function PaymentMethods({ userId }: { userId: string }) {
+//   const [methods, setMethods] = useState<PaymentMethod[]>([])
+//   const [loading, setLoading] = useState(true)
+//   const { toast } = useToast()
+
+//   useEffect(() => {
+//     async function fetchMethods() {
+//       const res = await getPaymentMethods(userId)
+//       if (res.success) {
+//         setMethods(res.data as PaymentMethod[])
+//       }
+//       setLoading(false)
+//     }
+
+//     fetchMethods()
+//   }, [userId])
+
+//   const handleSetDefault = async (paymentMethodId: string) => {
+//     const res = await setDefaultPaymentMethod(userId, paymentMethodId)
+//     if (res.success) {
+//       setMethods((prev) =>
+//         prev.map((method) => ({
+//           ...method,
+//           isDefault: method.id === paymentMethodId,
+//         })),
+//       )
+//       toast({
+//         title: "Success",
+//         description: "Default payment method updated",
+//       })
+//     } else {
+//       toast({
+//         title: "Error",
+//         description: "Failed to update payment method",
+//         variant: "destructive",
+//       })
+//     }
+//   }
+
+//   const handleDelete = async (paymentMethodId: string) => {
+//     const res = await deletePaymentMethod(userId, paymentMethodId)
+//     if (res.success) {
+//       setMethods((prev) => prev.filter((m) => m.id !== paymentMethodId))
+//       toast({
+//         title: "Success",
+//         description: "Payment method removed",
+//       })
+//     } else {
+//       toast({
+//         title: "Error",
+//         description: "Failed to remove payment method",
+//         variant: "destructive",
+//       })
+//     }
+//   }
+
+//   return (
+//     <Card>
+//       <CardHeader className="border-b border-border">
+//         <div className="flex items-center justify-between">
+//           <CardTitle className="text-base">Payment Methods</CardTitle>
+//           <Button variant="outline" size="sm" className="h-8 text-xs bg-transparent">
+//             Add Card
+//           </Button>
+//         </div>
+//       </CardHeader>
+//       <CardContent className="pt-6">
+//         {loading ? (
+//           <div className="space-y-3">
+//             {[1, 2].map((i) => (
+//               <div key={i} className="h-16 animate-pulse rounded-lg bg-muted"></div>
+//             ))}
+//           </div>
+//         ) : methods.length === 0 ? (
+//           <div className="text-center py-12">
+//             <p className="text-sm text-muted-foreground mb-4">No payment methods added yet</p>
+//             <Button variant="outline" size="sm" className="h-8 text-xs bg-transparent">
+//               Add Payment Method
+//             </Button>
+//           </div>
+//         ) : (
+//           <div className="space-y-3">
+//             {methods.map((method) => (
+//               <div
+//                 key={method.id}
+//                 className="flex items-center justify-between rounded-lg border border-border p-4 hover:bg-muted/50 transition-colors"
+//               >
+//                 <div className="flex items-center gap-3 flex-1">
+//                   <div className="flex h-9 w-14 items-center justify-center rounded bg-muted">
+//                     <span className="text-xs font-semibold uppercase text-muted-foreground">{method.brand}</span>
+//                   </div>
+//                   <div className="min-w-0">
+//                     <p className="text-sm font-medium truncate">
+//                       {method.brand.charAt(0).toUpperCase() + method.brand.slice(1)} •••• {method.last4}
+//                     </p>
+//                     <p className="text-xs text-muted-foreground">
+//                       Expires {method.expiryMonth.toString().padStart(2, "0")}/{method.expiryYear}
+//                     </p>
+//                   </div>
+//                 </div>
+
+//                 <div className="flex items-center gap-2 flex-shrink-0">
+//                   {method.isDefault ? (
+//                     <Badge variant="secondary" className="text-xs">
+//                       Default
+//                     </Badge>
+//                   ) : (
+//                     <Button
+//                       variant="ghost"
+//                       size="sm"
+//                       onClick={() => handleSetDefault(method.id)}
+//                       className="h-8 text-xs"
+//                     >
+//                       Set Default
+//                     </Button>
+//                   )}
+
+//                   <Button
+//                     variant="ghost"
+//                     size="sm"
+//                     onClick={() => handleDelete(method.id)}
+//                     className="h-8 text-xs text-destructive hover:text-destructive hover:bg-destructive/10"
+//                   >
+//                     Remove
+//                   </Button>
+//                 </div>
+//               </div>
+//             ))}
+//           </div>
+//         )}
+//       </CardContent>
+//     </Card>
+//   )
+// }
 "use client"
 
 import { useEffect, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { getPaymentMethods, setDefaultPaymentMethod, deletePaymentMethod } from "@/lib/payment-actions"
-import { useToast } from "@/hooks/use-toast"
+import { AddPaymentMethodDialog } from "./add-payment-method"
+import { toast } from "sonner"
+import { Loader2, Trash2 } from "lucide-react"
 
 interface PaymentMethod {
   id: string
-  type: string
   brand: string
   last4: string
-  expiryMonth: number
-  expiryYear: number
+  expMonth: number
+  expYear: number
   isDefault: boolean
-  createdAt: Date
 }
 
 export function PaymentMethods({ userId }: { userId: string }) {
   const [methods, setMethods] = useState<PaymentMethod[]>([])
   const [loading, setLoading] = useState(true)
-  const { toast } = useToast()
+  const [deletingId, setDeletingId] = useState<string | null>(null)
 
-  useEffect(() => {
-    async function fetchMethods() {
-      const res = await getPaymentMethods(userId)
-      if (res.success) {
-        setMethods(res.data as PaymentMethod[])
+  const fetchMethods = async () => {
+    try {
+      const res = await fetch("/api/payment-methods/list")
+      if (res.ok) {
+        const data = await res.json()
+        setMethods(data.paymentMethods)
       }
+    } catch (error) {
+      console.error("Error fetching payment methods:", error)
+    } finally {
       setLoading(false)
     }
+  }
 
+  useEffect(() => {
     fetchMethods()
   }, [userId])
 
   const handleSetDefault = async (paymentMethodId: string) => {
-    const res = await setDefaultPaymentMethod(userId, paymentMethodId)
-    if (res.success) {
-      setMethods((prev) =>
-        prev.map((method) => ({
-          ...method,
-          isDefault: method.id === paymentMethodId,
-        })),
-      )
-      toast({
-        title: "Success",
-        description: "Default payment method updated",
+    try {
+      const res = await fetch("/api/payment-methods/set-default", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ paymentMethodId }),
       })
-    } else {
-      toast({
-        title: "Error",
-        description: "Failed to update payment method",
-        variant: "destructive",
-      })
+
+      if (res.ok) {
+        setMethods((prev) =>
+          prev.map((method) => ({
+            ...method,
+            isDefault: method.id === paymentMethodId,
+          })),
+        )
+        toast.success("Default payment method updated")
+      } else {
+        toast.error("Failed to set default payment method")
+      }
+    } catch (error) {
+      console.error("Error:", error)
+      toast.error("Something went wrong")
     }
   }
 
   const handleDelete = async (paymentMethodId: string) => {
-    const res = await deletePaymentMethod(userId, paymentMethodId)
-    if (res.success) {
-      setMethods((prev) => prev.filter((m) => m.id !== paymentMethodId))
-      toast({
-        title: "Success",
-        description: "Payment method removed",
+    try {
+      setDeletingId(paymentMethodId)
+      const res = await fetch("/api/payment-methods/delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ paymentMethodId }),
       })
-    } else {
-      toast({
-        title: "Error",
-        description: "Failed to remove payment method",
-        variant: "destructive",
-      })
+
+      if (res.ok) {
+        setMethods((prev) => prev.filter((m) => m.id !== paymentMethodId))
+        toast.success("Payment method removed")
+      } else {
+        toast.error("Failed to remove payment method")
+      }
+    } catch (error) {
+      console.error("Error:", error)
+      toast.error("Something went wrong")
+    } finally {
+      setDeletingId(null)
     }
   }
 
@@ -209,9 +377,7 @@ export function PaymentMethods({ userId }: { userId: string }) {
       <CardHeader className="border-b border-border">
         <div className="flex items-center justify-between">
           <CardTitle className="text-base">Payment Methods</CardTitle>
-          <Button variant="outline" size="sm" className="h-8 text-xs bg-transparent">
-            Add Card
-          </Button>
+          <AddPaymentMethodDialog onSuccess={fetchMethods} />
         </div>
       </CardHeader>
       <CardContent className="pt-6">
@@ -224,9 +390,7 @@ export function PaymentMethods({ userId }: { userId: string }) {
         ) : methods.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-sm text-muted-foreground mb-4">No payment methods added yet</p>
-            <Button variant="outline" size="sm" className="h-8 text-xs bg-transparent">
-              Add Payment Method
-            </Button>
+            <AddPaymentMethodDialog onSuccess={fetchMethods} />
           </div>
         ) : (
           <div className="space-y-3">
@@ -244,7 +408,7 @@ export function PaymentMethods({ userId }: { userId: string }) {
                       {method.brand.charAt(0).toUpperCase() + method.brand.slice(1)} •••• {method.last4}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      Expires {method.expiryMonth.toString().padStart(2, "0")}/{method.expiryYear}
+                      Expires {method.expMonth.toString().padStart(2, "0")}/{method.expYear}
                     </p>
                   </div>
                 </div>
@@ -268,10 +432,15 @@ export function PaymentMethods({ userId }: { userId: string }) {
                   <Button
                     variant="ghost"
                     size="sm"
+                    disabled={deletingId === method.id}
                     onClick={() => handleDelete(method.id)}
                     className="h-8 text-xs text-destructive hover:text-destructive hover:bg-destructive/10"
                   >
-                    Remove
+                    {deletingId === method.id ? (
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                    ) : (
+                      <Trash2 className="h-3 w-3" />
+                    )}
                   </Button>
                 </div>
               </div>
