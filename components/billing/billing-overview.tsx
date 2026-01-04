@@ -266,11 +266,11 @@ export function BillingOverview({ userId }: { userId: string }) {
   if (!data) return null
 
   const stats = [
-    {
-      label: "Current Plan",
-      value: data.tier.charAt(0).toUpperCase() + data.tier.slice(1),
-      subtext: data.status === "active" ? "Active" : "Inactive",
-    },
+    // {
+    //   label: "Current Plan",
+    //   value: data.tier.charAt(0).toUpperCase() + data.tier.slice(1),
+    //   subtext: data.status === "active" ? "Active" : "Inactive",
+    // },
     {
       label: "Next Billing",
       value: data.currentPeriodEnd ? formatDate(data.currentPeriodEnd) : "N/A",

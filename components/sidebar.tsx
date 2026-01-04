@@ -2159,21 +2159,21 @@ const navigation: NavigationItem[] = [
     href: "/accounts",
     icon: Instagram,
   },
-  {
-    name: "Analytics",
-    href: "/analytics",
-    icon: BarChart3,
-  },
+  // {
+  //   name: "Analytics",
+  //   href: "/analytics",
+  //   icon: BarChart3,
+  // },
   {
     name: "Billing",
     href: "/billing",
     icon: CreditCard,
   },
-  {
-    name: "Settings",
-    href: "/settings",
-    icon: Settings,
-  },
+  // {
+  //   name: "Settings",
+  //   href: "/settings",
+  //   icon: Settings,
+  // },
 ]
 
 // Utility function to proxy Instagram images
