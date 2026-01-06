@@ -697,7 +697,7 @@ import Link from "next/link"
 import { cn } from "@/lib/utils"
 import { formatDate } from "@/lib/utils"
 import { useRouter } from "next/navigation"
-import { toggleAutomationStatus, moveToTrash } from "@/lib/actions/automation-actions"
+import { toggleAutomationStatus, moveToTrash } from "@/actions/automation-actions"
 import { AutomationDetailsModal } from "./automation-details-modal"
 import { useConfirm } from "./confirm-dialog"
 
