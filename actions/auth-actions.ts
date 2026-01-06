@@ -1,3 +1,44 @@
+// "use server"
+
+// import { auth } from "@clerk/nextjs/server"
+// import { prisma } from "@/lib/db"
+
+// export async function getCurrentUser() {
+//   try {
+//     const { userId } = await auth()
+
+//     if (!userId) {
+//       return null
+//     }
+
+//     const user = await prisma.user.findUnique({
+//       where: { clerkId: userId },
+//       select: {
+//         id: true,
+//         clerkId: true,
+//         email: true,
+//         firstName: true,
+//         lastName: true,
+//         imageUrl: true,
+//       },
+//     })
+
+//     return user
+//   } catch (error) {
+//     console.error("[v0] Error fetching current user:", error)
+//     return null
+//   }
+// }
+
+// export async function requireAuth() {
+//   const user = await getCurrentUser()
+
+//   if (!user) {
+//     throw new Error("Unauthorized: You must be logged in")
+//   }
+
+//   return user
+// }
 "use server"
 
 import { auth } from "@clerk/nextjs/server"
@@ -11,7 +52,7 @@ export async function getCurrentUser() {
       return null
     }
 
-    const user = await prisma.user.findUnique({
+    let user = await prisma.user.findUnique({
       where: { clerkId: userId },
       select: {
         id: true,
@@ -22,6 +63,28 @@ export async function getCurrentUser() {
         imageUrl: true,
       },
     })
+
+    // If user doesn't exist in database, create them
+    if (!user) {
+      console.log("[v0] Creating new user for Clerk ID:", userId)
+      user = await prisma.user.create({
+        data: {
+          clerkId: userId,
+          email: "",
+          firstName: "",
+          lastName: "",
+          imageUrl: "",
+        },
+        select: {
+          id: true,
+          clerkId: true,
+          email: true,
+          firstName: true,
+          lastName: true,
+          imageUrl: true,
+        },
+      })
+    }
 
     return user
   } catch (error) {
