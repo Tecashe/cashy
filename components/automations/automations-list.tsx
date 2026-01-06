@@ -1,431 +1,439 @@
-// "use client"
-
-// import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-// import { Badge } from "@/components/ui/badge"
-// import { Button } from "@/components/ui/button"
-// import { Switch } from "@/components/ui/switch"
-// import { Edit, Trash2, Copy, MoreVertical, Zap, Play } from "lucide-react"
-// import { TRIGGER_TYPES } from "@/lib/constants/utomation-constants"
-// import Link from "next/link"
-// import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-// import { toggleAutomationStatus, deleteAutomation, duplicateAutomation } from "@/lib/actions/automation-actions"
-// import { useTransition } from "react"
-// import { useRouter } from "next/navigation"
-// import { motion } from "framer-motion"
-
-// interface AutomationsListProps {
-//   automations: any[]
-//   accounts: any[]
-// }
-
-// export function AutomationsList({ automations, accounts }: AutomationsListProps) {
-//   const [isPending, startTransition] = useTransition()
-//   const router = useRouter()
-
-//   if (automations.length === 0) {
-//     return (
-//       <Card className="group relative overflow-hidden border-dashed border-2 border-border/50 bg-card/30 backdrop-blur-sm transition-all duration-300 hover:border-primary/30 hover:bg-card/50">
-//         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
-//         <CardContent className="relative flex min-h-[500px] flex-col items-center justify-center gap-6 py-16">
-//           <motion.div
-//             initial={{ scale: 0.8, opacity: 0 }}
-//             animate={{ scale: 1, opacity: 1 }}
-//             transition={{ duration: 0.5, ease: "easeOut" }}
-//             className="relative"
-//           >
-//             <div className="absolute inset-0 animate-pulse-glow rounded-full bg-primary/20 blur-2xl" />
-//             <div className="relative flex h-24 w-24 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 shadow-lg ring-1 ring-primary/10">
-//               <Zap className="h-12 w-12 text-primary" />
-//             </div>
-//           </motion.div>
-
-//           <div className="text-center space-y-3 max-w-md">
-//             <h3 className="text-2xl font-semibold tracking-tight">No automations yet</h3>
-//             <p className="text-base text-muted-foreground leading-relaxed">
-//               Create your first automation to start automating Instagram interactions and save time
-//             </p>
-//           </div>
-
-//           <Link href="/automations/new">
-//             <Button
-//               size="lg"
-//               className="group relative overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300"
-//             >
-//               <span className="relative z-10 flex items-center gap-2">
-//                 <Play className="h-4 w-4" />
-//                 Create Your First Automation
-//               </span>
-//               <div className="absolute inset-0 bg-gradient-to-r from-primary via-primary/90 to-primary opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-//             </Button>
-//           </Link>
-//         </CardContent>
-//       </Card>
-//     )
-//   }
-
-//   const handleToggle = (id: string, isActive: boolean) => {
-//     startTransition(async () => {
-//       await toggleAutomationStatus(id, !isActive)
-//       router.refresh()
-//     })
-//   }
-
-//   const handleDelete = (id: string) => {
-//     if (confirm("Are you sure you want to delete this automation?")) {
-//       startTransition(async () => {
-//         await deleteAutomation(id)
-//         router.refresh()
-//       })
-//     }
-//   }
-
-//   const handleDuplicate = (id: string) => {
-//     startTransition(async () => {
-//       await duplicateAutomation(id)
-//       router.refresh()
-//     })
-//   }
-
-//   return (
-//     <motion.div
-//       className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3"
-//       initial={{ opacity: 0 }}
-//       animate={{ opacity: 1 }}
-//       transition={{ duration: 0.5 }}
-//     >
-//       {automations.map((automation, index) => {
-//         const trigger = automation.triggers[0]
-//         const triggerInfo = TRIGGER_TYPES[trigger?.type as keyof typeof TRIGGER_TYPES]
-//         const TriggerIcon = triggerInfo?.icon
-
-//         return (
-//           <motion.div
-//             key={automation.id}
-//             initial={{ opacity: 0, y: 20 }}
-//             animate={{ opacity: 1, y: 0 }}
-//             transition={{
-//               duration: 0.4,
-//               delay: index * 0.05,
-//               ease: [0.4, 0, 0.2, 1],
-//             }}
-//           >
-//             <Card className="group relative h-full overflow-hidden border border-border/50 bg-card/50 shadow-sm backdrop-blur-sm transition-all duration-300 hover:border-primary/30 hover:shadow-xl hover:-translate-y-1">
-//               {automation.isActive && (
-//                 <div className="absolute left-0 top-0 h-full w-1 bg-gradient-to-b from-primary via-primary/70 to-primary/30">
-//                   <div className="absolute inset-0 animate-pulse-glow bg-primary/50 blur-sm" />
-//                 </div>
-//               )}
-
-//               <div className="absolute inset-0 bg-gradient-to-br from-primary/0 via-transparent to-primary/0 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-
-//               <CardHeader className="relative">
-//                 <div className="flex items-start justify-between gap-3">
-//                   <div className="flex-1 space-y-2 min-w-0">
-//                     <CardTitle className="line-clamp-1 text-lg font-semibold tracking-tight leading-tight">
-//                       {automation.name}
-//                     </CardTitle>
-//                     {automation.description && (
-//                       <CardDescription className="line-clamp-2 text-sm leading-relaxed">
-//                         {automation.description}
-//                       </CardDescription>
-//                     )}
-//                   </div>
-
-//                   <DropdownMenu>
-//                     <DropdownMenuTrigger asChild>
-//                       <Button
-//                         variant="ghost"
-//                         size="icon"
-//                         className="h-8 w-8 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-muted/50"
-//                       >
-//                         <MoreVertical className="h-4 w-4" />
-//                       </Button>
-//                     </DropdownMenuTrigger>
-//                     <DropdownMenuContent align="end" className="w-48">
-//                       <DropdownMenuItem asChild>
-//                         <Link href={`/automations/${automation.id}/edit`} className="cursor-pointer">
-//                           <Edit className="mr-3 h-4 w-4" />
-//                           Edit
-//                         </Link>
-//                       </DropdownMenuItem>
-//                       <DropdownMenuItem onClick={() => handleDuplicate(automation.id)} className="cursor-pointer">
-//                         <Copy className="mr-3 h-4 w-4" />
-//                         Duplicate
-//                       </DropdownMenuItem>
-//                       <DropdownMenuItem
-//                         onClick={() => handleDelete(automation.id)}
-//                         className="cursor-pointer text-destructive focus:text-destructive"
-//                       >
-//                         <Trash2 className="mr-3 h-4 w-4" />
-//                         Delete
-//                       </DropdownMenuItem>
-//                     </DropdownMenuContent>
-//                   </DropdownMenu>
-//                 </div>
-//               </CardHeader>
-
-//               <CardContent className="relative space-y-5">
-//                 <div className="flex items-center gap-4 rounded-lg bg-muted/30 p-3 ring-1 ring-border/50">
-//                   {TriggerIcon && (
-//                     <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-primary/15 to-primary/5 shadow-inner ring-1 ring-primary/10">
-//                       <TriggerIcon className="h-5 w-5 text-primary" />
-//                     </div>
-//                   )}
-//                   <div className="flex-1 min-w-0">
-//                     <p className="text-sm font-semibold leading-tight">{triggerInfo?.label}</p>
-//                     <p className="text-xs text-muted-foreground mt-0.5">
-//                       {automation.actions.length} action{automation.actions.length !== 1 ? "s" : ""}
-//                     </p>
-//                   </div>
-//                 </div>
-
-//                 <div className="flex items-center justify-between gap-3 border-t border-border/50 pt-4">
-//                   <div className="flex items-center gap-3">
-//                     <Switch
-//                       checked={automation.isActive}
-//                       onCheckedChange={() => handleToggle(automation.id, automation.isActive)}
-//                       disabled={isPending}
-//                       className="data-[state=checked]:bg-primary"
-//                     />
-//                     <span className="text-sm font-medium text-muted-foreground">
-//                       {automation.isActive ? "Active" : "Inactive"}
-//                     </span>
-//                   </div>
-
-//                   <Badge
-//                     variant={automation.isActive ? "default" : "secondary"}
-//                     className={automation.isActive ? "shadow-sm bg-primary/90" : ""}
-//                   >
-//                     {automation.status}
-//                   </Badge>
-//                 </div>
-//               </CardContent>
-//             </Card>
-//           </motion.div>
-//         )
-//       })}
-//     </motion.div>
-//   )
-// }
-
 "use client"
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
+import { useState, useCallback, useMemo, useTransition } from "react"
+import { motion, AnimatePresence } from "framer-motion"
+import { FancyAutomationCard } from "./fancy-automation-card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Switch } from "@/components/ui/switch"
-import { Edit, Trash2, Copy, MoreVertical, Zap, Play } from "lucide-react"
-import { TRIGGER_TYPES } from "@/lib/constants/utomation-constants"
+import { Input } from "@/components/ui/input"
+import { Badge } from "@/components/ui/badge"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Zap, Play, Search, Grid3x3, List, Trash2, Filter, AlertTriangle, Flame } from "lucide-react"
 import Link from "next/link"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { toggleAutomationStatus, deleteAutomation, duplicateAutomation } from "@/lib/actions/automation-actions"
-import { useTransition } from "react"
-import { useRouter } from "next/navigation"
-import { motion } from "framer-motion"
+import { cn } from "@/lib/utils"
+import { useAutomations } from "@/hooks/use-automations"
 import { useConfirm } from "./confirm-dialog"
 
 interface AutomationsListProps {
-  automations: any[]
-  accounts: any[]
+  initialAutomations: any[]
+  userId: string
 }
 
-export function AutomationsList({ automations, accounts }: AutomationsListProps) {
+const STATS_CARDS = [
+  {
+    label: "Total Automations",
+    icon: Zap,
+    color: "from-blue-500/10 to-blue-500/5",
+    iconColor: "text-blue-400",
+    key: "total",
+  },
+  {
+    label: "Active",
+    icon: Play,
+    color: "from-green-500/10 to-green-500/5",
+    iconColor: "text-green-400",
+    key: "active",
+  },
+  {
+    label: "Paused",
+    icon: AlertTriangle,
+    color: "from-yellow-500/10 to-yellow-500/5",
+    iconColor: "text-yellow-400",
+    key: "paused",
+  },
+  {
+    label: "Total Executions",
+    icon: Flame,
+    color: "from-red-500/10 to-red-500/5",
+    iconColor: "text-red-400",
+    key: "executions",
+  },
+]
+
+export function AutomationsList({ initialAutomations, userId }: AutomationsListProps) {
+  const [searchQuery, setSearchQuery] = useState("")
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
+  const [activeFilter, setActiveFilter] = useState<"all" | "active" | "inactive">("all")
+  const [showTrash, setShowTrash] = useState(false)
+  const [showEmptyTrashDialog, setShowEmptyTrashDialog] = useState(false)
   const [isPending, startTransition] = useTransition()
-  const router = useRouter()
+
+  const {
+    automations,
+    trashedAutomations,
+    isLoading,
+    fetchAutomations,
+    fetchTrashedAutomations,
+    handleMoveToTrash,
+    handleRestore,
+    handlePermanentlyDelete,
+    handleEmptyTrash,
+    handleToggleStatus,
+  } = useAutomations()
+
   const { confirm, dialog } = useConfirm()
 
-  if (automations.length === 0) {
-    return (
-      <Card className="group relative overflow-hidden border-dashed border-2 border-border/50 bg-card/30 backdrop-blur-sm transition-all duration-300 hover:border-primary/30 hover:bg-card/50">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
-        <CardContent className="relative flex min-h-[500px] flex-col items-center justify-center gap-6 py-16">
-          <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.5, ease: "easeOut" }}
-            className="relative"
-          >
-            <div className="absolute inset-0 animate-pulse-glow rounded-full bg-primary/20 blur-2xl" />
-            <div className="relative flex h-24 w-24 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 shadow-lg ring-1 ring-primary/10">
-              <Zap className="h-12 w-12 text-primary" />
-            </div>
-          </motion.div>
-
-          <div className="text-center space-y-3 max-w-md">
-            <h3 className="text-2xl font-semibold tracking-tight">No automations yet</h3>
-            <p className="text-base text-muted-foreground leading-relaxed">
-              Create your first automation to start automating Instagram interactions and save time
-            </p>
-          </div>
-
-          <Link href="/automations/new">
-            <Button
-              size="lg"
-              className="group relative overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300"
-            >
-              <span className="relative z-10 flex items-center gap-2">
-                <Play className="h-4 w-4" />
-                Create Your First Automation
-              </span>
-              <div className="absolute inset-0 bg-gradient-to-r from-primary via-primary/90 to-primary opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-            </Button>
-          </Link>
-        </CardContent>
-      </Card>
-    )
+  // Initialize automations on mount
+  const [initialized, setInitialized] = useState(false)
+  if (!initialized) {
+    if (automations.length === 0) {
+      startTransition(async () => {
+        if (initialAutomations.length > 0) {
+          // Use initial data from server
+        }
+        await fetchAutomations()
+        await fetchTrashedAutomations()
+        setInitialized(true)
+      })
+    } else {
+      setInitialized(true)
+    }
   }
 
-  const handleToggle = (id: string, isActive: boolean) => {
-    startTransition(async () => {
-      await toggleAutomationStatus(id, !isActive)
-      router.refresh()
-    })
-  }
+  // Calculate stats
+  const stats = useMemo(() => {
+    const displayAutomations = initialAutomations.length > 0 ? initialAutomations : automations
+    return {
+      total: displayAutomations.length,
+      active: displayAutomations.filter((a) => a.isActive).length,
+      paused: displayAutomations.filter((a) => !a.isActive).length,
+      executions: displayAutomations.reduce((sum, a) => sum + (a.executions?.length || 0), 0),
+    }
+  }, [automations, initialAutomations])
 
-  const handleDelete = async (id: string) => {
-    await confirm({
-      title: "Delete Automation?",
-      description: "This action cannot be undone. The automation and all its settings will be permanently deleted.",
-      confirmText: "Delete",
+  // Filter and search automations
+  const filteredAutomations = useMemo(() => {
+    const displayAutomations = initialAutomations.length > 0 ? initialAutomations : automations
+
+    return displayAutomations
+      .filter((automation) => {
+        if (activeFilter === "active") return automation.isActive
+        if (activeFilter === "inactive") return !automation.isActive
+        return true
+      })
+      .filter((automation) => {
+        const searchLower = searchQuery.toLowerCase()
+        return (
+          automation.name.toLowerCase().includes(searchLower) ||
+          automation.description?.toLowerCase().includes(searchLower) ||
+          automation.instagramAccount?.username.toLowerCase().includes(searchLower)
+        )
+      })
+  }, [automations, initialAutomations, searchQuery, activeFilter])
+
+  const handleDeleteWithConfirm = useCallback(
+    (automationId: string, automationName: string) => {
+      confirm({
+        title: "Move to Trash?",
+        description: `"${automationName}" will be moved to trash. You can restore it later.`,
+        confirmText: "Move to Trash",
+        cancelText: "Cancel",
+        variant: "danger",
+        onConfirm: () => handleMoveToTrash(automationId),
+      })
+    },
+    [confirm, handleMoveToTrash],
+  )
+
+  const handlePermanentlyDeleteWithConfirm = useCallback(
+    (automationId: string, automationName: string) => {
+      confirm({
+        title: "Permanently Delete?",
+        description: `"${automationName}" will be permanently deleted. This action cannot be undone.`,
+        confirmText: "Delete Forever",
+        cancelText: "Cancel",
+        variant: "danger",
+        onConfirm: () => handlePermanentlyDelete(automationId),
+      })
+    },
+    [confirm, handlePermanentlyDelete],
+  )
+
+  const handleEmptyTrashWithConfirm = useCallback(() => {
+    confirm({
+      title: "Empty Trash?",
+      description: `All ${trashedAutomations.length} automation(s) in trash will be permanently deleted. This action cannot be undone.`,
+      confirmText: "Empty Trash",
       cancelText: "Cancel",
       variant: "danger",
-      onConfirm: async () => {
-        startTransition(async () => {
-          await deleteAutomation(id)
-          router.refresh()
-        })
+      onConfirm: () => {
+        handleEmptyTrash()
+        setShowEmptyTrashDialog(false)
       },
     })
-  }
+  }, [confirm, trashedAutomations.length, handleEmptyTrash])
 
-  const handleDuplicate = (id: string) => {
-    startTransition(async () => {
-      await duplicateAutomation(id)
-      router.refresh()
-    })
+  // Empty state
+  if (filteredAutomations.length === 0 && !showTrash && !searchQuery && activeFilter === "all") {
+    return (
+      <>
+        {dialog}
+        <Card className="group relative overflow-hidden border-dashed border-2 border-border/50 bg-card/30 backdrop-blur-sm transition-all duration-300 hover:border-primary/30 hover:bg-card/50">
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+          <CardContent className="relative flex min-h-[500px] flex-col items-center justify-center gap-6 py-16">
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.5, ease: "easeOut" }}
+              className="relative"
+            >
+              <div className="absolute inset-0 animate-pulse rounded-full bg-primary/20 blur-2xl" />
+              <div className="relative flex h-24 w-24 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 shadow-lg ring-1 ring-primary/10">
+                <Zap className="h-12 w-12 text-primary" />
+              </div>
+            </motion.div>
+
+            <div className="text-center space-y-3 max-w-md">
+              <h3 className="text-2xl font-semibold tracking-tight">No automations yet</h3>
+              <p className="text-base text-muted-foreground leading-relaxed">
+                Create your first automation to start automating Instagram interactions
+              </p>
+            </div>
+
+            <Link href="/automations/new">
+              <Button
+                size="lg"
+                className="group relative overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300"
+              >
+                <span className="relative z-10 flex items-center gap-2">
+                  <Play className="h-4 w-4" />
+                  Create Your First Automation
+                </span>
+                <div className="absolute inset-0 bg-gradient-to-r from-primary via-primary/90 to-primary opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
+      </>
+    )
   }
 
   return (
     <>
       {dialog}
-      <motion.div
-        className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.5 }}
-      >
-        {automations.map((automation, index) => {
-          const trigger = automation.triggers[0]
-          const triggerInfo = TRIGGER_TYPES[trigger?.type as keyof typeof TRIGGER_TYPES]
-          const TriggerIcon = triggerInfo?.icon
+
+      {/* Trash Modal */}
+      <Dialog open={showTrash} onOpenChange={setShowTrash}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>Trash</DialogTitle>
+            <DialogDescription>Recover or permanently delete automations</DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            {trashedAutomations.length > 0 && (
+              <div className="flex justify-end">
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => setShowEmptyTrashDialog(true)}
+                  disabled={isPending}
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Empty Trash
+                </Button>
+              </div>
+            )}
+
+            {trashedAutomations.length === 0 ? (
+              <Card>
+                <CardContent className="flex items-center justify-center py-12">
+                  <p className="text-muted-foreground">Trash is empty</p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid gap-4 sm:grid-cols-1 lg:grid-cols-2">
+                {trashedAutomations.map((automation) => (
+                  <motion.div
+                    key={automation.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                  >
+                    <Card className="relative overflow-hidden border-border/50 bg-card/50">
+                      <CardContent className="p-6 space-y-4">
+                        <div>
+                          <h4 className="font-semibold">{automation.name}</h4>
+                          {automation.instagramAccount && (
+                            <p className="text-sm text-muted-foreground mt-1">
+                              @{automation.instagramAccount.username}
+                            </p>
+                          )}
+                        </div>
+
+                        <div className="flex gap-2 pt-2 border-t border-border/50">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleRestore(automation.id)}
+                            disabled={isPending}
+                            className="flex-1"
+                          >
+                            Restore
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => handlePermanentlyDeleteWithConfirm(automation.id, automation.name)}
+                            disabled={isPending}
+                            className="flex-1"
+                          >
+                            Delete
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                ))}
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Empty Trash Confirmation */}
+      <Dialog open={showEmptyTrashDialog} onOpenChange={setShowEmptyTrashDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Empty Trash?</DialogTitle>
+            <DialogDescription>
+              This will permanently delete {trashedAutomations.length} automation(s). This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="flex gap-3 justify-end pt-4">
+            <Button variant="outline" onClick={() => setShowEmptyTrashDialog(false)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleEmptyTrashWithConfirm} disabled={isPending}>
+              Empty Trash
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Stats Cards */}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-8">
+        {STATS_CARDS.map((card, idx) => {
+          const Icon = card.icon
+          const value = stats[card.key as keyof typeof stats]
 
           return (
             <motion.div
-              key={automation.id}
+              key={card.label}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{
-                duration: 0.4,
-                delay: index * 0.05,
-                ease: [0.4, 0, 0.2, 1],
-              }}
+              transition={{ delay: idx * 0.1 }}
             >
-              <Card className="group relative h-full overflow-hidden border border-border/50 bg-card/50 shadow-sm backdrop-blur-sm transition-all duration-300 hover:border-primary/30 hover:shadow-xl hover:-translate-y-1">
-                {automation.isActive && (
-                  <div className="absolute left-0 top-0 h-full w-1 bg-gradient-to-b from-primary via-primary/70 to-primary/30">
-                    <div className="absolute inset-0 animate-pulse-glow bg-primary/50 blur-sm" />
-                  </div>
-                )}
-
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/0 via-transparent to-primary/0 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-
-                <CardHeader className="relative">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex-1 space-y-2 min-w-0">
-                      <CardTitle className="line-clamp-1 text-lg font-semibold tracking-tight leading-tight">
-                        {automation.name}
-                      </CardTitle>
-                      {automation.description && (
-                        <CardDescription className="line-clamp-2 text-sm leading-relaxed">
-                          {automation.description}
-                        </CardDescription>
-                      )}
+              <Card className={cn("bg-gradient-to-br border-border/50", card.color)}>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-muted-foreground font-medium">{card.label}</p>
+                      <p className="text-3xl font-bold mt-2">{value}</p>
                     </div>
-
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-muted/50"
-                        >
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-48">
-                        <DropdownMenuItem asChild>
-                          <Link href={`/automations/${automation.id}/edit`} className="cursor-pointer">
-                            <Edit className="mr-3 h-4 w-4" />
-                            Edit
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleDuplicate(automation.id)} className="cursor-pointer">
-                          <Copy className="mr-3 h-4 w-4" />
-                          Duplicate
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => handleDelete(automation.id)}
-                          className="cursor-pointer text-destructive focus:text-destructive"
-                        >
-                          <Trash2 className="mr-3 h-4 w-4" />
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                </CardHeader>
-
-                <CardContent className="relative space-y-5">
-                  <div className="flex items-center gap-4 rounded-lg bg-muted/30 p-3 ring-1 ring-border/50">
-                    {TriggerIcon && (
-                      <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-primary/15 to-primary/5 shadow-inner ring-1 ring-primary/10">
-                        <TriggerIcon className="h-5 w-5 text-primary" />
-                      </div>
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold leading-tight">{triggerInfo?.label}</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">
-                        {automation.actions.length} action{automation.actions.length !== 1 ? "s" : ""}
-                      </p>
+                    <div className={cn("p-3 rounded-lg bg-card/50 border border-border/50", card.iconColor)}>
+                      <Icon className="h-6 w-6" />
                     </div>
-                  </div>
-
-                  <div className="flex items-center justify-between gap-3 border-t border-border/50 pt-4">
-                    <div className="flex items-center gap-3">
-                      <Switch
-                        checked={automation.isActive}
-                        onCheckedChange={() => handleToggle(automation.id, automation.isActive)}
-                        disabled={isPending}
-                        className="data-[state=checked]:bg-primary"
-                      />
-                      <span className="text-sm font-medium text-muted-foreground">
-                        {automation.isActive ? "Active" : "Inactive"}
-                      </span>
-                    </div>
-
-                    <Badge
-                      variant={automation.isActive ? "default" : "secondary"}
-                      className={automation.isActive ? "shadow-sm bg-primary/90" : ""}
-                    >
-                      {automation.status}
-                    </Badge>
                   </div>
                 </CardContent>
               </Card>
             </motion.div>
           )
         })}
-      </motion.div>
+      </div>
+
+      {/* Search and Filters */}
+      <div className="space-y-4 mb-8">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+          <Input
+            placeholder="Search automations by name, description, or Instagram account..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10 bg-card border-border/50 h-11"
+          />
+        </div>
+
+        <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
+          <div className="flex gap-2">
+            <Badge
+              variant={activeFilter === "all" ? "default" : "secondary"}
+              className="cursor-pointer"
+              onClick={() => setActiveFilter("all")}
+            >
+              <Filter className="mr-1 h-3 w-3" />
+              All
+            </Badge>
+            <Badge
+              variant={activeFilter === "active" ? "default" : "secondary"}
+              className="cursor-pointer"
+              onClick={() => setActiveFilter("active")}
+            >
+              Active
+            </Badge>
+            <Badge
+              variant={activeFilter === "inactive" ? "default" : "secondary"}
+              className="cursor-pointer"
+              onClick={() => setActiveFilter("inactive")}
+            >
+              Inactive
+            </Badge>
+          </div>
+
+          <div className="flex gap-2 sm:ml-auto">
+            <Button
+              size="icon"
+              variant={viewMode === "grid" ? "default" : "outline"}
+              onClick={() => setViewMode("grid")}
+            >
+              <Grid3x3 className="h-4 w-4" />
+            </Button>
+            <Button
+              size="icon"
+              variant={viewMode === "list" ? "default" : "outline"}
+              onClick={() => setViewMode("list")}
+            >
+              <List className="h-4 w-4" />
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => setShowTrash(true)} className="ml-auto sm:ml-2">
+              <Trash2 className="mr-2 h-4 w-4" />
+              Trash {trashedAutomations.length > 0 && `(${trashedAutomations.length})`}
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* No Results State */}
+      {filteredAutomations.length === 0 ? (
+        <Card className="border-dashed border-2">
+          <CardContent className="flex items-center justify-center py-12">
+            <div className="text-center">
+              <p className="text-muted-foreground mb-2">No automations found</p>
+              <p className="text-sm text-muted-foreground">Try adjusting your search or filters</p>
+            </div>
+          </CardContent>
+        </Card>
+      ) : (
+        <AnimatePresence>
+          <motion.div
+            className={cn("gap-5", viewMode === "grid" ? "grid sm:grid-cols-1 lg:grid-cols-2" : "flex flex-col")}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.3 }}
+          >
+            {filteredAutomations.map((automation, index) => (
+              <FancyAutomationCard
+                key={automation.id}
+                automation={automation}
+                index={index}
+                onDelete={() => handleDeleteWithConfirm(automation.id, automation.name)}
+                onToggle={(isActive) => handleToggleStatus(automation.id, isActive)}
+              />
+            ))}
+          </motion.div>
+        </AnimatePresence>
+      )}
     </>
   )
 }
