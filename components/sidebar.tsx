@@ -4063,6 +4063,8 @@ import {
   LogOut,
   ChevronRight,
   ChevronDown,
+  Activity,
+  Sparkles,
 } from "lucide-react"
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
@@ -4080,6 +4082,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
+import Image from "next/image"
 import { toast } from "sonner"
 
 interface InstagramAccount {
@@ -4097,13 +4100,11 @@ interface NavigationItem {
   subItems?: NavigationItem[]
 }
 
-// Extract slug from pathname helper
 function getSlugFromPathname(pathname: string): string | null {
   const match = pathname.match(/^\/dashboard\/([^/]+)/)
   return match ? match[1] : null
 }
 
-// Utility function to proxy Instagram images
 function proxyInstagramImage(url: string | null | undefined): string {
   if (!url) return ""
   if (url.includes("cdninstagram.com")) {
@@ -4112,7 +4113,6 @@ function proxyInstagramImage(url: string | null | undefined): string {
   return url
 }
 
-// Cookie utilities
 function getCookie(name: string): string | null {
   if (typeof document === "undefined") return null
   const value = `; ${document.cookie}`
@@ -4140,11 +4140,10 @@ export function Sidebar() {
   const [disconnectDialogOpen, setDisconnectDialogOpen] = useState(false)
   const [accountToDisconnect, setAccountToDisconnect] = useState<InstagramAccount | null>(null)
   const [isAccountsExpanded, setIsAccountsExpanded] = useState(false)
+  const [showPlanTooltip, setShowPlanTooltip] = useState(false)
 
-  // Extract user slug from pathname
   const userSlug = pathname ? getSlugFromPathname(pathname) : null
 
-  // Navigation items
   const navigation: NavigationItem[] = [
     {
       name: "Dashboard",
@@ -4199,8 +4198,12 @@ export function Sidebar() {
           if (savedAccountId && data.accounts) {
             const saved = data.accounts.find((acc: InstagramAccount) => acc.id === savedAccountId)
             setSelectedAccount(saved || data.accounts[0] || null)
+            if (saved || data.accounts[0]) {
+              setCookie("selectedInstagramAccountId", (saved || data.accounts[0]).id)
+            }
           } else if (data.accounts && data.accounts.length > 0) {
             setSelectedAccount(data.accounts[0])
+            setCookie("selectedInstagramAccountId", data.accounts[0].id)
           }
         }
 
@@ -4262,21 +4265,24 @@ export function Sidebar() {
       })
 
       if (response.ok) {
+        toast.success("Account disconnected successfully")
         const updatedAccounts = accounts.filter((acc) => acc.id !== account.id)
         setAccounts(updatedAccounts)
+
         if (selectedAccount?.id === account.id) {
-          setSelectedAccount(updatedAccounts[0] || null)
-          if (updatedAccounts[0]) {
-            setCookie("selectedInstagramAccountId", updatedAccounts[0].id)
+          const nextAccount = updatedAccounts[0] || null
+          setSelectedAccount(nextAccount)
+          if (nextAccount) {
+            setCookie("selectedInstagramAccountId", nextAccount.id)
           }
           window.location.reload()
         }
-        toast.success("Account disconnected")
       } else {
         toast.error("Failed to disconnect account")
       }
     } catch (error) {
-      toast.error("Error disconnecting account")
+      toast.error("Failed to disconnect account")
+      console.error("Disconnect error:", error)
     } finally {
       setDisconnectDialogOpen(false)
       setAccountToDisconnect(null)
@@ -4296,21 +4302,26 @@ export function Sidebar() {
       {/* Mobile Sidebar */}
       <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
         <SheetTrigger asChild className="lg:hidden">
-          <Button variant="ghost" size="icon" className="fixed bottom-4 right-4 z-40">
+          <Button
+            variant="outline"
+            size="icon"
+            className="fixed top-4 left-4 z-50 h-10 w-10 bg-card border-border shadow-lg hover:bg-accent"
+          >
             <Menu className="h-5 w-5" />
           </Button>
         </SheetTrigger>
-        <SheetContent side="left" className="w-72 p-0">
+        <SheetContent side="left" className="w-72 p-0 bg-card border-border">
           <div className="flex h-full flex-col">
-            <div className="flex h-16 items-center justify-between px-4">
+            <div className="flex h-16 items-center justify-between px-4 border-b border-border">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-foreground flex items-center justify-center flex-shrink-0">
-                  <Instagram className="w-5 h-5 text-background" />
+                <div className="relative h-10 w-10 shrink-0">
+                  <Image src="/branded-original.png" alt="Logo" fill className="object-contain" />
                 </div>
                 <span className="text-lg font-bold text-foreground">Yazzil</span>
               </div>
             </div>
 
+            {/* Mobile Navigation */}
             <nav className="flex-1 space-y-1 overflow-y-auto p-3">
               {navigation.map((item) => {
                 const itemHref = buildHref(item.href)
@@ -4362,12 +4373,20 @@ export function Sidebar() {
                                 className={cn(
                                   "group relative flex items-center gap-3 rounded-lg pl-3 pr-3 py-2 text-sm font-medium transition-all duration-200",
                                   isSubActive
-                                    ? "bg-foreground/10 text-foreground"
-                                    : "text-muted-foreground hover:bg-accent/50 hover:text-foreground",
+                                    ? "bg-gradient-to-r from-foreground/10 to-foreground/5 text-foreground border-l-2 border-foreground shadow-sm"
+                                    : "text-muted-foreground hover:bg-accent/50 hover:text-foreground hover:translate-x-1",
                                 )}
                               >
-                                <subItem.icon className="h-4 w-4 transition-all group-hover:scale-110" />
+                                <subItem.icon
+                                  className={cn(
+                                    "h-4 w-4 transition-all group-hover:scale-110",
+                                    isSubActive && "text-foreground",
+                                  )}
+                                />
                                 <span className="flex-1">{subItem.name}</span>
+                                {isSubActive && (
+                                  <div className="h-1.5 w-1.5 rounded-full bg-foreground animate-pulse" />
+                                )}
                               </Link>
                             )
                           })}
@@ -4385,31 +4404,119 @@ export function Sidebar() {
                     className={cn(
                       "group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200",
                       isActive
-                        ? "bg-foreground text-background shadow-lg"
+                        ? "bg-foreground text-background shadow-lg dark:shadow-black/50"
                         : "text-muted-foreground hover:bg-accent hover:text-foreground",
                     )}
                   >
-                    <item.icon className="h-5 w-5" />
-                    <span>{item.name}</span>
-                    {item.badge && <Badge className="ml-auto text-xs">{item.badge}</Badge>}
+                    {isActive && (
+                      <div className="absolute left-0 top-1/2 h-8 w-1 -translate-y-1/2 rounded-r-full bg-background" />
+                    )}
+                    <item.icon
+                      className={cn(
+                        "h-5 w-5 transition-transform group-hover:scale-110",
+                        isActive && "text-background",
+                      )}
+                    />
+                    <span className="flex-1">{item.name}</span>
+                    {item.badge && (
+                      <Badge className="h-5 min-w-5 bg-foreground text-background px-1.5 text-xs font-semibold border-0 shadow-md">
+                        {item.badge}
+                      </Badge>
+                    )}
                   </Link>
                 )
               })}
             </nav>
+
+            {/* Mobile Account Selector */}
+            <div className="border-t border-border p-4">
+              {loading ? (
+                <div className="flex items-center justify-center py-3">
+                  <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                </div>
+              ) : accounts.length === 0 ? (
+                <a href="/api/auth/instagram/connect">
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start gap-3 h-auto p-3 hover:bg-accent rounded-xl transition-all hover:shadow-md dark:hover:shadow-black/30 bg-transparent"
+                  >
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border-2 border-dashed border-border">
+                      <Plus className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                    <span className="text-sm text-foreground font-medium">Connect Instagram</span>
+                  </Button>
+                </a>
+              ) : (
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start gap-3 h-auto p-3 hover:bg-accent rounded-xl transition-all hover:shadow-md dark:hover:shadow-black/30"
+                  onClick={() => setIsAccountsExpanded(!isAccountsExpanded)}
+                >
+                  <Avatar className="h-9 w-9 shrink-0 border-2 border-border shadow-md">
+                    <AvatarImage src={proxyInstagramImage(selectedAccount?.profilePicUrl) || "/placeholder.svg"} />
+                    <AvatarFallback className="bg-foreground text-background font-semibold text-xs">
+                      {selectedAccount?.username.substring(0, 2).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex flex-1 flex-col items-start text-left min-w-0">
+                    <div className="flex items-center gap-1.5 w-full min-w-0">
+                      <span className="text-sm font-semibold text-foreground truncate">
+                        @{selectedAccount?.username}
+                      </span>
+                      <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <Activity className="h-3 w-3 shrink-0 text-green-600 dark:text-green-400" />
+                      <span className="text-xs text-muted-foreground">Connected</span>
+                    </div>
+                  </div>
+                  <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />
+                </Button>
+              )}
+            </div>
+
+            {/* Mobile Plan Badge */}
+            <div className="border-t border-border p-4">
+              <div className="rounded-xl bg-accent p-4 border border-border shadow-lg dark:shadow-black/30">
+                <div className="flex items-start gap-3">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-foreground text-background shadow-md">
+                    <CheckCircle2 className="h-5 w-5" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-sm font-bold text-foreground capitalize">{currentTier} Plan</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground mb-3">
+                      {currentTier === "free" && "Basic automation features"}
+                      {currentTier === "pro" && "Unlimited automations"}
+                      {currentTier === "enterprise" && "Everything included"}
+                    </p>
+                    <Link href={buildHref("/billing")}>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="w-full text-xs h-7 font-medium border-border hover:bg-background shadow-sm hover:shadow-md transition-all bg-transparent"
+                      >
+                        {currentTier === "free" ? "Upgrade Plan" : "Manage Plan"}
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </SheetContent>
       </Sheet>
 
-      {/* Desktop Sidebar - Design 2: Compact Hover-Expand */}
+      {/* Desktop Sidebar - Compact Hover-Expand Design */}
       <div className="hidden lg:flex h-screen bg-card border-r border-border flex-col items-center py-6 relative group hover:w-80 w-20 transition-all duration-300">
-        {/* Yazzil Logo - Top */}
+        {/* Logo Section */}
         <div className="mb-8 flex items-center gap-3 px-6 w-full">
-          <div className="w-12 h-12 rounded-2xl bg-foreground flex items-center justify-center flex-shrink-0 shadow-lg">
-            <Instagram className="w-6 h-6 text-background" />
+          <div className="relative h-10 w-10 shrink-0">
+            <Image src="/branded-original.png" alt="Logo" fill className="object-contain" />
           </div>
           <div className="overflow-hidden opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
             <h1 className="text-lg font-bold text-foreground">Yazzil</h1>
-            <p className="text-xs text-muted-foreground">IG Automation</p>
           </div>
         </div>
 
@@ -4421,13 +4528,14 @@ export function Sidebar() {
                 <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
               </div>
             ) : accounts.length === 0 ? (
-              <Button
-                onClick={handleAddAccount}
-                variant="outline"
-                className="w-full justify-center rounded-xl h-12 bg-transparent hover:bg-accent transition-all"
-              >
-                <Plus className="h-5 w-5" />
-              </Button>
+              <a href="/api/auth/instagram/connect">
+                <Button
+                  variant="outline"
+                  className="w-full justify-center rounded-xl h-12 bg-transparent hover:bg-accent transition-all"
+                >
+                  <Plus className="h-5 w-5" />
+                </Button>
+              </a>
             ) : (
               <>
                 <button
@@ -4441,8 +4549,10 @@ export function Sidebar() {
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1 text-left overflow-hidden opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <p className="text-sm font-medium text-foreground truncate">@{selectedAccount?.username}</p>
-                    <p className="text-xs text-muted-foreground">{selectedAccount?.followerCount.toLocaleString()}</p>
+                    <p className="text-sm font-semibold text-foreground truncate">@{selectedAccount?.username}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {selectedAccount?.followerCount.toLocaleString()} followers
+                    </p>
                   </div>
                 </button>
 
@@ -4504,7 +4614,8 @@ export function Sidebar() {
           </div>
         </div>
 
-        <div className="w-full h-px bg-border mb-6" />
+        {/* Divider */}
+        <div className="w-full h-px bg-border mb-6 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
         {/* Navigation */}
         <nav className="flex-1 w-full px-4 space-y-1 overflow-y-auto">
@@ -4594,7 +4705,7 @@ export function Sidebar() {
                 className={cn(
                   "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group/nav relative",
                   isActive
-                    ? "bg-foreground text-background shadow-lg"
+                    ? "bg-foreground text-background shadow-lg dark:shadow-black/50"
                     : "text-muted-foreground hover:text-foreground hover:bg-muted",
                 )}
               >
@@ -4612,37 +4723,71 @@ export function Sidebar() {
                     {item.badge}
                   </Badge>
                 )}
-                {isActive && <ChevronRight className="w-4 h-4 flex-shrink-0" />}
+                {isActive && (
+                  <ChevronRight className="w-4 h-4 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                )}
               </Link>
             )
           })}
         </nav>
 
         {/* Plan Badge - Visible on Hover */}
-        <div className="w-full px-4 pb-4 border-t border-border pt-4">
-          <div className="rounded-xl bg-muted/50 p-3 border border-border opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-            <div className="flex items-start gap-2">
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-foreground text-background shadow-md">
-                <CheckCircle2 className="h-4 w-4" />
+        <div className="w-full px-4 pb-4 relative">
+          <div
+            className="relative"
+            onMouseEnter={() => setShowPlanTooltip(true)}
+            onMouseLeave={() => setShowPlanTooltip(false)}
+          >
+            {/* Indicator Dot - Always visible when collapsed */}
+            <button className="w-full flex items-center justify-center py-2 rounded-xl hover:bg-muted/50 transition-all duration-200 relative group/indicator">
+              <div className="relative flex items-center justify-center">
+                <div className="w-2.5 h-2.5 rounded-full bg-accent ring-2 ring-accent/30 animate-pulse" />
+                {currentTier !== "free" && (
+                  <div className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                )}
               </div>
-              <div className="flex-1 min-w-0">
-                <div className="text-xs font-bold text-foreground capitalize mb-1">{currentTier} Plan</div>
-                <p className="text-xs text-muted-foreground mb-2">
-                  {currentTier === "free" && "Basic automation features"}
-                  {currentTier === "pro" && "Unlimited automations"}
-                  {currentTier === "enterprise" && "Everything included"}
-                </p>
-                <Link href={buildHref("/billing")}>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="w-full text-xs h-6 font-medium border-border hover:bg-background shadow-sm hover:shadow-md transition-all bg-transparent"
-                  >
-                    {currentTier === "free" ? "Upgrade" : "Manage"}
-                  </Button>
-                </Link>
-              </div>
-            </div>
+
+              {showPlanTooltip && (
+                <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 bg-card border border-border rounded-xl shadow-xl z-50 pointer-events-none animate-in fade-in slide-in-from-left-2 duration-200 w-72">
+                  <div className="p-4">
+                    <div className="flex items-start gap-3">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-foreground to-foreground/80 text-background shadow-md">
+                        <Sparkles className="h-5 w-5" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-sm font-bold text-foreground capitalize">{currentTier} Plan</span>
+                          {currentTier !== "free" && (
+                            <Badge
+                              variant="outline"
+                              className="text-xs bg-green-50 dark:bg-green-950 text-green-700 dark:text-green-300 border-green-200 dark:border-green-800"
+                            >
+                              Active
+                            </Badge>
+                          )}
+                        </div>
+                        <p className="text-xs text-muted-foreground mb-3 leading-relaxed">
+                          {currentTier === "free" &&
+                            "Start automating with basic features. Upgrade for unlimited access."}
+                          {currentTier === "pro" && "Unlimited automations with priority support."}
+                          {currentTier === "enterprise" && "Everything included with dedicated support."}
+                        </p>
+                        <Link href={buildHref("/billing")}>
+                          <Button
+                            size="sm"
+                            className="w-full text-xs h-7 font-medium bg-gradient-to-r from-accent to-accent/80 hover:from-accent hover:to-accent text-background shadow-md hover:shadow-lg transition-all"
+                          >
+                            {currentTier === "free" ? "Upgrade Plan" : "Manage Plan"}
+                          </Button>
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                  {/* Tooltip arrow */}
+                  <div className="absolute right-full top-1/2 -translate-y-1/2 w-2 h-2 bg-card border-l border-t border-border transform -rotate-45" />
+                </div>
+              )}
+            </button>
           </div>
         </div>
 
