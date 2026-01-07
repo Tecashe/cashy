@@ -2135,7 +2135,7 @@ export async function GET(request: NextRequest) {
     console.log("[Instagram Callback] Starting OAuth flow...")
     
     const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/instagram/callback`
-    // const redirectUri = `https://yazzil.com/api/auth/instagram/callback`
+    
     
     console.log("[Instagram Callback] Redirect URI being used:", redirectUri)
     console.log("[Instagram Callback] NEXT_PUBLIC_APP_URL:", process.env.NEXT_PUBLIC_APP_URL)
