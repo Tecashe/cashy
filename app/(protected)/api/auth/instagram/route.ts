@@ -9,8 +9,8 @@ export async function GET(request: NextRequest) {
   }
 
   const instagramAppId = process.env.INSTAGRAM_APP_ID
-  const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/instagram/callback`
-  //  const redirectUri = `https://yazzil.com/api/auth/instagram/callback`
+  // const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/instagram/callback`
+   const redirectUri = `https://yazzil.com/api/auth/instagram/callback`
 
   const scope = [
     "instagram_basic",
