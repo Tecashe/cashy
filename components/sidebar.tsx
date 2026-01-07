@@ -4065,6 +4065,7 @@ import {
   ChevronDown,
   Activity,
   Sparkles,
+  X,
 } from "lucide-react"
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
@@ -4081,6 +4082,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import Image from "next/image"
 import { toast } from "sonner"
@@ -4140,7 +4142,8 @@ export function Sidebar() {
   const [disconnectDialogOpen, setDisconnectDialogOpen] = useState(false)
   const [accountToDisconnect, setAccountToDisconnect] = useState<InstagramAccount | null>(null)
   const [isAccountsExpanded, setIsAccountsExpanded] = useState(false)
-  const [showPlanTooltip, setShowPlanTooltip] = useState(false)
+  const [planPopoverOpen, setPlanPopoverOpen] = useState(false)
+  const [mobileAccountsOpen, setMobileAccountsOpen] = useState(false)
 
   const userSlug = pathname ? getSlugFromPathname(pathname) : null
 
@@ -4253,6 +4256,7 @@ export function Sidebar() {
     setSelectedAccount(account)
     setCookie("selectedInstagramAccountId", account.id)
     setIsAccountsExpanded(false)
+    setMobileAccountsOpen(false)
     window.location.reload()
   }
 
@@ -4310,7 +4314,7 @@ export function Sidebar() {
             <Menu className="h-5 w-5" />
           </Button>
         </SheetTrigger>
-        <SheetContent side="left" className="w-72 p-0 bg-card border-border">
+        <SheetContent side="left" className="w-72 p-0 bg-card border-border flex flex-col">
           <div className="flex h-full flex-col">
             <div className="flex h-16 items-center justify-between px-4 border-b border-border">
               <div className="flex items-center gap-3">
@@ -4450,7 +4454,7 @@ export function Sidebar() {
                 <Button
                   variant="ghost"
                   className="w-full justify-start gap-3 h-auto p-3 hover:bg-accent rounded-xl transition-all hover:shadow-md dark:hover:shadow-black/30"
-                  onClick={() => setIsAccountsExpanded(!isAccountsExpanded)}
+                  onClick={() => setMobileAccountsOpen(true)}
                 >
                   <Avatar className="h-9 w-9 shrink-0 border-2 border-border shadow-md">
                     <AvatarImage src={proxyInstagramImage(selectedAccount?.profilePicUrl) || "/placeholder.svg"} />
@@ -4477,7 +4481,7 @@ export function Sidebar() {
 
             {/* Mobile Plan Badge */}
             <div className="w-full px-4 pb-4">
-              <div className="sm:hidden flex items-center justify-center py-3">
+              <div className="flex items-center justify-center py-3">
                 <Link href={buildHref("/billing")} className="w-full">
                   <button className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg bg-muted/50 hover:bg-muted transition-colors duration-200 border border-border/50">
                     <div className="relative flex items-center justify-center flex-shrink-0">
@@ -4494,6 +4498,67 @@ export function Sidebar() {
                 </Link>
               </div>
             </div>
+          </div>
+        </SheetContent>
+      </Sheet>
+
+      {/* Mobile Accounts Modal Sheet */}
+      <Sheet open={mobileAccountsOpen} onOpenChange={setMobileAccountsOpen}>
+        <SheetContent side="bottom" className="h-auto rounded-t-2xl bg-card border-border p-0">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-border sticky top-0 bg-card rounded-t-2xl">
+            <h2 className="text-lg font-semibold text-foreground">Your Accounts</h2>
+            <button
+              onClick={() => setMobileAccountsOpen(false)}
+              className="p-1 hover:bg-muted rounded-lg transition-colors"
+            >
+              <X className="h-5 w-5 text-muted-foreground" />
+            </button>
+          </div>
+          <div className="p-4 space-y-2 max-h-96 overflow-y-auto">
+            {accounts.map((account) => (
+              <div key={account.id}>
+                <button
+                  onClick={() => handleAccountSwitch(account)}
+                  className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors duration-150"
+                >
+                  <Avatar className="h-10 w-10 shrink-0 shadow-sm">
+                    <AvatarImage src={proxyInstagramImage(account.profilePicUrl) || "/placeholder.svg"} />
+                    <AvatarFallback className="bg-foreground text-background text-xs font-semibold">
+                      {account.username.substring(0, 2).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 text-left min-w-0">
+                    <p className="text-sm font-medium text-foreground truncate">@{account.username}</p>
+                    <p className="text-xs text-muted-foreground">{account.followerCount.toLocaleString()} followers</p>
+                  </div>
+                  {account.id === selectedAccount?.id && <CheckCircle2 className="h-5 w-5 shrink-0 text-foreground" />}
+                </button>
+                <button
+                  onClick={() => {
+                    setAccountToDisconnect(account)
+                    setDisconnectDialogOpen(true)
+                    setMobileAccountsOpen(false)
+                  }}
+                  className="w-full flex items-center gap-3 p-2 px-3 ml-8 text-destructive hover:bg-destructive/10 rounded-lg transition-all text-xs font-medium"
+                >
+                  <LogOut className="h-3.5 w-3.5" />
+                  <span>Disconnect</span>
+                </button>
+              </div>
+            ))}
+          </div>
+          <div className="p-4 border-t border-border bg-muted/30">
+            <Button
+              onClick={() => {
+                setMobileAccountsOpen(false)
+                handleAddAccount()
+              }}
+              variant="ghost"
+              className="w-full justify-start text-foreground hover:text-foreground hover:bg-foreground/10"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Add Account
+            </Button>
           </div>
         </SheetContent>
       </Sheet>
@@ -4546,58 +4611,63 @@ export function Sidebar() {
                   </div>
                 </button>
 
-                {/* Expanded Account List */}
                 {isAccountsExpanded && (
-                  <div className="absolute left-0 right-0 top-full mt-2 bg-card border border-border rounded-xl shadow-xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
-                    <div className="p-2 max-h-80 overflow-y-auto">
-                      <p className="text-xs font-semibold text-muted-foreground uppercase px-3 py-2">Your Accounts</p>
-                      {accounts.map((account) => (
-                        <div key={account.id}>
-                          <button
-                            onClick={() => handleAccountSwitch(account)}
-                            className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors duration-150"
-                          >
-                            <Avatar className="h-8 w-8 shrink-0 shadow-sm">
-                              <AvatarImage src={proxyInstagramImage(account.profilePicUrl) || "/placeholder.svg"} />
-                              <AvatarFallback className="bg-foreground text-background text-xs font-semibold">
-                                {account.username.substring(0, 2).toUpperCase()}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div className="flex-1 text-left min-w-0">
-                              <p className="text-sm font-medium text-foreground truncate">@{account.username}</p>
-                              <p className="text-xs text-muted-foreground">
-                                {account.followerCount.toLocaleString()} followers
-                              </p>
-                            </div>
-                            {account.id === selectedAccount?.id && (
-                              <CheckCircle2 className="h-4 w-4 shrink-0 text-foreground" />
-                            )}
-                          </button>
-                          {/* Disconnect option */}
-                          <button
-                            onClick={() => {
-                              setAccountToDisconnect(account)
-                              setDisconnectDialogOpen(true)
-                            }}
-                            className="w-full flex items-center gap-3 p-2 px-3 ml-8 text-destructive hover:bg-destructive/10 rounded-lg transition-all text-xs font-medium"
-                          >
-                            <LogOut className="h-3.5 w-3.5" />
-                            <span>Disconnect</span>
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                    <div className="p-2 border-t border-border bg-muted/30">
-                      <Button
-                        onClick={handleAddAccount}
-                        variant="ghost"
-                        className="w-full justify-start text-foreground hover:text-foreground hover:bg-foreground/10"
-                      >
-                        <Plus className="w-4 h-4 mr-2" />
-                        Add Account
-                      </Button>
-                    </div>
-                  </div>
+                  <Popover open={isAccountsExpanded} onOpenChange={setIsAccountsExpanded}>
+                    <PopoverContent side="right" align="start" className="w-64 p-0 border-border bg-card">
+                      <div className="space-y-1 p-2">
+                        <p className="text-xs font-semibold text-muted-foreground uppercase px-3 py-2">Your Accounts</p>
+                        {accounts.map((account) => (
+                          <div key={account.id}>
+                            <button
+                              onClick={() => handleAccountSwitch(account)}
+                              className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors duration-150"
+                            >
+                              <Avatar className="h-8 w-8 shrink-0 shadow-sm">
+                                <AvatarImage src={proxyInstagramImage(account.profilePicUrl) || "/placeholder.svg"} />
+                                <AvatarFallback className="bg-foreground text-background text-xs font-semibold">
+                                  {account.username.substring(0, 2).toUpperCase()}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div className="flex-1 text-left min-w-0">
+                                <p className="text-sm font-medium text-foreground truncate">@{account.username}</p>
+                                <p className="text-xs text-muted-foreground">
+                                  {account.followerCount.toLocaleString()} followers
+                                </p>
+                              </div>
+                              {account.id === selectedAccount?.id && (
+                                <CheckCircle2 className="h-4 w-4 shrink-0 text-foreground" />
+                              )}
+                            </button>
+                            {/* Disconnect option */}
+                            <button
+                              onClick={() => {
+                                setAccountToDisconnect(account)
+                                setDisconnectDialogOpen(true)
+                                setIsAccountsExpanded(false)
+                              }}
+                              className="w-full flex items-center gap-3 p-2 px-3 ml-8 text-destructive hover:bg-destructive/10 rounded-lg transition-all text-xs font-medium"
+                            >
+                              <LogOut className="h-3.5 w-3.5" />
+                              <span>Disconnect</span>
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="p-2 border-t border-border bg-muted/30">
+                        <Button
+                          onClick={() => {
+                            setIsAccountsExpanded(false)
+                            handleAddAccount()
+                          }}
+                          variant="ghost"
+                          className="w-full justify-start text-foreground hover:text-foreground hover:bg-foreground/10"
+                        >
+                          <Plus className="w-4 h-4 mr-2" />
+                          Add Account
+                        </Button>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
                 )}
               </>
             )}
@@ -4721,66 +4791,56 @@ export function Sidebar() {
           })}
         </nav>
 
-        {/* Plan Badge - Visible on Hover */}
+        {/* Plan Badge - Popover-Based Approach */}
         <div className="w-full px-4 pb-4 relative">
-          {/* Desktop: Compact indicator dot with hover tooltip */}
-          <div className="hidden sm:block relative">
-            <div
-              className="relative"
-              onMouseEnter={() => setShowPlanTooltip(true)}
-              onMouseLeave={() => setShowPlanTooltip(false)}
-            >
-              {/* Indicator Dot - Always visible when collapsed, no layout shift */}
-              <button className="w-full flex items-center justify-center py-2 px-3 rounded-xl hover:bg-muted/50 transition-all duration-200 relative group/indicator">
+          {/* Desktop: Icon button with popover - Always accessible */}
+          <Popover open={planPopoverOpen} onOpenChange={setPlanPopoverOpen}>
+            <PopoverTrigger asChild>
+              <button className="w-full flex items-center justify-center py-2 px-3 rounded-xl hover:bg-muted/50 transition-all duration-200 group/indicator cursor-pointer">
                 <div className="relative flex items-center justify-center">
                   <div className="w-2.5 h-2.5 rounded-full bg-accent ring-2 ring-accent/30 animate-pulse" />
                   {currentTier !== "free" && (
                     <div className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-green-500 animate-pulse" />
                   )}
                 </div>
-
-                {showPlanTooltip && (
-                  <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 bg-card border border-border rounded-xl shadow-xl z-50 pointer-events-none animate-in fade-in slide-in-from-left-2 duration-200 w-72">
-                    <div className="p-4">
-                      <div className="flex items-start gap-3">
-                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-foreground to-foreground/80 text-background shadow-md">
-                          <Sparkles className="h-5 w-5" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="text-sm font-bold text-foreground capitalize">{currentTier} Plan</span>
-                            {currentTier !== "free" && (
-                              <Badge
-                                variant="outline"
-                                className="text-xs bg-green-50 dark:bg-green-950 text-green-700 dark:text-green-300 border-green-200 dark:border-green-800"
-                              >
-                                Active
-                              </Badge>
-                            )}
-                          </div>
-                          <p className="text-xs text-muted-foreground mb-3 leading-relaxed">
-                            {currentTier === "free" &&
-                              "Start automating with basic features. Upgrade for unlimited access."}
-                            {currentTier === "pro" && "Unlimited automations with priority support."}
-                            {currentTier === "enterprise" && "Everything included with dedicated support."}
-                          </p>
-                          <Link href={buildHref("/billing")}>
-                            <Button
-                              size="sm"
-                              className="w-full text-xs h-7 font-medium bg-gradient-to-r from-accent to-accent/80 hover:from-accent hover:to-accent text-background shadow-md hover:shadow-lg transition-all"
-                            >
-                              {currentTier === "free" ? "Upgrade Plan" : "Manage Plan"}
-                            </Button>
-                          </Link>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="absolute right-full top-1/2 -translate-y-1/2 w-2 h-2 bg-card border-l border-t border-border transform -rotate-45" />
-                  </div>
-                )}
               </button>
-            </div>
-          </div>
+            </PopoverTrigger>
+            <PopoverContent side="right" align="center" className="w-72 p-0 border-border bg-card">
+              <div className="p-4">
+                <div className="flex items-start gap-3">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-accent to-accent/80 text-background shadow-md">
+                    <Sparkles className="h-5 w-5" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-sm font-bold text-foreground capitalize">{currentTier} Plan</span>
+                      {currentTier !== "free" && (
+                        <Badge
+                          variant="outline"
+                          className="text-xs bg-green-50 dark:bg-green-950 text-green-700 dark:text-green-300 border-green-200 dark:border-green-800"
+                        >
+                          Active
+                        </Badge>
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground mb-3 leading-relaxed">
+                      {currentTier === "free" && "Start automating with basic features. Upgrade for unlimited access."}
+                      {currentTier === "pro" && "Unlimited automations with priority support."}
+                      {currentTier === "enterprise" && "Everything included with dedicated support."}
+                    </p>
+                    <Link href={buildHref("/billing")} onClick={() => setPlanPopoverOpen(false)}>
+                      <Button
+                        size="sm"
+                        className="w-full text-xs h-7 font-medium bg-gradient-to-r from-accent to-accent/80 hover:from-accent hover:to-accent text-background shadow-md hover:shadow-lg transition-all"
+                      >
+                        {currentTier === "free" ? "Upgrade Plan" : "Manage Plan"}
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            </PopoverContent>
+          </Popover>
         </div>
 
         {/* Settings at Bottom */}
