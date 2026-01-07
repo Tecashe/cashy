@@ -4476,32 +4476,22 @@ export function Sidebar() {
             </div>
 
             {/* Mobile Plan Badge */}
-            <div className="border-t border-border p-4">
-              <div className="rounded-xl bg-accent p-4 border border-border shadow-lg dark:shadow-black/30">
-                <div className="flex items-start gap-3">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-foreground text-background shadow-md">
-                    <CheckCircle2 className="h-5 w-5" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-sm font-bold text-foreground capitalize">{currentTier} Plan</span>
+            <div className="w-full px-4 pb-4">
+              <div className="sm:hidden flex items-center justify-center py-3">
+                <Link href={buildHref("/billing")} className="w-full">
+                  <button className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg bg-muted/50 hover:bg-muted transition-colors duration-200 border border-border/50">
+                    <div className="relative flex items-center justify-center flex-shrink-0">
+                      <Sparkles className="h-4 w-4 text-accent" />
                     </div>
-                    <p className="text-xs text-muted-foreground mb-3">
-                      {currentTier === "free" && "Basic automation features"}
-                      {currentTier === "pro" && "Unlimited automations"}
-                      {currentTier === "enterprise" && "Everything included"}
-                    </p>
-                    <Link href={buildHref("/billing")}>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="w-full text-xs h-7 font-medium border-border hover:bg-background shadow-sm hover:shadow-md transition-all bg-transparent"
-                      >
-                        {currentTier === "free" ? "Upgrade Plan" : "Manage Plan"}
-                      </Button>
-                    </Link>
-                  </div>
-                </div>
+                    <div className="flex-1 min-w-0 text-left">
+                      <div className="text-xs font-semibold text-foreground capitalize">{currentTier}</div>
+                      <div className="text-xs text-muted-foreground truncate">
+                        {currentTier === "free" ? "Upgrade" : "Manage"}
+                      </div>
+                    </div>
+                    <ChevronRight className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+                  </button>
+                </Link>
               </div>
             </div>
           </div>
@@ -4733,61 +4723,63 @@ export function Sidebar() {
 
         {/* Plan Badge - Visible on Hover */}
         <div className="w-full px-4 pb-4 relative">
-          <div
-            className="relative"
-            onMouseEnter={() => setShowPlanTooltip(true)}
-            onMouseLeave={() => setShowPlanTooltip(false)}
-          >
-            {/* Indicator Dot - Always visible when collapsed */}
-            <button className="w-full flex items-center justify-center py-2 rounded-xl hover:bg-muted/50 transition-all duration-200 relative group/indicator">
-              <div className="relative flex items-center justify-center">
-                <div className="w-2.5 h-2.5 rounded-full bg-accent ring-2 ring-accent/30 animate-pulse" />
-                {currentTier !== "free" && (
-                  <div className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                )}
-              </div>
+          {/* Desktop: Compact indicator dot with hover tooltip */}
+          <div className="hidden sm:block relative">
+            <div
+              className="relative"
+              onMouseEnter={() => setShowPlanTooltip(true)}
+              onMouseLeave={() => setShowPlanTooltip(false)}
+            >
+              {/* Indicator Dot - Always visible when collapsed, no layout shift */}
+              <button className="w-full flex items-center justify-center py-2 px-3 rounded-xl hover:bg-muted/50 transition-all duration-200 relative group/indicator">
+                <div className="relative flex items-center justify-center">
+                  <div className="w-2.5 h-2.5 rounded-full bg-accent ring-2 ring-accent/30 animate-pulse" />
+                  {currentTier !== "free" && (
+                    <div className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                  )}
+                </div>
 
-              {showPlanTooltip && (
-                <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 bg-card border border-border rounded-xl shadow-xl z-50 pointer-events-none animate-in fade-in slide-in-from-left-2 duration-200 w-72">
-                  <div className="p-4">
-                    <div className="flex items-start gap-3">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-foreground to-foreground/80 text-background shadow-md">
-                        <Sparkles className="h-5 w-5" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="text-sm font-bold text-foreground capitalize">{currentTier} Plan</span>
-                          {currentTier !== "free" && (
-                            <Badge
-                              variant="outline"
-                              className="text-xs bg-green-50 dark:bg-green-950 text-green-700 dark:text-green-300 border-green-200 dark:border-green-800"
-                            >
-                              Active
-                            </Badge>
-                          )}
+                {showPlanTooltip && (
+                  <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 bg-card border border-border rounded-xl shadow-xl z-50 pointer-events-none animate-in fade-in slide-in-from-left-2 duration-200 w-72">
+                    <div className="p-4">
+                      <div className="flex items-start gap-3">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-foreground to-foreground/80 text-background shadow-md">
+                          <Sparkles className="h-5 w-5" />
                         </div>
-                        <p className="text-xs text-muted-foreground mb-3 leading-relaxed">
-                          {currentTier === "free" &&
-                            "Start automating with basic features. Upgrade for unlimited access."}
-                          {currentTier === "pro" && "Unlimited automations with priority support."}
-                          {currentTier === "enterprise" && "Everything included with dedicated support."}
-                        </p>
-                        <Link href={buildHref("/billing")}>
-                          <Button
-                            size="sm"
-                            className="w-full text-xs h-7 font-medium bg-gradient-to-r from-accent to-accent/80 hover:from-accent hover:to-accent text-background shadow-md hover:shadow-lg transition-all"
-                          >
-                            {currentTier === "free" ? "Upgrade Plan" : "Manage Plan"}
-                          </Button>
-                        </Link>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-sm font-bold text-foreground capitalize">{currentTier} Plan</span>
+                            {currentTier !== "free" && (
+                              <Badge
+                                variant="outline"
+                                className="text-xs bg-green-50 dark:bg-green-950 text-green-700 dark:text-green-300 border-green-200 dark:border-green-800"
+                              >
+                                Active
+                              </Badge>
+                            )}
+                          </div>
+                          <p className="text-xs text-muted-foreground mb-3 leading-relaxed">
+                            {currentTier === "free" &&
+                              "Start automating with basic features. Upgrade for unlimited access."}
+                            {currentTier === "pro" && "Unlimited automations with priority support."}
+                            {currentTier === "enterprise" && "Everything included with dedicated support."}
+                          </p>
+                          <Link href={buildHref("/billing")}>
+                            <Button
+                              size="sm"
+                              className="w-full text-xs h-7 font-medium bg-gradient-to-r from-accent to-accent/80 hover:from-accent hover:to-accent text-background shadow-md hover:shadow-lg transition-all"
+                            >
+                              {currentTier === "free" ? "Upgrade Plan" : "Manage Plan"}
+                            </Button>
+                          </Link>
+                        </div>
                       </div>
                     </div>
+                    <div className="absolute right-full top-1/2 -translate-y-1/2 w-2 h-2 bg-card border-l border-t border-border transform -rotate-45" />
                   </div>
-                  {/* Tooltip arrow */}
-                  <div className="absolute right-full top-1/2 -translate-y-1/2 w-2 h-2 bg-card border-l border-t border-border transform -rotate-45" />
-                </div>
-              )}
-            </button>
+                )}
+              </button>
+            </div>
           </div>
         </div>
 
