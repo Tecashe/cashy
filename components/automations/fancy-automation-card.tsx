@@ -819,7 +819,7 @@ export function FancyAutomationCard({ automation, index = 0, onDelete, onToggle 
                 <DropdownMenuContent align="end" className="w-48">
                   <DropdownMenuItem asChild>
                     {/* <Link href={`/automations/${automation.id}`} className="cursor-pointer"> */}
-                    <Link href={buildHref(`/automations/${automation.id}`)} className="cursor-pointer">
+                    <Link href={buildHref(`/automations/${automation.id}/edit`)} className="cursor-pointer">
                       <Edit className="mr-3 h-4 w-4" />
                       Edit
                     </Link>

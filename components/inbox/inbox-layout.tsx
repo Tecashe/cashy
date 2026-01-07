@@ -41,9 +41,8 @@ export function InboxLayout({ userId, instagramAccounts }: InboxLayoutProps) {
   }
 
   const handleConversationSelect = (id: string) => {
-    router.push(`/inbox?c=${id}`)
-  }
-
+      router.push(buildHref(`/inbox?c=${id}`))
+    }
   return (
     <div className="flex flex-col h-screen bg-background">
       <div className="border-b px-4 py-3 bg-card shadow-sm">
