@@ -90,6 +90,7 @@ model InstagramAccount {
   isConnected     Boolean   @default(true)
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
+  disconnectedAt  DateTime?
 
   user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   conversations Conversation[]

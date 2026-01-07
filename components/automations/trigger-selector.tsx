@@ -295,7 +295,7 @@ export function TriggerSelector({
                             )}
                             {!canAdd && (
                               <Badge variant="secondary" className="text-xs">
-                                Pro
+                                Upgrade
                               </Badge>
                             )}
                           </ItemTitle>

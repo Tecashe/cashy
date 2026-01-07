@@ -134,7 +134,7 @@ const isPublicRoute = createRouteMatcher([
   "/sign-in(.*)", 
   "/sign-up(.*)",
   "/",
-  "/api/webhooks(.*)", // Webhooks are public (they use signature verification)
+  "/api/webhook(.*)", // Webhooks are public (they use signature verification)
   "/privacy",
   "/terms",
   "/onboarding(.*)", // Onboarding should be accessible

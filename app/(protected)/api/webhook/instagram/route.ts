@@ -5438,6 +5438,7 @@
 
 
 
+
 import { type NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/db"
 import { InstagramAPI } from "@/lib/instagram-api"
@@ -6380,4 +6381,67 @@ function calculateDelay(actionData: any): number {
   const hours = actionData.delayHours || 0
   const minutes = actionData.delayMinutes || 0
   return (days * 24 * 60 + hours * 60 + minutes) * 60 * 1000
+}
+
+
+
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const body = await request.json()
+    
+    console.log("[Instagram Deauth] 📨 Received deauthorization:", JSON.stringify(body, null, 2))
+
+    // Instagram sends signed_request when user deauthorizes
+    if (body.signed_request) {
+      const signedRequest = body.signed_request
+      
+      // Parse the signed request (base64 encoded)
+      const [encodedSig, payload] = signedRequest.split('.')
+      const data = JSON.parse(Buffer.from(payload, 'base64').toString('utf8'))
+      
+      const userId = data.user_id // Instagram user ID
+      
+      console.log("[Instagram Deauth] 🔓 User deauthorized:", userId)
+
+      // Find and disconnect the account
+      const account = await prisma.instagramAccount.findFirst({
+        where: {
+          OR: [
+            { instagramId: userId },
+            { instagramPageId: userId }
+          ]
+        }
+      })
+
+      if (account) {
+        await prisma.instagramAccount.update({
+          where: { id: account.id },
+          data: {
+            isConnected: false,
+            accessToken: '', // Clear token
+            disconnectedAt: new Date()
+          }
+        })
+
+        console.log("[Instagram Deauth] ✅ Account disconnected:", account.username)
+        
+        // Optional: Clean up related data
+        // await prisma.conversation.updateMany({
+        //   where: { instagramAccountId: account.id },
+        //   data: { isActive: false }
+        // })
+
+        // await prisma.automation.updateMany({
+        //   where: { instagramAccountId: account.id },
+        //   data: { isActive: false }
+        // })
+      }
+    }
+
+    return NextResponse.json({ success: true }, { status: 200 })
+  } catch (error) {
+    console.error("[Instagram Deauth] ❌ Error:", error)
+    return NextResponse.json({ success: true }, { status: 200 })
+  }
 }
