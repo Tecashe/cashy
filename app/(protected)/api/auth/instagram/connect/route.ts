@@ -118,7 +118,7 @@
 // }
 
 // NEW EMBED - app/api/auth/instagram/connect/route.ts
-// This file handles the initial OAuth connection request
+// This file handles the initial OAuth connection requests
 
 import { auth } from "@clerk/nextjs/server"
 import { type NextRequest, NextResponse } from "next/server"
