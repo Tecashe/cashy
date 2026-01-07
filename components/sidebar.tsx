@@ -3316,734 +3316,7 @@
 // }
 
 
-// "use client"
-
-// import Link from "next/link"
-// import { usePathname } from "next/navigation"
-// import { cn } from "@/lib/utils"
-// import {
-//   LayoutDashboard,
-//   MessageSquare,
-//   Zap,
-//   BarChart3,
-//   Settings,
-//   Instagram,
-//   CreditCard,
-//   ChevronLeft,
-//   ChevronRight,
-//   Plus,
-//   ChevronDown,
-//   CheckCircle2,
-//   Activity,
-//   Loader2,
-//   FileText,
-//   Menu,
-//   Lock,
-//   LogOut,
-// } from "lucide-react"
-// import { useState, useEffect } from "react"
-// import { Button } from "@/components/ui/button"
-// import {
-//   DropdownMenu,
-//   DropdownMenuContent,
-//   DropdownMenuItem,
-//   DropdownMenuSeparator,
-//   DropdownMenuTrigger,
-// } from "@/components/ui/dropdown-menu"
-// import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-// import { Badge } from "@/components/ui/badge"
-// import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
-// import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-// import {
-//   AlertDialog,
-//   AlertDialogAction,
-//   AlertDialogCancel,
-//   AlertDialogContent,
-//   AlertDialogDescription,
-//   AlertDialogFooter,
-//   AlertDialogHeader,
-//   AlertDialogTitle,
-// } from "@/components/ui/alert-dialog"
-// import Image from "next/image"
-// import { toast } from "sonner"
-
-// interface InstagramAccount {
-//   id: string
-//   username: string
-//   profilePicUrl: string | null
-//   followerCount: number
-// }
-
-// interface NavigationItem {
-//   name: string
-//   href: string
-//   icon: React.ElementType
-//   badge?: number | null
-//   subItems?: NavigationItem[]
-// }
-
-// // Extract slug from pathname helper
-// function getSlugFromPathname(pathname: string): string | null {
-//   const match = pathname.match(/^\/dashboard\/([^\/]+)/)
-//   return match ? match[1] : null
-// }
-
-// // Utility function to proxy Instagram images
-// function proxyInstagramImage(url: string | null | undefined): string {
-//   if (!url) return ""
-//   if (url.includes("cdninstagram.com")) {
-//     return `/api/proxy/image?url=${encodeURIComponent(url)}`
-//   }
-//   return url
-// }
-
-// // Cookie utilities
-// function getCookie(name: string): string | null {
-//   if (typeof document === "undefined") return null
-//   const value = `; ${document.cookie}`
-//   const parts = value.split(`; ${name}=`)
-//   if (parts.length === 2) return parts.pop()?.split(";").shift() || null
-//   return null
-// }
-
-// function setCookie(name: string, value: string) {
-//   if (typeof document === "undefined") return
-//   const d = new Date()
-//   d.setTime(d.getTime() + 30 * 24 * 60 * 60 * 1000)
-//   const expires = "expires=" + d.toUTCString()
-//   document.cookie = `${name}=${value};${expires};path=/`
-// }
-
-// interface SidebarContentProps {
-//   isCollapsed: boolean
-//   pathname: string | null
-//   navigation: NavigationItem[]
-//   openSubmenus: Record<string, boolean>
-//   toggleSubmenu: (name: string) => void
-//   accounts: InstagramAccount[]
-//   selectedAccount: InstagramAccount | null
-//   loading: boolean
-//   handleAccountSwitch: (account: InstagramAccount) => void
-//   currentTier: string
-//   onNavigate?: () => void
-//   userSlug: string | null
-//   handleDisconnect: (account: InstagramAccount) => void
-//   setAccountToDisconnect: (account: InstagramAccount) => void
-//   setDisconnectDialogOpen: (open: boolean) => void
-// }
-
-// function SidebarContent({
-//   isCollapsed,
-//   pathname,
-//   navigation,
-//   openSubmenus,
-//   toggleSubmenu,
-//   accounts,
-//   selectedAccount,
-//   loading,
-//   handleAccountSwitch,
-//   currentTier,
-//   onNavigate,
-//   userSlug,
-//   handleDisconnect,
-//   setAccountToDisconnect,
-//   setDisconnectDialogOpen,
-// }: SidebarContentProps) {
-//   // Build href with user slug
-//   const buildHref = (href: string) => {
-//     if (!userSlug) return href
-//     // If href is /dashboard, keep it as is
-//     if (href === "/dashboard") return `/dashboard/${userSlug}`
-//     // Otherwise, prefix with /dashboard/slug
-//     return `/dashboard/${userSlug}${href}`
-//   }
-
-//   return (
-//     <>
-//       {/* Navigation */}
-//       <nav className="flex-1 space-y-1 overflow-y-auto p-3">
-//         {navigation.map((item) => {
-//           const itemHref = buildHref(item.href)
-//           const isActive = pathname === itemHref || pathname?.startsWith(itemHref + "/")
-//           const hasSubItems = item.subItems && item.subItems.length > 0
-
-//           const isSubItemActive = hasSubItems
-//             ? item.subItems!.some((subItem) => {
-//                 const subHref = buildHref(subItem.href)
-//                 return pathname === subHref || pathname?.startsWith(subHref + "/")
-//               })
-//             : false
-
-//           if (hasSubItems && !isCollapsed) {
-//             return (
-//               <Collapsible key={item.name} open={openSubmenus[item.name]} onOpenChange={() => toggleSubmenu(item.name)}>
-//                 <CollapsibleTrigger asChild>
-//                   <button
-//                     className={cn(
-//                       "group relative flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200",
-//                       isSubItemActive
-//                         ? "bg-foreground/10 text-foreground shadow-sm"
-//                         : "text-muted-foreground hover:bg-accent hover:text-foreground",
-//                     )}
-//                   >
-//                     <item.icon
-//                       className={cn(
-//                         "h-5 w-5 transition-transform group-hover:scale-110",
-//                         isSubItemActive && "text-foreground",
-//                       )}
-//                     />
-//                     <span className="flex-1 text-left">{item.name}</span>
-//                     <ChevronDown
-//                       className={cn(
-//                         "h-4 w-4 transition-transform duration-200",
-//                         openSubmenus[item.name] && "rotate-180",
-//                       )}
-//                     />
-//                   </button>
-//                 </CollapsibleTrigger>
-//                 <CollapsibleContent className="mt-1 space-y-1 pl-2">
-//                   <div className="relative ml-2 border-l-2 border-border/50 pl-2 space-y-1">
-//                     {item.subItems!.map((subItem) => {
-//                       const subHref = buildHref(subItem.href)
-//                       const isSubActive = pathname === subHref || pathname?.startsWith(subHref + "/")
-//                       return (
-//                         <Link
-//                           key={subItem.name}
-//                           href={subHref}
-//                           onClick={onNavigate}
-//                           className={cn(
-//                             "group relative flex items-center gap-3 rounded-lg pl-3 pr-3 py-2 text-sm font-medium transition-all duration-200",
-//                             isSubActive
-//                               ? "bg-gradient-to-r from-foreground/10 to-foreground/5 text-foreground border-l-2 border-foreground shadow-sm"
-//                               : "text-muted-foreground hover:bg-accent/50 hover:text-foreground hover:translate-x-1",
-//                           )}
-//                         >
-//                           <subItem.icon
-//                             className={cn(
-//                               "h-4 w-4 transition-all group-hover:scale-110",
-//                               isSubActive && "text-foreground",
-//                             )}
-//                           />
-//                           <span className="flex-1">{subItem.name}</span>
-//                           {isSubActive && <div className="h-1.5 w-1.5 rounded-full bg-foreground animate-pulse" />}
-//                         </Link>
-//                       )
-//                     })}
-//                   </div>
-//                 </CollapsibleContent>
-//               </Collapsible>
-//             )
-//           }
-
-//           return (
-//             <Link
-//               key={item.name}
-//               href={itemHref}
-//               onClick={onNavigate}
-//               className={cn(
-//                 "group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200",
-//                 isActive
-//                   ? "bg-foreground text-background shadow-lg dark:shadow-black/50"
-//                   : "text-muted-foreground hover:bg-accent hover:text-foreground",
-//               )}
-//             >
-//               {isActive && !isCollapsed && (
-//                 <div className="absolute left-0 top-1/2 h-8 w-1 -translate-y-1/2 rounded-r-full bg-background" />
-//               )}
-//               <item.icon
-//                 className={cn(
-//                   "h-5 w-5 transition-transform group-hover:scale-110",
-//                   isActive && "text-background",
-//                   isCollapsed && "mx-auto",
-//                 )}
-//               />
-//               {!isCollapsed && (
-//                 <>
-//                   <span className="flex-1">{item.name}</span>
-//                   {item.badge && (
-//                     <Badge className="h-5 min-w-5 bg-foreground text-background px-1.5 text-xs font-semibold border-0 shadow-md">
-//                       {item.badge}
-//                     </Badge>
-//                   )}
-//                 </>
-//               )}
-//             </Link>
-//           )
-//         })}
-//       </nav>
-
-//       {/* Account Selector */}
-//       {!isCollapsed && (
-//         <div className="border-t border-border p-4">
-//           {loading ? (
-//             <div className="flex items-center justify-center py-3">
-//               <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-//             </div>
-//           ) : accounts.length === 0 ? (
-//             <a href="/api/auth/instagram/connect">
-//               <Button
-//                 variant="outline"
-//                 className="w-full justify-start gap-3 h-auto p-3 hover:bg-accent rounded-xl transition-all hover:shadow-md dark:hover:shadow-black/30 bg-transparent"
-//               >
-//                 <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border-2 border-dashed border-border">
-//                   <Plus className="h-4 w-4 text-muted-foreground" />
-//                 </div>
-//                 <span className="text-sm text-foreground font-medium">Connect Instagram</span>
-//               </Button>
-//             </a>
-//           ) : (
-//             <DropdownMenu>
-//               <DropdownMenuTrigger asChild>
-//                 <Button
-//                   variant="ghost"
-//                   className="w-full justify-start gap-3 h-auto p-3 hover:bg-accent rounded-xl transition-all hover:shadow-md dark:hover:shadow-black/30"
-//                 >
-//                   <Avatar className="h-9 w-9 shrink-0 border-2 border-border shadow-md">
-//                     <AvatarImage src={proxyInstagramImage(selectedAccount?.profilePicUrl)} />
-//                     <AvatarFallback className="bg-foreground text-background font-semibold text-xs">
-//                       {selectedAccount?.username.substring(0, 2).toUpperCase()}
-//                     </AvatarFallback>
-//                   </Avatar>
-//                   <div className="flex flex-1 flex-col items-start text-left min-w-0">
-//                     <div className="flex items-center gap-1.5 w-full min-w-0">
-//                       <span className="text-sm font-semibold text-foreground truncate">
-//                         @{selectedAccount?.username}
-//                       </span>
-//                       <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-blue-600 dark:text-blue-400" />
-//                     </div>
-//                     <div className="flex items-center gap-1.5">
-//                       <Activity className="h-3 w-3 shrink-0 text-green-600 dark:text-green-400" />
-//                       <span className="text-xs text-muted-foreground">Connected</span>
-//                     </div>
-//                   </div>
-//                   <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />
-//                 </Button>
-//               </DropdownMenuTrigger>
-//               <DropdownMenuContent align="end" className="w-64 bg-card border-border shadow-xl dark:shadow-black/50">
-//                 {accounts.map((account) => (
-//                   <div key={account.id} className="space-y-0">
-//                     <DropdownMenuItem
-//                       onClick={() => handleAccountSwitch(account)}
-//                       className="flex items-center gap-3 p-3 cursor-pointer focus:bg-accent rounded-lg transition-all"
-//                     >
-//                       <Avatar className="h-8 w-8 shrink-0 shadow-sm">
-//                         <AvatarImage src={proxyInstagramImage(account.profilePicUrl)} />
-//                         <AvatarFallback className="bg-foreground text-background text-xs font-semibold">
-//                           {account.username.substring(0, 2).toUpperCase()}
-//                         </AvatarFallback>
-//                       </Avatar>
-//                       <div className="flex flex-1 flex-col min-w-0">
-//                         <span className="text-sm font-medium text-foreground truncate">@{account.username}</span>
-//                         <span className="text-xs text-muted-foreground">
-//                           {account.followerCount.toLocaleString()} followers
-//                         </span>
-//                       </div>
-//                       {account.id === selectedAccount?.id && (
-//                         <CheckCircle2 className="h-4 w-4 shrink-0 text-foreground" />
-//                       )}
-//                     </DropdownMenuItem>
-                    
-//                     {/* Disconnect option for each account */}
-//                     <DropdownMenuItem
-//                       onClick={() => {
-//                         setAccountToDisconnect(account)
-//                         setDisconnectDialogOpen(true)
-//                       }}
-//                       className="flex items-center gap-3 p-2 px-3 ml-11 cursor-pointer focus:bg-destructive/10 text-destructive rounded-lg transition-all"
-//                     >
-//                       <LogOut className="h-3.5 w-3.5" />
-//                       <span className="text-xs font-medium">Disconnect</span>
-//                     </DropdownMenuItem>
-//                   </div>
-//                 ))}
-//                 <DropdownMenuSeparator className="bg-border" />
-//                 <DropdownMenuItem asChild>
-//                   <a
-//                     href={currentTier === "free" ? buildHref("/billing") : "/api/auth/instagram/connect"}
-//                     className="flex items-center gap-3 p-3 cursor-pointer focus:bg-accent rounded-lg transition-all"
-//                     onClick={(e) => {
-//                       if (currentTier === "free") {
-//                         e.preventDefault()
-//                         toast.error("Upgrade to Pro to add a second account")
-//                         onNavigate?.()
-//                       }
-//                     }}
-//                   >
-//                     {currentTier === "free" ? (
-//                       <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border-2 border-dashed border-border">
-//                         <Lock className="h-4 w-4 text-destructive" />
-//                       </div>
-//                     ) : (
-//                       <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border-2 border-dashed border-border">
-//                         <Plus className="h-4 w-4 text-muted-foreground" />
-//                       </div>
-//                     )}
-//                     <span className="text-sm text-foreground font-medium">
-//                       {currentTier === "free" ? "Upgrade for Multiple Accounts" : "Add Account"}
-//                     </span>
-//                   </a>
-//                 </DropdownMenuItem>
-//               </DropdownMenuContent>
-//             </DropdownMenu>
-//           )}
-//         </div>
-//       )}
-
-//       {/* Plan Badge */}
-//       {!isCollapsed && (
-//         <div className="border-t border-border p-4">
-//           <div className="rounded-xl bg-accent p-4 border border-border shadow-lg dark:shadow-black/30">
-//             <div className="flex items-start gap-3">
-//               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-foreground text-background shadow-md">
-//                 <CheckCircle2 className="h-5 w-5" />
-//               </div>
-//               <div className="flex-1 min-w-0">
-//                 <div className="flex items-center gap-2 mb-1">
-//                   <span className="text-sm font-bold text-foreground capitalize">{currentTier} Plan</span>
-//                 </div>
-//                 <p className="text-xs text-muted-foreground mb-3">
-//                   {currentTier === "free" && "Basic automation features"}
-//                   {currentTier === "pro" && "Unlimited automations"}
-//                   {currentTier === "enterprise" && "Everything included"}
-//                 </p>
-//                 <Link href={buildHref("/billing")} onClick={onNavigate}>
-//                   <Button
-//                     size="sm"
-//                     variant="outline"
-//                     className="w-full text-xs h-7 font-medium border-border hover:bg-background shadow-sm hover:shadow-md transition-all bg-transparent"
-//                   >
-//                     {currentTier === "free" ? "Upgrade Plan" : "Manage Plan"}
-//                   </Button>
-//                 </Link>
-//               </div>
-//             </div>
-//           </div>
-//         </div>
-//       )}
-
-//       {/* Collapsed State Indicators */}
-//       {isCollapsed && (
-//         <div className="flex flex-col items-center gap-3 border-t border-border p-3">
-//           {selectedAccount ? (
-//             <Avatar className="h-9 w-9 border-2 border-border shadow-md">
-//               <AvatarImage src={proxyInstagramImage(selectedAccount.profilePicUrl)} />
-//               <AvatarFallback className="bg-foreground text-background text-xs font-semibold">
-//                 {selectedAccount.username.substring(0, 2).toUpperCase()}
-//               </AvatarFallback>
-//             </Avatar>
-//           ) : (
-//             <div className="flex h-9 w-9 items-center justify-center rounded-lg border-2 border-dashed border-border">
-//               <Plus className="h-4 w-4 text-muted-foreground" />
-//             </div>
-//           )}
-//           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-foreground text-background shadow-md">
-//             <CheckCircle2 className="h-4 w-4" />
-//           </div>
-//         </div>
-//       )}
-//     </>
-//   )
-// }
-
-// export function Sidebar() {
-//   const pathname = usePathname()
-//   const [isCollapsed, setIsCollapsed] = useState(false)
-//   const [accounts, setAccounts] = useState<InstagramAccount[]>([])
-//   const [selectedAccount, setSelectedAccount] = useState<InstagramAccount | null>(null)
-//   const [loading, setLoading] = useState(true)
-//   const [openSubmenus, setOpenSubmenus] = useState<Record<string, boolean>>({})
-//   const [mobileOpen, setMobileOpen] = useState(false)
-//   const [currentTier, setCurrentTier] = useState("free")
-//   const [disconnectDialogOpen, setDisconnectDialogOpen] = useState(false)
-//   const [accountToDisconnect, setAccountToDisconnect] = useState<InstagramAccount | null>(null)
-
-//   // Extract user slug from pathname
-//   const userSlug = pathname ? getSlugFromPathname(pathname) : null
-
-//   // Navigation items - these are now relative paths
-//   const navigation: NavigationItem[] = [
-//     {
-//       name: "Dashboard",
-//       href: "/dashboard",
-//       icon: LayoutDashboard,
-//     },
-//     {
-//       name: "Inbox",
-//       href: "/inbox",
-//       icon: MessageSquare,
-//     },
-//     {
-//       name: "Customers",
-//       href: "/customers",
-//       icon: MessageSquare,
-//     },
-//     {
-//       name: "Automations",
-//       href: "/automations",
-//       icon: Zap,
-//     },
-//     {
-//       name: "AI-settings",
-//       href: "/ai-dashboard",
-//       icon: FileText,
-//     },
-//     {
-//       name: "Accounts",
-//       href: "/accounts",
-//       icon: Instagram,
-//     },
-//     {
-//       name: "Billing",
-//       href: "/billing",
-//       icon: CreditCard,
-//     },
-//   ]
-
-//   // Fetch Instagram accounts and subscription tier on mount
-//   useEffect(() => {
-//     async function fetchData() {
-//       try {
-//         const [accountsRes, tierRes] = await Promise.all([
-//           fetch("/api/instagram/accounts"),
-//           fetch("/api/subscriptions/current"),
-//         ])
-
-//         if (accountsRes.ok) {
-//           const data = await accountsRes.json()
-//           setAccounts(data.accounts || [])
-
-//           const savedAccountId = getCookie("selectedInstagramAccountId")
-//           if (savedAccountId && data.accounts) {
-//             const saved = data.accounts.find((acc: InstagramAccount) => acc.id === savedAccountId)
-//             setSelectedAccount(saved || data.accounts[0] || null)
-//           } else if (data.accounts?.length > 0) {
-//             setSelectedAccount(data.accounts[0])
-//             setCookie("selectedInstagramAccountId", data.accounts[0].id)
-//           }
-//         }
-
-//         if (tierRes.ok) {
-//           const tierData = await tierRes.json()
-//           setCurrentTier(tierData.tier || "free")
-//         }
-//       } catch (error) {
-//         console.error("Failed to fetch data:", error)
-//       } finally {
-//         setLoading(false)
-//       }
-//     }
-
-//     fetchData()
-//   }, [])
-
-//   useEffect(() => {
-//     const newOpenSubmenus: Record<string, boolean> = {}
-//     navigation.forEach((item) => {
-//       if (item.subItems) {
-//         const isSubItemActive = item.subItems.some(
-//           (subItem) => pathname === subItem.href || pathname?.startsWith(subItem.href + "/"),
-//         )
-//         if (isSubItemActive) {
-//           newOpenSubmenus[item.name] = true
-//         }
-//       }
-//     })
-//     setOpenSubmenus(newOpenSubmenus)
-//   }, [pathname])
-
-//   const handleAccountSwitch = async (account: InstagramAccount) => {
-//     setSelectedAccount(account)
-//     setCookie("selectedInstagramAccountId", account.id)
-//     window.location.reload()
-//   }
-
-//   const toggleSubmenu = (itemName: string) => {
-//     setOpenSubmenus((prev) => ({
-//       ...prev,
-//       [itemName]: !prev[itemName],
-//     }))
-//   }
-
-//   const handleDisconnect = async (account: InstagramAccount) => {
-//     try {
-//       const response = await fetch('/api/instagram/disconnect', {
-//         method: 'POST',
-//         headers: { 'Content-Type': 'application/json' },
-//         body: JSON.stringify({ accountId: account.id })
-//       })
-
-//       if (!response.ok) throw new Error('Failed to disconnect')
-
-//       toast.success('Account disconnected successfully')
-      
-//       // Remove from local state
-//       setAccounts(prev => prev.filter(a => a.id !== account.id))
-      
-//       // If this was the selected account, select another or null
-//       if (selectedAccount?.id === account.id) {
-//         const remaining = accounts.filter(a => a.id !== account.id)
-//         setSelectedAccount(remaining[0] || null)
-//         if (remaining[0]) {
-//           setCookie('selectedInstagramAccountId', remaining[0].id)
-//         }
-//         window.location.reload()
-//       }
-//     } catch (error) {
-//       toast.error('Failed to disconnect account')
-//       console.error('Disconnect error:', error)
-//     } finally {
-//       setDisconnectDialogOpen(false)
-//       setAccountToDisconnect(null)
-//     }
-//   }
-
-//   return (
-//     <>
-//       {/* Mobile Menu */}
-//       <div className="lg:hidden">
-//         <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-//           <SheetTrigger asChild>
-//             <Button
-//               variant="outline"
-//               size="icon"
-//               className="fixed top-4 left-4 z-50 h-10 w-10 bg-card border-border shadow-lg hover:bg-accent"
-//             >
-//               <Menu className="h-5 w-5" />
-//             </Button>
-//           </SheetTrigger>
-//           <SheetContent side="left" className="w-72 p-0 bg-card border-border">
-//             <div className="flex h-full flex-col">
-//               <div className="flex h-16 items-center justify-between px-4 border-b border-border">
-//                 <div className="flex items-center gap-3">
-//                   <div className="relative h-10 w-10 shrink-0">
-//                     <Image src="/branded-original.png" alt="Logo" fill className="object-contain" />
-//                   </div>
-//                   <span className="text-lg font-bold text-foreground">Yazzil</span>
-//                 </div>
-//               </div>
-
-//               <SidebarContent
-//                 isCollapsed={false}
-//                 pathname={pathname}
-//                 navigation={navigation}
-//                 openSubmenus={openSubmenus}
-//                 toggleSubmenu={toggleSubmenu}
-//                 accounts={accounts}
-//                 selectedAccount={selectedAccount}
-//                 loading={loading}
-//                 handleAccountSwitch={handleAccountSwitch}
-//                 currentTier={currentTier}
-//                 onNavigate={() => setMobileOpen(false)}
-//                 userSlug={userSlug}
-//                 handleDisconnect={handleDisconnect}
-//                 setAccountToDisconnect={setAccountToDisconnect}
-//                 setDisconnectDialogOpen={setDisconnectDialogOpen}
-//               />
-//             </div>
-//           </SheetContent>
-//         </Sheet>
-//       </div>
-
-//       {/* Desktop Sidebar */}
-//       <div
-//         className={cn(
-//           "hidden lg:flex h-full flex-col border-r border-border bg-card transition-all duration-300",
-//           isCollapsed ? "w-20" : "w-72",
-//         )}
-//       >
-//         <div className="flex h-16 items-center justify-between px-4 border-b border-border">
-//           {!isCollapsed && (
-//             <div className="flex items-center gap-3 flex-1">
-//               <div className="relative h-10 w-10 shrink-0">
-//                 <Image src="/branded-original.png" alt="Logo" fill className="object-contain" />
-//               </div>
-//               <span className="text-lg font-bold text-foreground">Yazzil</span>
-//             </div>
-//           )}
-//           {isCollapsed && (
-//             <div className="relative h-10 w-10 mx-auto">
-//               <Image src="/branded-original.png" alt="Logo" fill className="object-contain" />
-//             </div>
-//           )}
-//           {!isCollapsed && (
-//             <Button
-//               variant="ghost"
-//               size="icon"
-//               onClick={() => setIsCollapsed(!isCollapsed)}
-//               className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-accent"
-//             >
-//               <ChevronLeft className="h-4 w-4" />
-//             </Button>
-//           )}
-//         </div>
-
-//         {isCollapsed && (
-//           <div className="flex justify-center py-2">
-//             <Button
-//               variant="ghost"
-//               size="icon"
-//               onClick={() => setIsCollapsed(!isCollapsed)}
-//               className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-accent"
-//             >
-//               <ChevronRight className="h-4 w-4" />
-//             </Button>
-//           </div>
-//         )}
-
-//         <div className="flex h-full flex-col">
-//           <SidebarContent
-//             isCollapsed={isCollapsed}
-//             pathname={pathname}
-//             navigation={navigation}
-//             openSubmenus={openSubmenus}
-//             toggleSubmenu={toggleSubmenu}
-//             accounts={accounts}
-//             selectedAccount={selectedAccount}
-//             loading={loading}
-//             handleAccountSwitch={handleAccountSwitch}
-//             currentTier={currentTier}
-//             onNavigate={() => {}}
-//             userSlug={userSlug}
-//             handleDisconnect={handleDisconnect}
-//             setAccountToDisconnect={setAccountToDisconnect}
-//             setDisconnectDialogOpen={setDisconnectDialogOpen}
-//           />
-//         </div>
-//       </div>
-
-//       {/* Disconnect Confirmation Dialog */}
-//       <AlertDialog open={disconnectDialogOpen} onOpenChange={setDisconnectDialogOpen}>
-//         <AlertDialogContent>
-//           <AlertDialogHeader>
-//             <AlertDialogTitle>Disconnect Instagram Account?</AlertDialogTitle>
-//             <AlertDialogDescription>
-//               Are you sure you want to disconnect <strong>@{accountToDisconnect?.username}</strong>? 
-//               This will:
-//               <ul className="list-disc list-inside mt-2 space-y-1 text-sm">
-//                 <li>Deactivate all automations for this account</li>
-//                 <li>Stop receiving new messages</li>
-//                 <li>Archive all conversations</li>
-//               </ul>
-//               <p className="mt-2 text-sm font-medium">You can reconnect anytime.</p>
-//             </AlertDialogDescription>
-//           </AlertDialogHeader>
-//           <AlertDialogFooter>
-//             <AlertDialogCancel>Cancel</AlertDialogCancel>
-//             <AlertDialogAction
-//               onClick={() => accountToDisconnect && handleDisconnect(accountToDisconnect)}
-//               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-//             >
-//               Disconnect
-//             </AlertDialogAction>
-//           </AlertDialogFooter>
-//         </AlertDialogContent>
-//       </AlertDialog>
-//     </>
-//   )
-// }
 "use client"
-
-import type React from "react"
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -4052,25 +3325,34 @@ import {
   LayoutDashboard,
   MessageSquare,
   Zap,
+  BarChart3,
   Settings,
   Instagram,
   CreditCard,
+  ChevronLeft,
+  ChevronRight,
   Plus,
+  ChevronDown,
   CheckCircle2,
+  Activity,
   Loader2,
   FileText,
   Menu,
+  Lock,
   LogOut,
-  ChevronRight,
-  ChevronDown,
-  Activity,
-  Sparkles,
-  X,
 } from "lucide-react"
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import {
   AlertDialog,
@@ -4082,8 +3364,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import Image from "next/image"
 import { toast } from "sonner"
 
@@ -4102,11 +3382,13 @@ interface NavigationItem {
   subItems?: NavigationItem[]
 }
 
+// Extract slug from pathname helper
 function getSlugFromPathname(pathname: string): string | null {
-  const match = pathname.match(/^\/dashboard\/([^/]+)/)
+  const match = pathname.match(/^\/dashboard\/([^\/]+)/)
   return match ? match[1] : null
 }
 
+// Utility function to proxy Instagram images
 function proxyInstagramImage(url: string | null | undefined): string {
   if (!url) return ""
   if (url.includes("cdninstagram.com")) {
@@ -4115,6 +3397,7 @@ function proxyInstagramImage(url: string | null | undefined): string {
   return url
 }
 
+// Cookie utilities
 function getCookie(name: string): string | null {
   if (typeof document === "undefined") return null
   const value = `; ${document.cookie}`
@@ -4131,8 +3414,340 @@ function setCookie(name: string, value: string) {
   document.cookie = `${name}=${value};${expires};path=/`
 }
 
+interface SidebarContentProps {
+  isCollapsed: boolean
+  pathname: string | null
+  navigation: NavigationItem[]
+  openSubmenus: Record<string, boolean>
+  toggleSubmenu: (name: string) => void
+  accounts: InstagramAccount[]
+  selectedAccount: InstagramAccount | null
+  loading: boolean
+  handleAccountSwitch: (account: InstagramAccount) => void
+  currentTier: string
+  onNavigate?: () => void
+  userSlug: string | null
+  handleDisconnect: (account: InstagramAccount) => void
+  setAccountToDisconnect: (account: InstagramAccount) => void
+  setDisconnectDialogOpen: (open: boolean) => void
+}
+
+function SidebarContent({
+  isCollapsed,
+  pathname,
+  navigation,
+  openSubmenus,
+  toggleSubmenu,
+  accounts,
+  selectedAccount,
+  loading,
+  handleAccountSwitch,
+  currentTier,
+  onNavigate,
+  userSlug,
+  handleDisconnect,
+  setAccountToDisconnect,
+  setDisconnectDialogOpen,
+}: SidebarContentProps) {
+  // Build href with user slug
+  const buildHref = (href: string) => {
+    if (!userSlug) return href
+    // If href is /dashboard, keep it as is
+    if (href === "/dashboard") return `/dashboard/${userSlug}`
+    // Otherwise, prefix with /dashboard/slug
+    return `/dashboard/${userSlug}${href}`
+  }
+
+  return (
+    <>
+      {/* Navigation */}
+      <nav className="flex-1 space-y-1 overflow-y-auto p-3">
+        {navigation.map((item) => {
+          const itemHref = buildHref(item.href)
+          const isActive = pathname === itemHref || pathname?.startsWith(itemHref + "/")
+          const hasSubItems = item.subItems && item.subItems.length > 0
+
+          const isSubItemActive = hasSubItems
+            ? item.subItems!.some((subItem) => {
+                const subHref = buildHref(subItem.href)
+                return pathname === subHref || pathname?.startsWith(subHref + "/")
+              })
+            : false
+
+          if (hasSubItems && !isCollapsed) {
+            return (
+              <Collapsible key={item.name} open={openSubmenus[item.name]} onOpenChange={() => toggleSubmenu(item.name)}>
+                <CollapsibleTrigger asChild>
+                  <button
+                    className={cn(
+                      "group relative flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200",
+                      isSubItemActive
+                        ? "bg-foreground/10 text-foreground shadow-sm"
+                        : "text-muted-foreground hover:bg-accent hover:text-foreground",
+                    )}
+                  >
+                    <item.icon
+                      className={cn(
+                        "h-5 w-5 transition-transform group-hover:scale-110",
+                        isSubItemActive && "text-foreground",
+                      )}
+                    />
+                    <span className="flex-1 text-left">{item.name}</span>
+                    <ChevronDown
+                      className={cn(
+                        "h-4 w-4 transition-transform duration-200",
+                        openSubmenus[item.name] && "rotate-180",
+                      )}
+                    />
+                  </button>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="mt-1 space-y-1 pl-2">
+                  <div className="relative ml-2 border-l-2 border-border/50 pl-2 space-y-1">
+                    {item.subItems!.map((subItem) => {
+                      const subHref = buildHref(subItem.href)
+                      const isSubActive = pathname === subHref || pathname?.startsWith(subHref + "/")
+                      return (
+                        <Link
+                          key={subItem.name}
+                          href={subHref}
+                          onClick={onNavigate}
+                          className={cn(
+                            "group relative flex items-center gap-3 rounded-lg pl-3 pr-3 py-2 text-sm font-medium transition-all duration-200",
+                            isSubActive
+                              ? "bg-gradient-to-r from-foreground/10 to-foreground/5 text-foreground border-l-2 border-foreground shadow-sm"
+                              : "text-muted-foreground hover:bg-accent/50 hover:text-foreground hover:translate-x-1",
+                          )}
+                        >
+                          <subItem.icon
+                            className={cn(
+                              "h-4 w-4 transition-all group-hover:scale-110",
+                              isSubActive && "text-foreground",
+                            )}
+                          />
+                          <span className="flex-1">{subItem.name}</span>
+                          {isSubActive && <div className="h-1.5 w-1.5 rounded-full bg-foreground animate-pulse" />}
+                        </Link>
+                      )
+                    })}
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
+            )
+          }
+
+          return (
+            <Link
+              key={item.name}
+              href={itemHref}
+              onClick={onNavigate}
+              className={cn(
+                "group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200",
+                isActive
+                  ? "bg-foreground text-background shadow-lg dark:shadow-black/50"
+                  : "text-muted-foreground hover:bg-accent hover:text-foreground",
+              )}
+            >
+              {isActive && !isCollapsed && (
+                <div className="absolute left-0 top-1/2 h-8 w-1 -translate-y-1/2 rounded-r-full bg-background" />
+              )}
+              <item.icon
+                className={cn(
+                  "h-5 w-5 transition-transform group-hover:scale-110",
+                  isActive && "text-background",
+                  isCollapsed && "mx-auto",
+                )}
+              />
+              {!isCollapsed && (
+                <>
+                  <span className="flex-1">{item.name}</span>
+                  {item.badge && (
+                    <Badge className="h-5 min-w-5 bg-foreground text-background px-1.5 text-xs font-semibold border-0 shadow-md">
+                      {item.badge}
+                    </Badge>
+                  )}
+                </>
+              )}
+            </Link>
+          )
+        })}
+      </nav>
+
+      {/* Account Selector */}
+      {!isCollapsed && (
+        <div className="border-t border-border p-4">
+          {loading ? (
+            <div className="flex items-center justify-center py-3">
+              <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+            </div>
+          ) : accounts.length === 0 ? (
+            <a href="/api/auth/instagram/connect">
+              <Button
+                variant="outline"
+                className="w-full justify-start gap-3 h-auto p-3 hover:bg-accent rounded-xl transition-all hover:shadow-md dark:hover:shadow-black/30 bg-transparent"
+              >
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border-2 border-dashed border-border">
+                  <Plus className="h-4 w-4 text-muted-foreground" />
+                </div>
+                <span className="text-sm text-foreground font-medium">Connect Instagram</span>
+              </Button>
+            </a>
+          ) : (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start gap-3 h-auto p-3 hover:bg-accent rounded-xl transition-all hover:shadow-md dark:hover:shadow-black/30"
+                >
+                  <Avatar className="h-9 w-9 shrink-0 border-2 border-border shadow-md">
+                    <AvatarImage src={proxyInstagramImage(selectedAccount?.profilePicUrl)} />
+                    <AvatarFallback className="bg-foreground text-background font-semibold text-xs">
+                      {selectedAccount?.username.substring(0, 2).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex flex-1 flex-col items-start text-left min-w-0">
+                    <div className="flex items-center gap-1.5 w-full min-w-0">
+                      <span className="text-sm font-semibold text-foreground truncate">
+                        @{selectedAccount?.username}
+                      </span>
+                      <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <Activity className="h-3 w-3 shrink-0 text-green-600 dark:text-green-400" />
+                      <span className="text-xs text-muted-foreground">Connected</span>
+                    </div>
+                  </div>
+                  <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-64 bg-card border-border shadow-xl dark:shadow-black/50">
+                {accounts.map((account) => (
+                  <div key={account.id} className="space-y-0">
+                    <DropdownMenuItem
+                      onClick={() => handleAccountSwitch(account)}
+                      className="flex items-center gap-3 p-3 cursor-pointer focus:bg-accent rounded-lg transition-all"
+                    >
+                      <Avatar className="h-8 w-8 shrink-0 shadow-sm">
+                        <AvatarImage src={proxyInstagramImage(account.profilePicUrl)} />
+                        <AvatarFallback className="bg-foreground text-background text-xs font-semibold">
+                          {account.username.substring(0, 2).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex flex-1 flex-col min-w-0">
+                        <span className="text-sm font-medium text-foreground truncate">@{account.username}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {account.followerCount.toLocaleString()} followers
+                        </span>
+                      </div>
+                      {account.id === selectedAccount?.id && (
+                        <CheckCircle2 className="h-4 w-4 shrink-0 text-foreground" />
+                      )}
+                    </DropdownMenuItem>
+                    
+                    {/* Disconnect option for each account */}
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setAccountToDisconnect(account)
+                        setDisconnectDialogOpen(true)
+                      }}
+                      className="flex items-center gap-3 p-2 px-3 ml-11 cursor-pointer focus:bg-destructive/10 text-destructive rounded-lg transition-all"
+                    >
+                      <LogOut className="h-3.5 w-3.5" />
+                      <span className="text-xs font-medium">Disconnect</span>
+                    </DropdownMenuItem>
+                  </div>
+                ))}
+                <DropdownMenuSeparator className="bg-border" />
+                <DropdownMenuItem asChild>
+                  <a
+                    href={currentTier === "free" ? buildHref("/billing") : "/api/auth/instagram/connect"}
+                    className="flex items-center gap-3 p-3 cursor-pointer focus:bg-accent rounded-lg transition-all"
+                    onClick={(e) => {
+                      if (currentTier === "free") {
+                        e.preventDefault()
+                        toast.error("Upgrade to Pro to add a second account")
+                        onNavigate?.()
+                      }
+                    }}
+                  >
+                    {currentTier === "free" ? (
+                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border-2 border-dashed border-border">
+                        <Lock className="h-4 w-4 text-destructive" />
+                      </div>
+                    ) : (
+                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border-2 border-dashed border-border">
+                        <Plus className="h-4 w-4 text-muted-foreground" />
+                      </div>
+                    )}
+                    <span className="text-sm text-foreground font-medium">
+                      {currentTier === "free" ? "Upgrade for Multiple Accounts" : "Add Account"}
+                    </span>
+                  </a>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+        </div>
+      )}
+
+      {/* Plan Badge */}
+      {!isCollapsed && (
+        <div className="border-t border-border p-4">
+          <div className="rounded-xl bg-accent p-4 border border-border shadow-lg dark:shadow-black/30">
+            <div className="flex items-start gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-foreground text-background shadow-md">
+                <CheckCircle2 className="h-5 w-5" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-sm font-bold text-foreground capitalize">{currentTier} Plan</span>
+                </div>
+                <p className="text-xs text-muted-foreground mb-3">
+                  {currentTier === "free" && "Basic automation features"}
+                  {currentTier === "pro" && "Unlimited automations"}
+                  {currentTier === "enterprise" && "Everything included"}
+                </p>
+                <Link href={buildHref("/billing")} onClick={onNavigate}>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="w-full text-xs h-7 font-medium border-border hover:bg-background shadow-sm hover:shadow-md transition-all bg-transparent"
+                  >
+                    {currentTier === "free" ? "Upgrade Plan" : "Manage Plan"}
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Collapsed State Indicators */}
+      {isCollapsed && (
+        <div className="flex flex-col items-center gap-3 border-t border-border p-3">
+          {selectedAccount ? (
+            <Avatar className="h-9 w-9 border-2 border-border shadow-md">
+              <AvatarImage src={proxyInstagramImage(selectedAccount.profilePicUrl)} />
+              <AvatarFallback className="bg-foreground text-background text-xs font-semibold">
+                {selectedAccount.username.substring(0, 2).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+          ) : (
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg border-2 border-dashed border-border">
+              <Plus className="h-4 w-4 text-muted-foreground" />
+            </div>
+          )}
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-foreground text-background shadow-md">
+            <CheckCircle2 className="h-4 w-4" />
+          </div>
+        </div>
+      )}
+    </>
+  )
+}
+
 export function Sidebar() {
   const pathname = usePathname()
+  const [isCollapsed, setIsCollapsed] = useState(false)
   const [accounts, setAccounts] = useState<InstagramAccount[]>([])
   const [selectedAccount, setSelectedAccount] = useState<InstagramAccount | null>(null)
   const [loading, setLoading] = useState(true)
@@ -4141,12 +3756,11 @@ export function Sidebar() {
   const [currentTier, setCurrentTier] = useState("free")
   const [disconnectDialogOpen, setDisconnectDialogOpen] = useState(false)
   const [accountToDisconnect, setAccountToDisconnect] = useState<InstagramAccount | null>(null)
-  const [isAccountsExpanded, setIsAccountsExpanded] = useState(false)
-  const [planPopoverOpen, setPlanPopoverOpen] = useState(false)
-  const [mobileAccountsOpen, setMobileAccountsOpen] = useState(false)
 
+  // Extract user slug from pathname
   const userSlug = pathname ? getSlugFromPathname(pathname) : null
 
+  // Navigation items - these are now relative paths
   const navigation: NavigationItem[] = [
     {
       name: "Dashboard",
@@ -4185,6 +3799,7 @@ export function Sidebar() {
     },
   ]
 
+  // Fetch Instagram accounts and subscription tier on mount
   useEffect(() => {
     async function fetchData() {
       try {
@@ -4201,10 +3816,7 @@ export function Sidebar() {
           if (savedAccountId && data.accounts) {
             const saved = data.accounts.find((acc: InstagramAccount) => acc.id === savedAccountId)
             setSelectedAccount(saved || data.accounts[0] || null)
-            if (saved || data.accounts[0]) {
-              setCookie("selectedInstagramAccountId", (saved || data.accounts[0]).id)
-            }
-          } else if (data.accounts && data.accounts.length > 0) {
+          } else if (data.accounts?.length > 0) {
             setSelectedAccount(data.accounts[0])
             setCookie("selectedInstagramAccountId", data.accounts[0].id)
           }
@@ -4229,7 +3841,7 @@ export function Sidebar() {
     navigation.forEach((item) => {
       if (item.subItems) {
         const isSubItemActive = item.subItems.some(
-          (subItem) => pathname === buildHref(subItem.href) || pathname?.startsWith(buildHref(subItem.href) + "/"),
+          (subItem) => pathname === subItem.href || pathname?.startsWith(subItem.href + "/"),
         )
         if (isSubItemActive) {
           newOpenSubmenus[item.name] = true
@@ -4239,10 +3851,10 @@ export function Sidebar() {
     setOpenSubmenus(newOpenSubmenus)
   }, [pathname])
 
-  const buildHref = (href: string) => {
-    if (!userSlug) return href
-    if (href === "/dashboard") return `/dashboard/${userSlug}`
-    return `/dashboard/${userSlug}${href}`
+  const handleAccountSwitch = async (account: InstagramAccount) => {
+    setSelectedAccount(account)
+    setCookie("selectedInstagramAccountId", account.id)
+    window.location.reload()
   }
 
   const toggleSubmenu = (itemName: string) => {
@@ -4252,618 +3864,161 @@ export function Sidebar() {
     }))
   }
 
-  const handleAccountSwitch = (account: InstagramAccount) => {
-    setSelectedAccount(account)
-    setCookie("selectedInstagramAccountId", account.id)
-    setIsAccountsExpanded(false)
-    setMobileAccountsOpen(false)
-    window.location.reload()
-  }
-
   const handleDisconnect = async (account: InstagramAccount) => {
     try {
-      const response = await fetch("/api/instagram/disconnect", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ accountId: account.id }),
+      const response = await fetch('/api/instagram/disconnect', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ accountId: account.id })
       })
 
-      if (response.ok) {
-        toast.success("Account disconnected successfully")
-        const updatedAccounts = accounts.filter((acc) => acc.id !== account.id)
-        setAccounts(updatedAccounts)
+      if (!response.ok) throw new Error('Failed to disconnect')
 
-        if (selectedAccount?.id === account.id) {
-          const nextAccount = updatedAccounts[0] || null
-          setSelectedAccount(nextAccount)
-          if (nextAccount) {
-            setCookie("selectedInstagramAccountId", nextAccount.id)
-          }
-          window.location.reload()
+      toast.success('Account disconnected successfully')
+      
+      // Remove from local state
+      setAccounts(prev => prev.filter(a => a.id !== account.id))
+      
+      // If this was the selected account, select another or null
+      if (selectedAccount?.id === account.id) {
+        const remaining = accounts.filter(a => a.id !== account.id)
+        setSelectedAccount(remaining[0] || null)
+        if (remaining[0]) {
+          setCookie('selectedInstagramAccountId', remaining[0].id)
         }
-      } else {
-        toast.error("Failed to disconnect account")
+        window.location.reload()
       }
     } catch (error) {
-      toast.error("Failed to disconnect account")
-      console.error("Disconnect error:", error)
+      toast.error('Failed to disconnect account')
+      console.error('Disconnect error:', error)
     } finally {
       setDisconnectDialogOpen(false)
       setAccountToDisconnect(null)
     }
   }
 
-  const handleAddAccount = () => {
-    if (currentTier === "free" && accounts.length >= 1) {
-      toast.error("Upgrade to Pro to add a second account")
-      return
-    }
-    window.location.href = "/api/auth/instagram/connect"
-  }
-
   return (
     <>
-      {/* Mobile Sidebar */}
-      <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-        <SheetTrigger asChild className="lg:hidden">
-          <Button
-            variant="outline"
-            size="icon"
-            className="fixed top-4 left-4 z-50 h-10 w-10 bg-card border-border shadow-lg hover:bg-accent"
-          >
-            <Menu className="h-5 w-5" />
-          </Button>
-        </SheetTrigger>
-        <SheetContent side="left" className="w-72 p-0 bg-card border-border flex flex-col">
-          <div className="flex h-full flex-col">
-            <div className="flex h-16 items-center justify-between px-4 border-b border-border">
-              <div className="flex items-center gap-3">
-                <div className="relative h-10 w-10 shrink-0">
-                  <Image src="/branded-original.png" alt="Logo" fill className="object-contain" />
-                </div>
-                <span className="text-lg font-bold text-foreground">Yazzil</span>
-              </div>
-            </div>
-
-            {/* Mobile Navigatio*/}
-            <nav className="flex-1 space-y-1 overflow-y-auto p-3">
-              {navigation.map((item) => {
-                const itemHref = buildHref(item.href)
-                const isActive = pathname === itemHref || pathname?.startsWith(itemHref + "/")
-                const hasSubItems = item.subItems && item.subItems.length > 0
-                const isSubItemActive = hasSubItems
-                  ? item.subItems?.some((subItem) => {
-                      const subHref = buildHref(subItem.href)
-                      return pathname === subHref || pathname?.startsWith(subHref + "/")
-                    })
-                  : false
-
-                if (hasSubItems) {
-                  return (
-                    <Collapsible
-                      key={item.name}
-                      open={openSubmenus[item.name]}
-                      onOpenChange={() => toggleSubmenu(item.name)}
-                    >
-                      <CollapsibleTrigger asChild>
-                        <button
-                          className={cn(
-                            "group relative flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200",
-                            isSubItemActive
-                              ? "bg-foreground/10 text-foreground"
-                              : "text-muted-foreground hover:bg-accent hover:text-foreground",
-                          )}
-                        >
-                          <item.icon className="h-5 w-5 transition-transform group-hover:scale-110" />
-                          <span className="flex-1 text-left">{item.name}</span>
-                          <ChevronDown
-                            className={cn(
-                              "h-4 w-4 transition-transform duration-200",
-                              openSubmenus[item.name] && "rotate-180",
-                            )}
-                          />
-                        </button>
-                      </CollapsibleTrigger>
-                      <CollapsibleContent className="mt-1 space-y-1 pl-2">
-                        <div className="relative ml-2 space-y-1">
-                          {item.subItems!.map((subItem) => {
-                            const subHref = buildHref(subItem.href)
-                            const isSubActive = pathname === subHref || pathname?.startsWith(subHref + "/")
-                            return (
-                              <Link
-                                key={subItem.name}
-                                href={subHref}
-                                onClick={() => setMobileOpen(false)}
-                                className={cn(
-                                  "group relative flex items-center gap-3 rounded-lg pl-3 pr-3 py-2 text-sm font-medium transition-all duration-200",
-                                  isSubActive
-                                    ? "bg-gradient-to-r from-foreground/10 to-foreground/5 text-foreground border-l-2 border-foreground shadow-sm"
-                                    : "text-muted-foreground hover:bg-accent/50 hover:text-foreground hover:translate-x-1",
-                                )}
-                              >
-                                <subItem.icon
-                                  className={cn(
-                                    "h-4 w-4 transition-all group-hover:scale-110",
-                                    isSubActive && "text-foreground",
-                                  )}
-                                />
-                                <span className="flex-1">{subItem.name}</span>
-                                {isSubActive && (
-                                  <div className="h-1.5 w-1.5 rounded-full bg-foreground animate-pulse" />
-                                )}
-                              </Link>
-                            )
-                          })}
-                        </div>
-                      </CollapsibleContent>
-                    </Collapsible>
-                  )
-                }
-
-                return (
-                  <Link
-                    key={item.name}
-                    href={itemHref}
-                    onClick={() => setMobileOpen(false)}
-                    className={cn(
-                      "group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200",
-                      isActive
-                        ? "bg-foreground text-background shadow-lg dark:shadow-black/50"
-                        : "text-muted-foreground hover:bg-accent hover:text-foreground",
-                    )}
-                  >
-                    {isActive && (
-                      <div className="absolute left-0 top-1/2 h-8 w-1 -translate-y-1/2 rounded-r-full bg-background" />
-                    )}
-                    <item.icon
-                      className={cn(
-                        "h-5 w-5 transition-transform group-hover:scale-110",
-                        isActive && "text-background",
-                      )}
-                    />
-                    <span className="flex-1">{item.name}</span>
-                    {item.badge && (
-                      <Badge className="h-5 min-w-5 bg-foreground text-background px-1.5 text-xs font-semibold border-0 shadow-md">
-                        {item.badge}
-                      </Badge>
-                    )}
-                  </Link>
-                )
-              })}
-            </nav>
-
-            {/* Mobile Account Selector */}
-            <div className="border-t border-border p-4">
-              {loading ? (
-                <div className="flex items-center justify-center py-3">
-                  <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-                </div>
-              ) : accounts.length === 0 ? (
-                <a href="/api/auth/instagram/connect">
-                  <Button
-                    variant="outline"
-                    className="w-full justify-start gap-3 h-auto p-3 hover:bg-accent rounded-xl transition-all hover:shadow-md dark:hover:shadow-black/30 bg-transparent"
-                  >
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border-2 border-dashed border-border">
-                      <Plus className="h-4 w-4 text-muted-foreground" />
-                    </div>
-                    <span className="text-sm text-foreground font-medium">Connect Instagram</span>
-                  </Button>
-                </a>
-              ) : (
-                <Button
-                  variant="ghost"
-                  className="w-full justify-start gap-3 h-auto p-3 hover:bg-accent rounded-xl transition-all hover:shadow-md dark:hover:shadow-black/30"
-                  onClick={() => setMobileAccountsOpen(true)}
-                >
-                  <Avatar className="h-9 w-9 shrink-0 border-2 border-border shadow-md">
-                    <AvatarImage src={proxyInstagramImage(selectedAccount?.profilePicUrl) || "/placeholder.svg"} />
-                    <AvatarFallback className="bg-foreground text-background font-semibold text-xs">
-                      {selectedAccount?.username.substring(0, 2).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex flex-1 flex-col items-start text-left min-w-0">
-                    <div className="flex items-center gap-1.5 w-full min-w-0">
-                      <span className="text-sm font-semibold text-foreground truncate">
-                        @{selectedAccount?.username}
-                      </span>
-                      <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-blue-600 dark:text-blue-400" />
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <Activity className="h-3 w-3 shrink-0 text-green-600 dark:text-green-400" />
-                      <span className="text-xs text-muted-foreground">Connected</span>
-                    </div>
-                  </div>
-                  <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />
-                </Button>
-              )}
-            </div>
-
-            {/* Mobile Plan Badge */}
-            <div className="w-full px-4 pb-4">
-              <div className="flex items-center justify-center py-3">
-                <Link href={buildHref("/billing")} className="w-full">
-                  <button className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg bg-muted/50 hover:bg-muted transition-colors duration-200 border border-border/50">
-                    <div className="relative flex items-center justify-center flex-shrink-0">
-                      <Sparkles className="h-4 w-4 text-accent" />
-                    </div>
-                    <div className="flex-1 min-w-0 text-left">
-                      <div className="text-xs font-semibold text-foreground capitalize">{currentTier}</div>
-                      <div className="text-xs text-muted-foreground truncate">
-                        {currentTier === "free" ? "Upgrade" : "Manage"}
-                      </div>
-                    </div>
-                    <ChevronRight className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
-                  </button>
-                </Link>
-              </div>
-            </div>
-          </div>
-        </SheetContent>
-      </Sheet>
-
-      {/* Mobile Accounts Modal Sheet */}
-      <Sheet open={mobileAccountsOpen} onOpenChange={setMobileAccountsOpen}>
-        <SheetContent side="bottom" className="h-auto rounded-t-2xl bg-card border-border p-0">
-          <div className="flex items-center justify-between px-4 py-3 border-b border-border sticky top-0 bg-card rounded-t-2xl">
-            <h2 className="text-lg font-semibold text-foreground">Your Accounts</h2>
-            <button
-              onClick={() => setMobileAccountsOpen(false)}
-              className="p-1 hover:bg-muted rounded-lg transition-colors"
-            >
-              <X className="h-5 w-5 text-muted-foreground" />
-            </button>
-          </div>
-          <div className="p-4 space-y-2 max-h-96 overflow-y-auto">
-            {accounts.map((account) => (
-              <div key={account.id}>
-                <button
-                  onClick={() => handleAccountSwitch(account)}
-                  className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors duration-150"
-                >
-                  <Avatar className="h-10 w-10 shrink-0 shadow-sm">
-                    <AvatarImage src={proxyInstagramImage(account.profilePicUrl) || "/placeholder.svg"} />
-                    <AvatarFallback className="bg-foreground text-background text-xs font-semibold">
-                      {account.username.substring(0, 2).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1 text-left min-w-0">
-                    <p className="text-sm font-medium text-foreground truncate">@{account.username}</p>
-                    <p className="text-xs text-muted-foreground">{account.followerCount.toLocaleString()} followers</p>
-                  </div>
-                  {account.id === selectedAccount?.id && <CheckCircle2 className="h-5 w-5 shrink-0 text-foreground" />}
-                </button>
-                <button
-                  onClick={() => {
-                    setAccountToDisconnect(account)
-                    setDisconnectDialogOpen(true)
-                    setMobileAccountsOpen(false)
-                  }}
-                  className="w-full flex items-center gap-3 p-2 px-3 ml-8 text-destructive hover:bg-destructive/10 rounded-lg transition-all text-xs font-medium"
-                >
-                  <LogOut className="h-3.5 w-3.5" />
-                  <span>Disconnect</span>
-                </button>
-              </div>
-            ))}
-          </div>
-          <div className="p-4 border-t border-border bg-muted/30">
+      {/* Mobile Menu */}
+      <div className="lg:hidden">
+        <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+          <SheetTrigger asChild>
             <Button
-              onClick={() => {
-                setMobileAccountsOpen(false)
-                handleAddAccount()
-              }}
-              variant="ghost"
-              className="w-full justify-start text-foreground hover:text-foreground hover:bg-foreground/10"
+              variant="outline"
+              size="icon"
+              className="fixed top-4 left-4 z-50 h-10 w-10 bg-card border-border shadow-lg hover:bg-accent"
             >
-              <Plus className="w-4 h-4 mr-2" />
-              Add Account
+              <Menu className="h-5 w-5" />
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="left" className="w-72 p-0 bg-card border-border">
+            <div className="flex h-full flex-col">
+              <div className="flex h-16 items-center justify-between px-4 border-b border-border">
+                <div className="flex items-center gap-3">
+                  <div className="relative h-10 w-10 shrink-0">
+                    <Image src="/branded-original.png" alt="Logo" fill className="object-contain" />
+                  </div>
+                  <span className="text-lg font-bold text-foreground">Yazzil</span>
+                </div>
+              </div>
+
+              <SidebarContent
+                isCollapsed={false}
+                pathname={pathname}
+                navigation={navigation}
+                openSubmenus={openSubmenus}
+                toggleSubmenu={toggleSubmenu}
+                accounts={accounts}
+                selectedAccount={selectedAccount}
+                loading={loading}
+                handleAccountSwitch={handleAccountSwitch}
+                currentTier={currentTier}
+                onNavigate={() => setMobileOpen(false)}
+                userSlug={userSlug}
+                handleDisconnect={handleDisconnect}
+                setAccountToDisconnect={setAccountToDisconnect}
+                setDisconnectDialogOpen={setDisconnectDialogOpen}
+              />
+            </div>
+          </SheetContent>
+        </Sheet>
+      </div>
+
+      {/* Desktop Sidebar */}
+      <div
+        className={cn(
+          "hidden lg:flex h-full flex-col border-r border-border bg-card transition-all duration-300",
+          isCollapsed ? "w-20" : "w-72",
+        )}
+      >
+        <div className="flex h-16 items-center justify-between px-4 border-b border-border">
+          {!isCollapsed && (
+            <div className="flex items-center gap-3 flex-1">
+              <div className="relative h-10 w-10 shrink-0">
+                <Image src="/branded-original.png" alt="Logo" fill className="object-contain" />
+              </div>
+              <span className="text-lg font-bold text-foreground">Yazzil</span>
+            </div>
+          )}
+          {isCollapsed && (
+            <div className="relative h-10 w-10 mx-auto">
+              <Image src="/branded-original.png" alt="Logo" fill className="object-contain" />
+            </div>
+          )}
+          {!isCollapsed && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setIsCollapsed(!isCollapsed)}
+              className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-accent"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
+
+        {isCollapsed && (
+          <div className="flex justify-center py-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setIsCollapsed(!isCollapsed)}
+              className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-accent"
+            >
+              <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
-        </SheetContent>
-      </Sheet>
+        )}
 
-      {/* Desktop Sidebar - Compact Hover-Expand Design */}
-      <div className="hidden lg:flex h-screen bg-card border-r border-border flex-col items-center py-6 relative group hover:w-80 w-20 transition-all duration-300">
-        {/* Logo Section */}
-        <div className="mb-8 flex items-center gap-3 px-6 w-full">
-          <div className="relative h-10 w-10 shrink-0">
-            <Image src="/branded-original.png" alt="Logo" fill className="object-contain" />
-          </div>
-          <div className="overflow-hidden opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
-            <h1 className="text-lg font-bold text-foreground">Yazzil</h1>
-          </div>
-        </div>
-
-        {/* Account Switcher Section */}
-        <div className="w-full px-4 mb-6">
-          <div className="relative">
-            {loading ? (
-              <div className="flex items-center justify-center py-3">
-                <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-              </div>
-            ) : accounts.length === 0 ? (
-              <a href="/api/auth/instagram/connect">
-                <Button
-                  variant="outline"
-                  className="w-full justify-center rounded-xl h-12 bg-transparent hover:bg-accent transition-all"
-                >
-                  <Plus className="h-5 w-5" />
-                </Button>
-              </a>
-            ) : (
-              <>
-                <button
-                  onClick={() => setIsAccountsExpanded(!isAccountsExpanded)}
-                  className="w-full flex items-center gap-3 p-2 rounded-xl hover:bg-muted transition-all duration-200"
-                >
-                  <Avatar className="h-10 w-10 shrink-0 border-2 border-border shadow-md">
-                    <AvatarImage src={proxyInstagramImage(selectedAccount?.profilePicUrl) || "/placeholder.svg"} />
-                    <AvatarFallback className="bg-foreground text-background font-semibold text-xs">
-                      {selectedAccount?.username.substring(0, 2).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1 text-left overflow-hidden opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <p className="text-sm font-semibold text-foreground truncate">@{selectedAccount?.username}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {selectedAccount?.followerCount.toLocaleString()} followers
-                    </p>
-                  </div>
-                </button>
-
-                {isAccountsExpanded && (
-                  <Popover open={isAccountsExpanded} onOpenChange={setIsAccountsExpanded}>
-                    <PopoverContent side="right" align="start" className="w-64 p-0 border-border bg-card">
-                      <div className="space-y-1 p-2">
-                        <p className="text-xs font-semibold text-muted-foreground uppercase px-3 py-2">Your Accounts</p>
-                        {accounts.map((account) => (
-                          <div key={account.id}>
-                            <button
-                              onClick={() => handleAccountSwitch(account)}
-                              className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors duration-150"
-                            >
-                              <Avatar className="h-8 w-8 shrink-0 shadow-sm">
-                                <AvatarImage src={proxyInstagramImage(account.profilePicUrl) || "/placeholder.svg"} />
-                                <AvatarFallback className="bg-foreground text-background text-xs font-semibold">
-                                  {account.username.substring(0, 2).toUpperCase()}
-                                </AvatarFallback>
-                              </Avatar>
-                              <div className="flex-1 text-left min-w-0">
-                                <p className="text-sm font-medium text-foreground truncate">@{account.username}</p>
-                                <p className="text-xs text-muted-foreground">
-                                  {account.followerCount.toLocaleString()} followers
-                                </p>
-                              </div>
-                              {account.id === selectedAccount?.id && (
-                                <CheckCircle2 className="h-4 w-4 shrink-0 text-foreground" />
-                              )}
-                            </button>
-                            {/* Disconnect option */}
-                            <button
-                              onClick={() => {
-                                setAccountToDisconnect(account)
-                                setDisconnectDialogOpen(true)
-                                setIsAccountsExpanded(false)
-                              }}
-                              className="w-full flex items-center gap-3 p-2 px-3 ml-8 text-destructive hover:bg-destructive/10 rounded-lg transition-all text-xs font-medium"
-                            >
-                              <LogOut className="h-3.5 w-3.5" />
-                              <span>Disconnect</span>
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                      <div className="p-2 border-t border-border bg-muted/30">
-                        <Button
-                          onClick={() => {
-                            setIsAccountsExpanded(false)
-                            handleAddAccount()
-                          }}
-                          variant="ghost"
-                          className="w-full justify-start text-foreground hover:text-foreground hover:bg-foreground/10"
-                        >
-                          <Plus className="w-4 h-4 mr-2" />
-                          Add Account
-                        </Button>
-                      </div>
-                    </PopoverContent>
-                  </Popover>
-                )}
-              </>
-            )}
-          </div>
-        </div>
-
-        {/* Divider */}
-        <div className="w-full h-px bg-border mb-6 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-
-        {/* Navigation */}
-        <nav className="flex-1 w-full px-4 space-y-1 overflow-y-auto">
-          {navigation.map((item) => {
-            const itemHref = buildHref(item.href)
-            const isActive = pathname === itemHref || pathname?.startsWith(itemHref + "/")
-            const hasSubItems = item.subItems && item.subItems.length > 0
-            const isSubItemActive = hasSubItems
-              ? item.subItems?.some((subItem) => {
-                  const subHref = buildHref(subItem.href)
-                  return pathname === subHref || pathname?.startsWith(subHref + "/")
-                })
-              : false
-
-            if (hasSubItems) {
-              return (
-                <Collapsible
-                  key={item.name}
-                  open={openSubmenus[item.name]}
-                  onOpenChange={() => toggleSubmenu(item.name)}
-                >
-                  <CollapsibleTrigger asChild>
-                    <button
-                      className={cn(
-                        "group relative flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200",
-                        isSubItemActive
-                          ? "bg-foreground/10 text-foreground"
-                          : "text-muted-foreground hover:bg-accent hover:text-foreground",
-                      )}
-                    >
-                      <item.icon
-                        className={cn(
-                          "h-5 w-5 transition-transform group-hover:scale-110",
-                          isSubItemActive && "text-foreground",
-                        )}
-                      />
-                      <span className="flex-1 text-left overflow-hidden opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
-                        {item.name}
-                      </span>
-                      <ChevronDown
-                        className={cn(
-                          "h-4 w-4 transition-transform duration-200 opacity-0 group-hover:opacity-100",
-                          openSubmenus[item.name] && "rotate-180",
-                        )}
-                      />
-                    </button>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent className="mt-1 space-y-1 pl-2">
-                    <div className="relative ml-2 space-y-1">
-                      {item.subItems!.map((subItem) => {
-                        const subHref = buildHref(subItem.href)
-                        const isSubActive = pathname === subHref || pathname?.startsWith(subHref + "/")
-                        return (
-                          <Link
-                            key={subItem.name}
-                            href={subHref}
-                            className={cn(
-                              "group relative flex items-center gap-3 rounded-lg pl-3 pr-3 py-2 text-sm font-medium transition-all duration-200",
-                              isSubActive
-                                ? "bg-foreground/10 text-foreground"
-                                : "text-muted-foreground hover:bg-accent/50 hover:text-foreground hover:translate-x-1",
-                            )}
-                          >
-                            <subItem.icon
-                              className={cn(
-                                "h-4 w-4 transition-all group-hover:scale-110",
-                                isSubActive && "text-foreground",
-                              )}
-                            />
-                            <span className="flex-1 overflow-hidden opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
-                              {subItem.name}
-                            </span>
-                            {isSubActive && <div className="h-1.5 w-1.5 rounded-full bg-foreground animate-pulse" />}
-                          </Link>
-                        )
-                      })}
-                    </div>
-                  </CollapsibleContent>
-                </Collapsible>
-              )
-            }
-
-            return (
-              <Link
-                key={item.name}
-                href={itemHref}
-                className={cn(
-                  "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group/nav relative",
-                  isActive
-                    ? "bg-foreground text-background shadow-lg dark:shadow-black/50"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted",
-                )}
-              >
-                <item.icon
-                  className={cn(
-                    "w-5 h-5 flex-shrink-0 transition-transform group-hover/nav:scale-110",
-                    isActive && "text-background",
-                  )}
-                />
-                <span className="text-sm font-medium flex-1 text-left overflow-hidden opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
-                  {item.name}
-                </span>
-                {item.badge && (
-                  <Badge className="h-5 min-w-5 bg-muted text-foreground px-1.5 text-xs font-semibold border-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    {item.badge}
-                  </Badge>
-                )}
-                {isActive && (
-                  <ChevronRight className="w-4 h-4 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                )}
-              </Link>
-            )
-          })}
-        </nav>
-
-        {/* Plan Badge - Popover-Based Approach */}
-        <div className="w-full px-4 pb-4 relative">
-          {/* Desktop: Icon button with popover - Always accessible */}
-          <Popover open={planPopoverOpen} onOpenChange={setPlanPopoverOpen}>
-            <PopoverTrigger asChild>
-              <button className="w-full flex items-center justify-center py-2 px-3 rounded-xl hover:bg-muted/50 transition-all duration-200 group/indicator cursor-pointer">
-                <div className="relative flex items-center justify-center">
-                  <div className="w-2.5 h-2.5 rounded-full bg-accent ring-2 ring-accent/30 animate-pulse" />
-                  {currentTier !== "free" && (
-                    <div className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                  )}
-                </div>
-              </button>
-            </PopoverTrigger>
-            <PopoverContent side="right" align="center" className="w-72 p-0 border-border bg-card">
-              <div className="p-4">
-                <div className="flex items-start gap-3">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-accent to-accent/80 text-background shadow-md">
-                    <Sparkles className="h-5 w-5" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-sm font-bold text-foreground capitalize">{currentTier} Plan</span>
-                      {currentTier !== "free" && (
-                        <Badge
-                          variant="outline"
-                          className="text-xs bg-green-50 dark:bg-green-950 text-green-700 dark:text-green-300 border-green-200 dark:border-green-800"
-                        >
-                          Active
-                        </Badge>
-                      )}
-                    </div>
-                    <p className="text-xs text-muted-foreground mb-3 leading-relaxed">
-                      {currentTier === "free" && "Start automating with basic features. Upgrade for unlimited access."}
-                      {currentTier === "pro" && "Unlimited automations with priority support."}
-                      {currentTier === "enterprise" && "Everything included with dedicated support."}
-                    </p>
-                    <Link href={buildHref("/billing")} onClick={() => setPlanPopoverOpen(false)}>
-                      <Button
-                        size="sm"
-                        className="w-full text-xs h-7 font-medium bg-gradient-to-r from-accent to-accent/80 hover:from-accent hover:to-accent text-background shadow-md hover:shadow-lg transition-all"
-                      >
-                        {currentTier === "free" ? "Upgrade Plan" : "Manage Plan"}
-                      </Button>
-                    </Link>
-                  </div>
-                </div>
-              </div>
-            </PopoverContent>
-          </Popover>
-        </div>
-
-        {/* Settings at Bottom */}
-        <div className="w-full px-4">
-          <Link
-            href={buildHref("/settings")}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted transition-all duration-200"
-          >
-            <Settings className="w-5 h-5 flex-shrink-0" />
-            <span className="text-sm font-medium flex-1 text-left overflow-hidden opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
-              Settings
-            </span>
-          </Link>
+        <div className="flex h-full flex-col">
+          <SidebarContent
+            isCollapsed={isCollapsed}
+            pathname={pathname}
+            navigation={navigation}
+            openSubmenus={openSubmenus}
+            toggleSubmenu={toggleSubmenu}
+            accounts={accounts}
+            selectedAccount={selectedAccount}
+            loading={loading}
+            handleAccountSwitch={handleAccountSwitch}
+            currentTier={currentTier}
+            onNavigate={() => {}}
+            userSlug={userSlug}
+            handleDisconnect={handleDisconnect}
+            setAccountToDisconnect={setAccountToDisconnect}
+            setDisconnectDialogOpen={setDisconnectDialogOpen}
+          />
         </div>
       </div>
 
-      {/* Disconnect Dialog */}
+      {/* Disconnect Confirmation Dialog */}
       <AlertDialog open={disconnectDialogOpen} onOpenChange={setDisconnectDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Disconnect Instagram Account?</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to disconnect <strong>@{accountToDisconnect?.username}</strong>?
+              Are you sure you want to disconnect <strong>@{accountToDisconnect?.username}</strong>? 
+              This will:
               <ul className="list-disc list-inside mt-2 space-y-1 text-sm">
                 <li>Deactivate all automations for this account</li>
                 <li>Stop receiving new messages</li>
@@ -4886,3 +4041,4 @@ export function Sidebar() {
     </>
   )
 }
+
