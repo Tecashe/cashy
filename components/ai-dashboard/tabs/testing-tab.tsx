@@ -166,7 +166,7 @@ export function TestingTab({ automationId }: { automationId: string | null }) {
   return (
     <div className="space-y-6">
       <Tabs defaultValue="free" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-1">
           <TabsTrigger value="free" className="flex items-center gap-2">
             <Zap className="h-4 w-4" />
             Free Testing (Puter.js) - RECOMMENDED
@@ -177,7 +177,7 @@ export function TestingTab({ automationId }: { automationId: string | null }) {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="free" className="space-y-4">
+        {/* <TabsContent value="free" className="space-y-4">
           <Card className="p-6">
             <div className="flex items-start gap-3 mb-4 p-3 bg-green-50 dark:bg-green-950 rounded-lg border border-green-200 dark:border-green-800">
               <Zap className="h-5 w-5 text-green-600 dark:text-green-400 mt-0.5" />
@@ -260,7 +260,7 @@ export function TestingTab({ automationId }: { automationId: string | null }) {
               because Instagram webhooks hit your server, not the browser.
             </p>
           </Card>
-        </TabsContent>
+        </TabsContent> */}
 
         <TabsContent value="production" className="space-y-4">
           <Card className="p-6">
