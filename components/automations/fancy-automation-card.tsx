@@ -700,6 +700,7 @@ import { useRouter } from "next/navigation"
 import { toggleAutomationStatus, moveToTrash } from "@/actions/automation-actions"
 import { AutomationDetailsModal } from "./automation-details-modal"
 import { useConfirm } from "./confirm-dialog"
+import { useNavigation } from "@/hooks/use-navigation"
 
 interface FancyAutomationCardProps {
   automation: any
@@ -713,6 +714,7 @@ export function FancyAutomationCard({ automation, index = 0, onDelete, onToggle 
   const router = useRouter()
   const { confirm, dialog } = useConfirm()
   const [showChat, setShowChat] = useState(false)
+  const { buildHref } = useNavigation()
 
   const executionStats = {
     total: automation.executions?.length || 0,
@@ -816,7 +818,8 @@ export function FancyAutomationCard({ automation, index = 0, onDelete, onToggle 
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
                   <DropdownMenuItem asChild>
-                    <Link href={`/automations/${automation.id}`} className="cursor-pointer">
+                    {/* <Link href={`/automations/${automation.id}`} className="cursor-pointer"> */}
+                    <Link href={buildHref(`/automations/${automation.id}`)} className="cursor-pointer">
                       <Edit className="mr-3 h-4 w-4" />
                       Edit
                     </Link>
