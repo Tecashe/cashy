@@ -1614,6 +1614,8 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
+import { useNavigation } from "@/hooks/use-navigation"
+
 import { useAuth } from "@clerk/nextjs"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -1650,6 +1652,7 @@ export function AutomationWizard({ automation, accounts, tags }: AutomationWizar
   const [validationErrors, setValidationErrors] = useState<string[]>([])
   const [userTier, setUserTier] = useState<SubscriptionTier>("free")
   const [isLoadingTier, setIsLoadingTier] = useState(true)
+  const { buildHref } = useNavigation()
 
   const [flow, setFlow] = useState<AutomationFlow>({
     id: automation?.id,
@@ -1825,7 +1828,7 @@ export function AutomationWizard({ automation, accounts, tags }: AutomationWizar
         localStorage.removeItem("automation-wizard-progress")
       }
 
-      router.push("/automations")
+      router.push(buildHref("/automations"))
     } catch (error) {
       console.error("Failed to save automation:", error)
     } finally {
@@ -1865,7 +1868,7 @@ export function AutomationWizard({ automation, accounts, tags }: AutomationWizar
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => router.push("/automations")}
+          onClick={() => router.push(buildHref("/automations"))}
           className="h-10 w-10 rounded-lg hover:bg-muted/50"
         >
           <ArrowLeft className="h-5 w-5" />

@@ -2142,6 +2142,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useNavigation } from "@/hooks/use-navigation"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -2354,6 +2355,7 @@ export function AutomationBuilder({ automation, instagramAccounts }: AutomationB
   const [showTemplates, setShowTemplates] = useState(false)
   const [showPreview, setShowPreview] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
+  const { buildHref } = useNavigation()
 
   useEffect(() => {
     if (automation?.actions && automation.actions.length > 0) {
@@ -2430,7 +2432,7 @@ export function AutomationBuilder({ automation, instagramAccounts }: AutomationB
         toast.success("Automation created successfully!")
       }
 
-      router.push("/automations")
+      router.push(buildHref("/automations"))
     } catch (error) {
       console.error("Failed to save automation:", error)
       toast.error("Failed to save automation")
@@ -2814,7 +2816,7 @@ export function AutomationBuilder({ automation, instagramAccounts }: AutomationB
       <div className="flex items-center justify-between gap-4 sticky bottom-6 bg-background/95 backdrop-blur-sm border border-border rounded-lg p-4 shadow-xl">
         <Button
           variant="outline"
-          onClick={() => router.push("/automations")}
+          onClick={() => router.push(buildHref("/automations"))}
           className="shadow-md hover:shadow-lg transition-all"
         >
           Cancel

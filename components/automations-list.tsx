@@ -172,7 +172,7 @@ export function AutomationsList({ automations, instagramAccounts }: AutomationsL
           <p className="text-sm text-muted-foreground text-center max-w-sm mb-4">
             Create your first automation to start automating your Instagram DM responses
           </p>
-          <Button onClick={() => router.push("/automations/new")}>Create Automation</Button>
+          <Button onClick={() => router.push(("/automations/new"))}>Create Automation</Button>
         </CardContent>
       </Card>
     )

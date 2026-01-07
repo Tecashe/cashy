@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
+
 import { ConversationListPanel } from "@/components/inbox/conversation-list-panel"
 import { ConversationView } from "@/components/inbox/conversation-view"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -10,6 +11,7 @@ import { Badge } from "@/components/ui/badge"
 import { Instagram, ArrowLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import { useNavigation } from "@/hooks/use-navigation"
 
 type InstagramAccount = {
   id: string
@@ -27,6 +29,7 @@ export function InboxLayout({ userId, instagramAccounts }: InboxLayoutProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const conversationId = searchParams.get("c")
+  const { buildHref } = useNavigation()
 
   const [selectedAccount, setSelectedAccount] = useState<string>(
     instagramAccounts.find((a) => a.isConnected)?.id || instagramAccounts[0]?.id || "",
@@ -34,7 +37,7 @@ export function InboxLayout({ userId, instagramAccounts }: InboxLayoutProps) {
 
   const handleAccountChange = (accountId: string) => {
     setSelectedAccount(accountId)
-    router.push("/inbox")
+    router.push(buildHref("/inbox"))
   }
 
   const handleConversationSelect = (id: string) => {
@@ -47,7 +50,7 @@ export function InboxLayout({ userId, instagramAccounts }: InboxLayoutProps) {
         <div className="flex items-center justify-between max-w-screen-2xl mx-auto gap-3">
           <div className="flex items-center gap-3 min-w-0 flex-1">
             {conversationId && (
-              <Button variant="ghost" size="icon" className="lg:hidden h-9 w-9" onClick={() => router.push("/inbox")}>
+              <Button variant="ghost" size="icon" className="lg:hidden h-9 w-9" onClick={() => router.push(buildHref("/inbox"))}>
                 <ArrowLeft className="h-4 w-4" />
               </Button>
             )}
@@ -107,7 +110,7 @@ export function InboxLayout({ userId, instagramAccounts }: InboxLayoutProps) {
 
         <div className={cn("flex-1 flex flex-col", !conversationId && "hidden lg:flex")}>
           {conversationId ? (
-            <ConversationView conversationId={conversationId} userId={userId} onBack={() => router.push("/inbox")} />
+            <ConversationView conversationId={conversationId} userId={userId} onBack={() => router.push(buildHref("/inbox"))} />
           ) : (
             <div className="flex flex-col items-center justify-center h-full p-8">
               <div className="bg-muted/30 rounded-full p-12 mb-6">
