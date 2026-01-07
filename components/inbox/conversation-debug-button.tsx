@@ -16,7 +16,7 @@ export function ConversationDebugButton({ conversationId }: { conversationId: st
     }
   }
 
-  // Only show in development
+  // Only show in developments
   if (process.env.NODE_ENV !== "development") {
     return null
   }
