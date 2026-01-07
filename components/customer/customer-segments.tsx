@@ -4,19 +4,22 @@ import { useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Star, MessageSquare, Clock, TrendingUp, Crown, Tag as TagIcon, MoreVertical, Mail } from "lucide-react"
+import { useNavigation } from "@/hooks/use-navigation"
 
 // Customer Segments Component
 export function CustomerSegments({ segments }: { segments: any }) {
+  const { buildHref } = useNavigation()
+
   const segmentData = [
-    { label: "All", value: segments.all, href: "/customers", color: "bg-orange" },
-    { label: "VIP", value: segments.vip, href: "/customers?vip=true", color: "bg-yellow" },
-    { label: "Active", value: segments.active, href: "/customers?segment=active", color: "bg-green" },
-    { label: "Inactive", value: segments.inactive, href: "/customers?segment=inactive", color: "bg-red" },
-    { label: "High Value", value: segments.high_value, href: "/customers?segment=high_value", color: "bg-purple" },
-    { label: "At Risk", value: segments.at_risk, href: "/customers?segment=at_risk", color: "bg-maroon" },
-    { label: "Unread", value: segments.unread, href: "/customers?unread=true", color: "bg-orange" },
-    { label: "Starred", value: segments.starred, href: "/customers?starred=true", color: "bg-yellow" },
-  ]
+  { label: "All", value: segments.all, href: buildHref("/customers"), color: "bg-orange" },
+  { label: "VIP", value: segments.vip, href: buildHref("/customers?vip=true"), color: "bg-yellow" },
+  { label: "Active", value: segments.active, href: buildHref("/customers?segment=active"), color: "bg-green" },
+  { label: "Inactive", value: segments.inactive, href: buildHref("/customers?segment=inactive"), color: "bg-red" },
+  { label: "High Value", value: segments.high_value, href: buildHref("/customers?segment=high_value"), color: "bg-purple" },
+  { label: "At Risk", value: segments.at_risk, href: buildHref("/customers?segment=at_risk"), color: "bg-maroon" },
+  { label: "Unread", value: segments.unread, href: buildHref("/customers?unread=true"), color: "bg-orange" },
+  { label: "Starred", value: segments.starred, href: buildHref("/customers?starred=true"), color: "bg-yellow" },
+]
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
@@ -45,6 +48,7 @@ export function CustomerSegments({ segments }: { segments: any }) {
 export function CustomerFilters({ tags, initialSearch }: { tags: any[]; initialSearch?: string }) {
   const router = useRouter()
   const [search, setSearch] = useState(initialSearch || "")
+  const { buildHref } = useNavigation()
 
   const handleSearch = (value: string) => {
     setSearch(value)
@@ -54,7 +58,9 @@ export function CustomerFilters({ tags, initialSearch }: { tags: any[]; initialS
     } else {
       params.delete("search")
     }
-    router.push(`/customers?${params.toString()}`)
+    // router.push(`/customers?${params.toString()}`) 
+    router.push(buildHref(`/customers?${params.toString()}`))
+
   }
 
   return (
@@ -82,7 +88,7 @@ export function CustomerFilters({ tags, initialSearch }: { tags: any[]; initialS
           onChange={(e) => {
             const params = new URLSearchParams(window.location.search)
             params.set("sort", e.target.value)
-            router.push(`/customers?${params.toString()}`)
+           router.push(buildHref(`/customers?${params.toString()}`))
           }}
         >
           <option value="recent">Most Recent</option>
@@ -98,6 +104,7 @@ export function CustomerFilters({ tags, initialSearch }: { tags: any[]; initialS
 // Customer Card Component
 export function CustomerCard({ customer }: { customer: any }) {
   const [isStarred, setIsStarred] = useState(customer.starred)
+  const { buildHref } = useNavigation()
 
   const getEngagementColor = (score: number) => {
     if (score >= 70) return "text-green"
@@ -120,7 +127,7 @@ export function CustomerCard({ customer }: { customer: any }) {
 
   return (
     <Link
-      href={`/customers/${customer.id}`}
+      href={buildHref(`/customers/${customer.id}`)}
       className="bg-card border border-border rounded-xl p-5 hover:border-orange/50 transition-all group"
     >
       <div className="space-y-4">

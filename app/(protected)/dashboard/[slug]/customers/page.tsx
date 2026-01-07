@@ -8,32 +8,36 @@ import { CustomerFilters, CustomerCard, CustomerSegments } from "@/components/cu
 // import { BulkActionsBar } from "@/components/customers/bulk-actions-bar"
 import { Search, UserPlus, Filter, Grid, List } from "lucide-react"
 
-export default async function CustomersPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
-}) {
-  const params = await searchParams
+  export default async function CustomersPage({
+    params,
+    searchParams,
+  }: {
+    params: Promise<{ slug: string }>
+    searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+  }) {
+    const { slug } = await params
+    const searchParamsData = await searchParams
 
-  return (
-    <div className="min-h-screen bg-background">
-      <div className="max-w-[1600px] mx-auto p-6 md:p-8 space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Customers</h1>
-            <p className="text-muted-foreground mt-1">
-              Manage and analyze your Instagram audience
-            </p>
+    return (
+      <div className="min-h-screen bg-background">
+        <div className="max-w-[1600px] mx-auto p-6 md:p-8 space-y-6">
+          {/* Header */}
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight">Customers</h1>
+              <p className="text-muted-foreground mt-1">
+                Manage and analyze your Instagram audience
+              </p>
+            </div>
+            <Link
+              href={`/dashboard/${slug}/inbox`}
+              className="px-4 py-2 bg-orange text-background rounded-lg font-medium hover:bg-orange/90 transition-colors flex items-center gap-2"
+            >
+              <UserPlus className="w-4 h-4" />
+              View Inbox
+            </Link>
           </div>
-          <Link
-            href="/inbox"
-            className="px-4 py-2 bg-orange text-background rounded-lg font-medium hover:bg-orange/90 transition-colors flex items-center gap-2"
-          >
-            <UserPlus className="w-4 h-4" />
-            View Inbox
-          </Link>
-        </div>
+        
 
         {/* Segments */}
         <Suspense fallback={<SegmentsSkeleton />}>

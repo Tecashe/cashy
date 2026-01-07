@@ -10,16 +10,16 @@ import { ArrowLeft } from "lucide-react"
 export default async function CustomerProfilePage({
   params,
 }: {
-  params: Promise<{ id: string }>
+  params: Promise<{ slug: string; id: string }>
 }) {
-  const { id } = await params
+  const { slug, id } = await params
 
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-[1400px] mx-auto p-6 md:p-8 space-y-6">
         {/* Back Button */}
         <Link
-          href="/customers"
+          href={`/dashboard/${slug}/customers`}
           className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
@@ -28,14 +28,20 @@ export default async function CustomerProfilePage({
 
         {/* Main Content */}
         <Suspense fallback={<ProfileSkeleton />}>
-          <CustomerProfileContent conversationId={id} />
+          <CustomerProfileContent conversationId={id} slug={slug} />
         </Suspense>
       </div>
     </div>
   )
 }
 
-async function CustomerProfileContent({ conversationId }: { conversationId: string }) {
+async function CustomerProfileContent({ 
+  conversationId, 
+  slug 
+}: { 
+  conversationId: string
+  slug: string 
+}) {
   let customer
   try {
     customer = await getCustomerProfile(conversationId)
@@ -71,7 +77,7 @@ async function CustomerProfileContent({ conversationId }: { conversationId: stri
           <div className="bg-card border border-border rounded-xl p-6 space-y-3">
             <h3 className="text-lg font-semibold mb-4">Quick Actions</h3>
             <Link
-              href={`/inbox?conversation=${customer.id}`}
+              href={`/dashboard/${slug}/inbox?conversation=${customer.id}`}
               className="w-full px-4 py-2.5 bg-orange text-background rounded-lg font-medium hover:bg-orange/90 transition-colors flex items-center justify-center gap-2"
             >
               Open in Inbox
