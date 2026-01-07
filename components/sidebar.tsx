@@ -4325,7 +4325,7 @@ export function Sidebar() {
               </div>
             </div>
 
-            {/* Mobile Navigation */}
+            {/* Mobile Navigatio*/}
             <nav className="flex-1 space-y-1 overflow-y-auto p-3">
               {navigation.map((item) => {
                 const itemHref = buildHref(item.href)
