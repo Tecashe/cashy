@@ -2782,6 +2782,27 @@ export class InstagramAPI {
     return await this.handleResponse(response)
   }
 
+
+
+  async getStories() {
+    console.log("[InstagramAPI] Fetching stories from:", `${this.baseUrl}/${this.instagramId}/stories`)
+    
+    const response = await fetch(
+      `${this.baseUrl}/${this.instagramId}/stories?fields=id,media_type,media_url,thumbnail_url,timestamp,permalink`,
+      {
+        headers: {
+          Authorization: `Bearer ${this.accessToken}`,
+        },
+      },
+    )
+
+    const data = await this.handleResponse(response)
+    console.log("[InstagramAPI] Stories API response:", JSON.stringify(data, null, 2))
+    
+    return data
+  }
+
+
   async publishPhoto(imageUrl: string, caption: string) {
     const containerResponse = await fetch(`${this.baseUrl}/${this.instagramId}/media`, {
       method: "POST",
