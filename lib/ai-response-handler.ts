@@ -5710,64 +5710,151 @@ export class AIResponseHandler {
     return tools
   }
 
-  private async processToolCalls(
-    content: any[],
-    context: ConversationContext
-  ): Promise<{
-    title: string
-    items: Array<{
-      id: string
-      title: string
-      subtitle?: string
-      image_url?: string
-      price?: string
-      action_url?: string
-    }>
-    rawCards?: CarouselCard[]
-  } | undefined> {
-    // Find carousel tool call
-    const carouselToolCall = content.find(
-      (block: any) => block.type === "tool_use" && block.name === "show_product_carousel"
-    )
 
-    if (!carouselToolCall) {
-      return undefined
-    }
 
-    console.log("[AI] 🎨 AI explicitly requested product carousel!")
 
-    const productIds = carouselToolCall.input.product_ids || []
-    const introMessage = carouselToolCall.input.intro_message || "Product Recommendations"
 
-    if (productIds.length === 0) {
-      console.warn("[AI] 🎠 Carousel requested but no product IDs provided")
-      return undefined
-    }
 
-    console.log("[AI] 🎠 Building carousel with product IDs:", productIds)
 
-    // Find the exact products by ID
-    const productsToShow = context.products?.filter((p: any) => 
-      productIds.includes(p.id)
-    ) || []
 
-    if (productsToShow.length === 0) {
-      console.warn("[AI] 🎠 No matching products found for IDs:", productIds)
+
+  // private async processToolCalls(
+  //   content: any[],
+  //   context: ConversationContext
+  // ): Promise<{
+  //   title: string
+  //   items: Array<{
+  //     id: string
+  //     title: string
+  //     subtitle?: string
+  //     image_url?: string
+  //     price?: string
+  //     action_url?: string
+  //   }>
+  //   rawCards?: CarouselCard[]
+  // } | undefined> {
+  //   // Find carousel tool call
+  //   const carouselToolCall = content.find(
+  //     (block: any) => block.type === "tool_use" && block.name === "show_product_carousel"
+  //   )
+
+  //   if (!carouselToolCall) {
+  //     return undefined
+  //   }
+
+  //   console.log("[AI] 🎨 AI explicitly requested product carousel!")
+
+  //   const productIds = carouselToolCall.input.product_ids || []
+  //   const introMessage = carouselToolCall.input.intro_message || "Product Recommendations"
+
+  //   if (productIds.length === 0) {
+  //     console.warn("[AI] 🎠 Carousel requested but no product IDs provided")
+  //     return undefined
+  //   }
+
+  //   console.log("[AI] 🎠 Building carousel with product IDs:", productIds)
+
+  //   // Find the exact products by ID
+  //   const productsToShow = context.products?.filter((p: any) => 
+  //     productIds.includes(p.id)
+  //   ) || []
+
+  //   if (productsToShow.length === 0) {
+  //     console.warn("[AI] 🎠 No matching products found for IDs:", productIds)
       
-      // Fallback: try to match by name if IDs don't work
-      const productsByName = context.products?.filter((p: any) =>
-        productIds.some((id: string) => 
-          p.name.toLowerCase().includes(id.toLowerCase()) ||
-          id.toLowerCase().includes(p.name.toLowerCase())
-        )
+  //     // Fallback: try to match by name if IDs don't work
+  //     const productsByName = context.products?.filter((p: any) =>
+  //       productIds.some((id: string) => 
+  //         p.name.toLowerCase().includes(id.toLowerCase()) ||
+  //         id.toLowerCase().includes(p.name.toLowerCase())
+  //       )
+  //     ) || []
+      
+  //     if (productsByName.length > 0) {
+  //       console.log("[AI] 🎠 Found products by name matching:", productsByName.length)
+  //       const cards = createProductCarouselCards(productsByName)
+        
+  //       return {
+  //         title: introMessage,
+  //         items: cards.map((card) => ({
+  //           id: card.title,
+  //           title: card.title,
+  //           subtitle: card.subtitle,
+  //           image_url: card.image_url,
+  //           price: card.subtitle,
+  //           action_url: card.buttons[0]?.url,
+  //         })),
+  //         rawCards: cards,
+  //       }
+  //     }
+      
+  //     return undefined
+  //   }
+
+  //   console.log(`[AI] 🎠 Found ${productsToShow.length} products to display`)
+
+  //   // Use the actual carousel builder from instagram-carousel.ts
+  //   const cards = createProductCarouselCards(productsToShow)
+
+  //   return {
+  //     title: introMessage,
+  //     items: cards.map((card) => ({
+  //       id: card.title,
+  //       title: card.title,
+  //       subtitle: card.subtitle,
+  //       image_url: card.image_url,
+  //       price: card.subtitle,
+  //       action_url: card.buttons[0]?.url,
+  //     })),
+  //     rawCards: cards, // These are the properly formatted Instagram carousel cards
+  //   }
+  // }
+
+
+  private async processToolCalls(
+  content: any[],
+  context: ConversationContext
+): Promise<{
+  title: string
+  items: Array<{
+    id: string
+    title: string
+    subtitle?: string
+    image_url?: string
+    price?: string
+    action_url?: string
+  }>
+  rawCards?: CarouselCard[]
+} | undefined> {
+  
+  // ============================================================================
+  // FIX 1: Handle DeepSeek text-based "tool calls"
+  // ============================================================================
+  const textContent = content.find((block: any) => block.type === "text")
+  if (textContent?.text) {
+    const text = textContent.text
+    
+    // Match pattern: [show_product_carousel tool with product IDs: id1, id2, id3]
+    const carouselMatch = text.match(/\[show_product_carousel tool with product IDs?: ([^\]]+)\]/i)
+    
+    if (carouselMatch) {
+      const productIdsRaw = carouselMatch[1]
+      const productIds = productIdsRaw.split(',').map((id: string) => id.trim())
+      
+      console.log("[AI] 🎨 Detected DeepSeek text-based carousel request:", productIds)
+      
+      // Find products by ID
+      const productsToShow = context.products?.filter((p: any) => 
+        productIds.includes(p.id)
       ) || []
       
-      if (productsByName.length > 0) {
-        console.log("[AI] 🎠 Found products by name matching:", productsByName.length)
-        const cards = createProductCarouselCards(productsByName)
+      if (productsToShow.length > 0) {
+        console.log(`[AI] 🎠 Building carousel with ${productsToShow.length} products from DeepSeek`)
+        
+        const cards = createProductCarouselCards(productsToShow)
         
         return {
-          title: introMessage,
+          title: "Product Recommendations",
           items: cards.map((card) => ({
             id: card.title,
             title: card.title,
@@ -5778,29 +5865,124 @@ export class AIResponseHandler {
           })),
           rawCards: cards,
         }
+      } else {
+        console.warn("[AI] ⚠️ DeepSeek requested carousel but no matching products found:", productIds)
       }
-      
-      return undefined
-    }
-
-    console.log(`[AI] 🎠 Found ${productsToShow.length} products to display`)
-
-    // Use the actual carousel builder from instagram-carousel.ts
-    const cards = createProductCarouselCards(productsToShow)
-
-    return {
-      title: introMessage,
-      items: cards.map((card) => ({
-        id: card.title,
-        title: card.title,
-        subtitle: card.subtitle,
-        image_url: card.image_url,
-        price: card.subtitle,
-        action_url: card.buttons[0]?.url,
-      })),
-      rawCards: cards, // These are the properly formatted Instagram carousel cards
     }
   }
+  
+  // ============================================================================
+  // FIX 2: Clean the response text to remove tool call markers
+  // ============================================================================
+  // Remove the [show_product_carousel...] text from the message
+  if (textContent?.text) {
+    textContent.text = textContent.text.replace(
+      /\[show_product_carousel tool with product IDs?: [^\]]+\]/gi,
+      ''
+    ).trim()
+  }
+
+  // ============================================================================
+  // EXISTING CODE: Handle Anthropic's native tool_use blocks
+  // ============================================================================
+  const carouselToolCall = content.find(
+    (block: any) => block.type === "tool_use" && block.name === "show_product_carousel"
+  )
+
+  if (!carouselToolCall) {
+    return undefined
+  }
+
+  console.log("[AI] 🎨 AI explicitly requested product carousel!")
+
+  const productIds = carouselToolCall.input.product_ids || []
+  const introMessage = carouselToolCall.input.intro_message || "Product Recommendations"
+
+  if (productIds.length === 0) {
+    console.warn("[AI] 🎠 Carousel requested but no product IDs provided")
+    return undefined
+  }
+
+  console.log("[AI] 🎠 Building carousel with product IDs:", productIds)
+
+  const productsToShow = context.products?.filter((p: any) => 
+    productIds.includes(p.id)
+  ) || []
+
+  if (productsToShow.length === 0) {
+    console.warn("[AI] 🎠 No matching products found for IDs:", productIds)
+    
+    // Fallback: try name matching
+    const productsByName = context.products?.filter((p: any) =>
+      productIds.some((id: string) => 
+        p.name.toLowerCase().includes(id.toLowerCase()) ||
+        id.toLowerCase().includes(p.name.toLowerCase())
+      )
+    ) || []
+    
+    if (productsByName.length > 0) {
+      console.log("[AI] 🎠 Found products by name matching:", productsByName.length)
+      const cards = createProductCarouselCards(productsByName)
+      
+      return {
+        title: introMessage,
+        items: cards.map((card) => ({
+          id: card.title,
+          title: card.title,
+          subtitle: card.subtitle,
+          image_url: card.image_url,
+          price: card.subtitle,
+          action_url: card.buttons[0]?.url,
+        })),
+        rawCards: cards,
+      }
+    }
+    
+    return undefined
+  }
+
+  console.log(`[AI] 🎠 Found ${productsToShow.length} products to display`)
+
+  const cards = createProductCarouselCards(productsToShow)
+
+  return {
+    title: introMessage,
+    items: cards.map((card) => ({
+      id: card.title,
+      title: card.title,
+      subtitle: card.subtitle,
+      image_url: card.image_url,
+      price: card.subtitle,
+      action_url: card.buttons[0]?.url,
+    })),
+    rawCards: cards,
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   private groupKnowledgeByType(docs: any[]): Record<string, any[]> {
     return docs.reduce((acc, doc) => {
