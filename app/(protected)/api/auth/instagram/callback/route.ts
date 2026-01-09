@@ -2035,13 +2035,324 @@
 //   }
 // }
 
+
+
+
+
+
+
+
+
+
+
+
+// import { type NextRequest, NextResponse } from "next/server"
+// import { auth } from "@clerk/nextjs/server"
+// import { prisma } from "@/lib/db"
+// import { ensureUserExists } from "@/lib/actions/user-sync"
+// import axios from "axios"
+
+// // Helper function to get user slug from Clerk user
+// async function getUserSlugFromClerk(clerkUserId: string): Promise<string | null> {
+//   try {
+//     const user = await prisma.user.findUnique({
+//       where: { clerkId: clerkUserId },
+//       select: { firstName: true, lastName: true }
+//     })
+    
+//     if (!user) return null
+    
+//     // Construct full name from firstName and lastName
+//     const nameParts = [user.firstName, user.lastName].filter(Boolean)
+//     if (nameParts.length === 0) return null
+    
+//     // Convert name to slug format (e.g., "Simon Mwangi" -> "Simon-Mwangi")
+//     return nameParts.join(' ').trim().replace(/\s+/g, '-')
+//   } catch (error) {
+//     console.error("[Instagram Callback] Error fetching user for slug:", error)
+//     return null
+//   }
+// }
+
+// // Helper function to build redirect URL with slug
+// function buildRedirectUrl(baseUrl: string, slug: string | null, path: string, queryParams?: Record<string, string>): string {
+//   const url = new URL(baseUrl)
+  
+//   if (slug) {
+//     url.pathname = `/dashboard/${slug}${path}`
+//   } else {
+//     // Fallback to non-slugged path if slug not available
+//     url.pathname = path
+//   }
+  
+//   if (queryParams) {
+//     Object.entries(queryParams).forEach(([key, value]) => {
+//       url.searchParams.set(key, value)
+//     })
+//   }
+  
+//   return url.toString()
+// }
+
+// export async function GET(request: NextRequest) {
+//   const searchParams = request.nextUrl.searchParams
+//   const code = searchParams.get("code")
+//   const error = searchParams.get("error")
+//   const errorReason = searchParams.get("error_reason")
+//   const errorDescription = searchParams.get("error_description")
+
+//   console.log("[Instagram Callback] Received callback")
+
+//   const { userId: clerkUserId } = await auth()
+
+//   // Get user slug early for proper redirects
+//   const userSlug = clerkUserId ? await getUserSlugFromClerk(clerkUserId) : null
+//   console.log("[Instagram Callback] User slug:", userSlug)
+
+//   if (error) {
+//     console.error("[Instagram Callback] OAuth Error:", { error, reason: errorReason })
+//     const redirectUrl = buildRedirectUrl(
+//       request.url,
+//       userSlug,
+//       "/accounts",
+//       { error, reason: errorReason || "" }
+//     )
+//     return NextResponse.redirect(redirectUrl)
+//   }
+
+//   if (!code) {
+//     console.error("[Instagram Callback] No authorization code")
+//     const redirectUrl = buildRedirectUrl(
+//       request.url,
+//       userSlug,
+//       "/accounts",
+//       { error: "no_code" }
+//     )
+//     return NextResponse.redirect(redirectUrl)
+//   }
+
+//   if (!clerkUserId) {
+//     console.error("[Instagram Callback] User not authenticated")
+//     const redirectUrl = buildRedirectUrl(
+//       request.url,
+//       null,
+//       "/accounts",
+//       { error: "unauthorized" }
+//     )
+//     return NextResponse.redirect(redirectUrl)
+//   }
+
+//   try {
+//     console.log("[Instagram Callback] Starting OAuth flow...")
+    
+//     // const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/instagram/callback`
+//     const redirectUri = `https://yazzil.com/api/auth/instagram/callback`
+    
+//     console.log("[Instagram Callback] Redirect URI being used:", redirectUri)
+//     console.log("[Instagram Callback] NEXT_PUBLIC_APP_URL:", process.env.NEXT_PUBLIC_APP_URL)
+    
+//     // Step 1: Exchange code for short-lived token
+//     console.log("[Instagram Callback] Step 1: Getting short-lived token...")
+    
+//     const formData = new FormData()
+//     formData.append('client_id', process.env.INSTAGRAM_APP_ID || '')
+//     formData.append('client_secret', process.env.INSTAGRAM_CLIENT_SECRET || '')
+//     formData.append('grant_type', 'authorization_code')
+//     formData.append('redirect_uri', redirectUri)
+//     formData.append('code', code)
+    
+//     const tokenResponse = await axios.post(
+//       "https://api.instagram.com/oauth/access_token",
+//       formData,
+//       { headers: { "Content-Type": "multipart/form-data" } }
+//     )
+
+//     console.log("[Instagram Callback] ✅ Short-lived token received")
+//     console.log("[Instagram Callback] User ID from token:", tokenResponse.data.user_id)
+
+//     const { access_token: shortLivedToken, user_id: instagramUserId } = tokenResponse.data
+
+//     // Step 2: Exchange for long-lived token
+//     console.log("[Instagram Callback] Step 2: Getting long-lived token...")
+    
+//     const longLivedResponse = await axios.get(
+//       `https://graph.instagram.com/access_token?` +
+//       `grant_type=ig_exchange_token&` +
+//       `client_secret=${process.env.INSTAGRAM_CLIENT_SECRET}&` +
+//       `access_token=${shortLivedToken}`
+//     )
+
+//     console.log("[Instagram Callback] ✅ Long-lived token received (expires in", longLivedResponse.data.expires_in, "seconds)")
+
+//     const { access_token: longLivedToken } = longLivedResponse.data
+
+//     // Step 3: Get profile data
+//     console.log("[Instagram Callback] Step 3: Getting profile data...")
+    
+//     const profileResponse = await axios.get(
+//       `https://graph.instagram.com/me?` +
+//       `fields=id,username,account_type,media_count,followers_count,follows_count,profile_picture_url&` +
+//       `access_token=${longLivedToken}`
+//     )
+
+//     const profileData = profileResponse.data
+    
+//     console.log("[Instagram Callback] ✅ Profile data received:")
+//     console.log("[Instagram Callback]   - User ID:", profileData.id)
+//     console.log("[Instagram Callback]   - Username:", profileData.username)
+//     console.log("[Instagram Callback]   - Account Type:", profileData.account_type)
+
+//     // Step 4: Get Instagram Business Account ID (Page ID used by webhooks)
+//     console.log("[Instagram Callback] Step 4: Getting Instagram Business Account ID...")
+    
+//     let instagramPageId = null
+    
+//     try {
+//       // Method 1: Try to get business account info
+//       const businessResponse = await axios.get(
+//         `https://graph.facebook.com/v18.0/me/accounts?` +
+//         `fields=instagram_business_account{id}&` +
+//         `access_token=${longLivedToken}`
+//       )
+      
+//       console.log("[Instagram Callback] Business response:", JSON.stringify(businessResponse.data, null, 2))
+      
+//       if (businessResponse.data.data?.[0]?.instagram_business_account?.id) {
+//         instagramPageId = businessResponse.data.data[0].instagram_business_account.id
+//         console.log("[Instagram Callback] ✅ Found Page ID from business account:", instagramPageId)
+//       }
+//     } catch (error) {
+//       console.log("[Instagram Callback] Method 1 failed, trying method 2...")
+//     }
+    
+//     // Method 2: Try direct business account endpoint
+//     if (!instagramPageId) {
+//       try {
+//         const igBusinessResponse = await axios.get(
+//           `https://graph.instagram.com/${profileData.id}?` +
+//           `fields=id,username,ig_id&` +
+//           `access_token=${longLivedToken}`
+//         )
+        
+//         console.log("[Instagram Callback] IG Business response:", JSON.stringify(igBusinessResponse.data, null, 2))
+        
+//         if (igBusinessResponse.data.ig_id) {
+//           instagramPageId = igBusinessResponse.data.ig_id
+//           console.log("[Instagram Callback] ✅ Found Page ID from ig_id:", instagramPageId)
+//         }
+//       } catch (error) {
+//         console.log("[Instagram Callback] Method 2 failed")
+//       }
+//     }
+    
+//     // Method 3: Use the user ID as fallback
+//     if (!instagramPageId) {
+//       console.log("[Instagram Callback] ⚠️ Could not find separate Page ID, using User ID as fallback")
+//       instagramPageId = profileData.id
+//     }
+    
+//     console.log("[Instagram Callback] Final IDs:")
+//     console.log("[Instagram Callback]   - User ID (for API):", profileData.id)
+//     console.log("[Instagram Callback]   - Page ID (for webhooks):", instagramPageId)
+
+//     // Step 5: Ensure user exists
+//     console.log("[Instagram Callback] Step 5: Ensuring user exists in database...")
+    
+//     const user = await ensureUserExists(clerkUserId)
+
+//     if (!user) {
+//       console.error("[Instagram Callback] Failed to sync user")
+//       const redirectUrl = buildRedirectUrl(
+//         request.url,
+//         userSlug,
+//         "/accounts",
+//         { error: "user_sync_failed" }
+//       )
+//       return NextResponse.redirect(redirectUrl)
+//     }
+
+//     console.log("[Instagram Callback] ✅ User found/created:", user.id)
+
+//     // Step 6: Save Instagram account with BOTH IDs
+//     console.log("[Instagram Callback] Step 6: Saving Instagram account...")
+    
+//     const tokenExpiry = new Date()
+//     tokenExpiry.setDate(tokenExpiry.getDate() + 60)
+
+//     await prisma.instagramAccount.upsert({
+//       where: { instagramId: profileData.id },
+//       create: {
+//         userId: user.id,
+//         instagramId: profileData.id,          // User ID for API calls
+//         instagramPageId: instagramPageId,      // Page ID for webhooks
+//         username: profileData.username,
+//         profilePicUrl: profileData.profile_picture_url || null,
+//         followerCount: profileData.followers_count || 0,
+//         accessToken: longLivedToken,
+//         tokenExpiry: tokenExpiry,
+//         isConnected: true,
+//       },
+//       update: {
+//         accessToken: longLivedToken,
+//         tokenExpiry: tokenExpiry,
+//         instagramPageId: instagramPageId,      // Update Page ID too
+//         isConnected: true,
+//         username: profileData.username,
+//         profilePicUrl: profileData.profile_picture_url || null,
+//         followerCount: profileData.followers_count || 0,
+//       },
+//     })
+
+//     console.log("[Instagram Callback] ✅ Instagram account saved with both IDs")
+//     console.log("[Instagram Callback] ✅ OAuth flow complete!")
+
+//     const successUrl = buildRedirectUrl(
+//       request.url,
+//       userSlug,
+//       "/accounts",
+//       { success: "true" }
+//     )
+//     return NextResponse.redirect(successUrl)
+    
+//   } catch (error: any) {
+//     console.error("[Instagram Callback] ❌ Error:", error)
+    
+//     if (axios.isAxiosError(error)) {
+//       console.error("[Instagram Callback] API Error:", {
+//         status: error.response?.status,
+//         data: error.response?.data,
+//       })
+//     }
+
+//     const errorUrl = buildRedirectUrl(
+//       request.url,
+//       userSlug,
+//       "/accounts",
+//       { error: "connection_failed" }
+//     )
+//     return NextResponse.redirect(errorUrl)
+//   }
+// }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 import { type NextRequest, NextResponse } from "next/server"
 import { auth } from "@clerk/nextjs/server"
 import { prisma } from "@/lib/db"
 import { ensureUserExists } from "@/lib/actions/user-sync"
 import axios from "axios"
 
-// Helper function to get user slug from Clerk user
 async function getUserSlugFromClerk(clerkUserId: string): Promise<string | null> {
   try {
     const user = await prisma.user.findUnique({
@@ -2051,11 +2362,9 @@ async function getUserSlugFromClerk(clerkUserId: string): Promise<string | null>
     
     if (!user) return null
     
-    // Construct full name from firstName and lastName
     const nameParts = [user.firstName, user.lastName].filter(Boolean)
     if (nameParts.length === 0) return null
     
-    // Convert name to slug format (e.g., "Simon Mwangi" -> "Simon-Mwangi")
     return nameParts.join(' ').trim().replace(/\s+/g, '-')
   } catch (error) {
     console.error("[Instagram Callback] Error fetching user for slug:", error)
@@ -2063,14 +2372,12 @@ async function getUserSlugFromClerk(clerkUserId: string): Promise<string | null>
   }
 }
 
-// Helper function to build redirect URL with slug
 function buildRedirectUrl(baseUrl: string, slug: string | null, path: string, queryParams?: Record<string, string>): string {
   const url = new URL(baseUrl)
   
   if (slug) {
     url.pathname = `/dashboard/${slug}${path}`
   } else {
-    // Fallback to non-slugged path if slug not available
     url.pathname = path
   }
   
@@ -2088,57 +2395,35 @@ export async function GET(request: NextRequest) {
   const code = searchParams.get("code")
   const error = searchParams.get("error")
   const errorReason = searchParams.get("error_reason")
-  const errorDescription = searchParams.get("error_description")
 
   console.log("[Instagram Callback] Received callback")
 
   const { userId: clerkUserId } = await auth()
 
-  // Get user slug early for proper redirects
   const userSlug = clerkUserId ? await getUserSlugFromClerk(clerkUserId) : null
-  console.log("[Instagram Callback] User slug:", userSlug)
 
   if (error) {
     console.error("[Instagram Callback] OAuth Error:", { error, reason: errorReason })
-    const redirectUrl = buildRedirectUrl(
-      request.url,
-      userSlug,
-      "/accounts",
-      { error, reason: errorReason || "" }
-    )
+    const redirectUrl = buildRedirectUrl(request.url, userSlug, "/accounts", { error, reason: errorReason || "" })
     return NextResponse.redirect(redirectUrl)
   }
 
   if (!code) {
     console.error("[Instagram Callback] No authorization code")
-    const redirectUrl = buildRedirectUrl(
-      request.url,
-      userSlug,
-      "/accounts",
-      { error: "no_code" }
-    )
+    const redirectUrl = buildRedirectUrl(request.url, userSlug, "/accounts", { error: "no_code" })
     return NextResponse.redirect(redirectUrl)
   }
 
   if (!clerkUserId) {
     console.error("[Instagram Callback] User not authenticated")
-    const redirectUrl = buildRedirectUrl(
-      request.url,
-      null,
-      "/accounts",
-      { error: "unauthorized" }
-    )
+    const redirectUrl = buildRedirectUrl(request.url, null, "/accounts", { error: "unauthorized" })
     return NextResponse.redirect(redirectUrl)
   }
 
   try {
     console.log("[Instagram Callback] Starting OAuth flow...")
     
-    // const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/instagram/callback`
     const redirectUri = `https://yazzil.com/api/auth/instagram/callback`
-    
-    console.log("[Instagram Callback] Redirect URI being used:", redirectUri)
-    console.log("[Instagram Callback] NEXT_PUBLIC_APP_URL:", process.env.NEXT_PUBLIC_APP_URL)
     
     // Step 1: Exchange code for short-lived token
     console.log("[Instagram Callback] Step 1: Getting short-lived token...")
@@ -2157,7 +2442,6 @@ export async function GET(request: NextRequest) {
     )
 
     console.log("[Instagram Callback] ✅ Short-lived token received")
-    console.log("[Instagram Callback] User ID from token:", tokenResponse.data.user_id)
 
     const { access_token: shortLivedToken, user_id: instagramUserId } = tokenResponse.data
 
@@ -2171,7 +2455,7 @@ export async function GET(request: NextRequest) {
       `access_token=${shortLivedToken}`
     )
 
-    console.log("[Instagram Callback] ✅ Long-lived token received (expires in", longLivedResponse.data.expires_in, "seconds)")
+    console.log("[Instagram Callback] ✅ Long-lived token received")
 
     const { access_token: longLivedToken } = longLivedResponse.data
 
@@ -2187,62 +2471,36 @@ export async function GET(request: NextRequest) {
     const profileData = profileResponse.data
     
     console.log("[Instagram Callback] ✅ Profile data received:")
-    console.log("[Instagram Callback]   - User ID:", profileData.id)
+    console.log("[Instagram Callback]   - Instagram ID:", profileData.id)
     console.log("[Instagram Callback]   - Username:", profileData.username)
     console.log("[Instagram Callback]   - Account Type:", profileData.account_type)
 
-    // Step 4: Get Instagram Business Account ID (Page ID used by webhooks)
-    console.log("[Instagram Callback] Step 4: Getting Instagram Business Account ID...")
+    // Step 4: Subscribe to webhooks programmatically
+    console.log("[Instagram Callback] Step 4: Subscribing to webhooks...")
     
-    let instagramPageId = null
+    let webhookBusinessAccountId = profileData.id  // Default fallback
     
     try {
-      // Method 1: Try to get business account info
-      const businessResponse = await axios.get(
-        `https://graph.facebook.com/v18.0/me/accounts?` +
-        `fields=instagram_business_account{id}&` +
-        `access_token=${longLivedToken}`
+      const subscribeResponse = await axios.post(
+        `https://graph.instagram.com/${profileData.id}/subscribed_apps`,
+        {
+          subscribed_fields: 'messages,messaging_postbacks,message_echoes,message_reactions',
+        },
+        {
+          params: { access_token: longLivedToken }
+        }
       )
       
-      console.log("[Instagram Callback] Business response:", JSON.stringify(businessResponse.data, null, 2))
+      console.log("[Instagram Callback] ✅ Webhook subscribed successfully")
+      console.log("[Instagram Callback] Subscription response:", subscribeResponse.data)
       
-      if (businessResponse.data.data?.[0]?.instagram_business_account?.id) {
-        instagramPageId = businessResponse.data.data[0].instagram_business_account.id
-        console.log("[Instagram Callback] ✅ Found Page ID from business account:", instagramPageId)
-      }
-    } catch (error) {
-      console.log("[Instagram Callback] Method 1 failed, trying method 2...")
+      // The webhook will use the same ID, but we'll let the first webhook update it if different
+      webhookBusinessAccountId = profileData.id
+      
+    } catch (error: any) {
+      console.error("[Instagram Callback] ⚠️ Webhook subscription error:", error.response?.data || error.message)
+      // Continue anyway - webhook might already be subscribed
     }
-    
-    // Method 2: Try direct business account endpoint
-    if (!instagramPageId) {
-      try {
-        const igBusinessResponse = await axios.get(
-          `https://graph.instagram.com/${profileData.id}?` +
-          `fields=id,username,ig_id&` +
-          `access_token=${longLivedToken}`
-        )
-        
-        console.log("[Instagram Callback] IG Business response:", JSON.stringify(igBusinessResponse.data, null, 2))
-        
-        if (igBusinessResponse.data.ig_id) {
-          instagramPageId = igBusinessResponse.data.ig_id
-          console.log("[Instagram Callback] ✅ Found Page ID from ig_id:", instagramPageId)
-        }
-      } catch (error) {
-        console.log("[Instagram Callback] Method 2 failed")
-      }
-    }
-    
-    // Method 3: Use the user ID as fallback
-    if (!instagramPageId) {
-      console.log("[Instagram Callback] ⚠️ Could not find separate Page ID, using User ID as fallback")
-      instagramPageId = profileData.id
-    }
-    
-    console.log("[Instagram Callback] Final IDs:")
-    console.log("[Instagram Callback]   - User ID (for API):", profileData.id)
-    console.log("[Instagram Callback]   - Page ID (for webhooks):", instagramPageId)
 
     // Step 5: Ensure user exists
     console.log("[Instagram Callback] Step 5: Ensuring user exists in database...")
@@ -2251,18 +2509,13 @@ export async function GET(request: NextRequest) {
 
     if (!user) {
       console.error("[Instagram Callback] Failed to sync user")
-      const redirectUrl = buildRedirectUrl(
-        request.url,
-        userSlug,
-        "/accounts",
-        { error: "user_sync_failed" }
-      )
+      const redirectUrl = buildRedirectUrl(request.url, userSlug, "/accounts", { error: "user_sync_failed" })
       return NextResponse.redirect(redirectUrl)
     }
 
     console.log("[Instagram Callback] ✅ User found/created:", user.id)
 
-    // Step 6: Save Instagram account with BOTH IDs
+    // Step 6: Save Instagram account
     console.log("[Instagram Callback] Step 6: Saving Instagram account...")
     
     const tokenExpiry = new Date()
@@ -2272,8 +2525,8 @@ export async function GET(request: NextRequest) {
       where: { instagramId: profileData.id },
       create: {
         userId: user.id,
-        instagramId: profileData.id,          // User ID for API calls
-        instagramPageId: instagramPageId,      // Page ID for webhooks
+        instagramId: profileData.id,
+        instagramBusinessAccountId: webhookBusinessAccountId,
         username: profileData.username,
         profilePicUrl: profileData.profile_picture_url || null,
         followerCount: profileData.followers_count || 0,
@@ -2284,7 +2537,7 @@ export async function GET(request: NextRequest) {
       update: {
         accessToken: longLivedToken,
         tokenExpiry: tokenExpiry,
-        instagramPageId: instagramPageId,      // Update Page ID too
+        instagramBusinessAccountId: webhookBusinessAccountId,
         isConnected: true,
         username: profileData.username,
         profilePicUrl: profileData.profile_picture_url || null,
@@ -2292,15 +2545,10 @@ export async function GET(request: NextRequest) {
       },
     })
 
-    console.log("[Instagram Callback] ✅ Instagram account saved with both IDs")
+    console.log("[Instagram Callback] ✅ Instagram account saved")
     console.log("[Instagram Callback] ✅ OAuth flow complete!")
 
-    const successUrl = buildRedirectUrl(
-      request.url,
-      userSlug,
-      "/accounts",
-      { success: "true" }
-    )
+    const successUrl = buildRedirectUrl(request.url, userSlug, "/accounts", { success: "true" })
     return NextResponse.redirect(successUrl)
     
   } catch (error: any) {
@@ -2313,12 +2561,7 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    const errorUrl = buildRedirectUrl(
-      request.url,
-      userSlug,
-      "/accounts",
-      { error: "connection_failed" }
-    )
+    const errorUrl = buildRedirectUrl(request.url, userSlug, "/accounts", { error: "connection_failed" })
     return NextResponse.redirect(errorUrl)
   }
 }

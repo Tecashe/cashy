@@ -77,10 +77,12 @@ model PaymentMethod {
   @@index([isDefault])
 }
 
+
 model InstagramAccount {
   id              String    @id @default(cuid())
   userId          String
   instagramId     String    @unique
+  instagramBusinessAccountId String?  @unique  // From webhooks - use for matching webhooks
   instagramPageId String?   @unique
   username        String
   profilePicUrl   String?
@@ -98,6 +100,7 @@ model InstagramAccount {
 
   @@index([userId])
   @@index([instagramId])
+  @@index([instagramBusinessAccountId])
 }
 
 model Automation {
