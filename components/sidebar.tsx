@@ -479,7 +479,7 @@
 //         if (response.ok) {
 //           const data = await response.json()
 //           setAccounts(data.accounts || [])
-          
+
 //           // Set selected account from cookie or default to first account
 //           const savedAccountId = getCookie("selectedInstagramAccountId")
 //           if (savedAccountId && data.accounts) {
@@ -504,7 +504,7 @@
 //   const handleAccountSwitch = async (account: InstagramAccount) => {
 //     setSelectedAccount(account)
 //     setCookie("selectedInstagramAccountId", account.id)
-    
+
 //     // Trigger a page refresh to reload data for the new account
 //     window.location.reload()
 //   }
@@ -3340,6 +3340,7 @@ import {
   Menu,
   Lock,
   LogOut,
+  ShieldCheck,
 } from "lucide-react"
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
@@ -3469,9 +3470,9 @@ function SidebarContent({
 
           const isSubItemActive = hasSubItems
             ? item.subItems!.some((subItem) => {
-                const subHref = buildHref(subItem.href)
-                return pathname === subHref || pathname?.startsWith(subHref + "/")
-              })
+              const subHref = buildHref(subItem.href)
+              return pathname === subHref || pathname?.startsWith(subHref + "/")
+            })
             : false
 
           if (hasSubItems && !isCollapsed) {
@@ -3642,7 +3643,7 @@ function SidebarContent({
                         <CheckCircle2 className="h-4 w-4 shrink-0 text-foreground" />
                       )}
                     </DropdownMenuItem>
-                    
+
                     {/* Disconnect option for each account */}
                     <DropdownMenuItem
                       onClick={() => {
@@ -3797,6 +3798,11 @@ export function Sidebar() {
       href: "/billing",
       icon: CreditCard,
     },
+    {
+      name: "Admin",
+      href: "/admin",
+      icon: ShieldCheck,
+    },
   ]
 
   // Fetch Instagram accounts and subscription tier on mount
@@ -3875,10 +3881,10 @@ export function Sidebar() {
       if (!response.ok) throw new Error('Failed to disconnect')
 
       toast.success('Account disconnected successfully')
-      
+
       // Remove from local state
       setAccounts(prev => prev.filter(a => a.id !== account.id))
-      
+
       // If this was the selected account, select another or null
       if (selectedAccount?.id === account.id) {
         const remaining = accounts.filter(a => a.id !== account.id)
@@ -4002,7 +4008,7 @@ export function Sidebar() {
             loading={loading}
             handleAccountSwitch={handleAccountSwitch}
             currentTier={currentTier}
-            onNavigate={() => {}}
+            onNavigate={() => { }}
             userSlug={userSlug}
             handleDisconnect={handleDisconnect}
             setAccountToDisconnect={setAccountToDisconnect}
@@ -4017,7 +4023,7 @@ export function Sidebar() {
           <AlertDialogHeader>
             <AlertDialogTitle>Disconnect Instagram Account?</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to disconnect <strong>@{accountToDisconnect?.username}</strong>? 
+              Are you sure you want to disconnect <strong>@{accountToDisconnect?.username}</strong>?
               This will:
               <ul className="list-disc list-inside mt-2 space-y-1 text-sm">
                 <li>Deactivate all automations for this account</li>

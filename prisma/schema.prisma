@@ -808,6 +808,41 @@ model Subscription {
   @@index([tier])
 }
 
+model SalesUpload {
+  id          String   @id @default(cuid())
+  userId      String
+  fileName    String
+  uploadedAt  DateTime @default(now())
+  rowCount    Int      @default(0)
+  status      String   @default("processed") // processed, failed
+  notes       String?
+
+  items       SalesUploadItem[]
+
+  @@index([userId])
+  @@index([uploadedAt])
+}
+
+model SalesUploadItem {
+  id           String      @id @default(cuid())
+  uploadId     String
+  upload       SalesUpload @relation(fields: [uploadId], references: [id], onDelete: Cascade)
+
+  date         DateTime
+  amount       Float
+  description  String?
+  product      String?
+  customer     String?
+  currency     String      @default("USD")
+  quantity     Int         @default(1)
+  metadata     Json?
+
+  createdAt    DateTime    @default(now())
+
+  @@index([uploadId])
+  @@index([date])
+}
+
 model Notification {
   id        String   @id @default(cuid())
   userId    String
