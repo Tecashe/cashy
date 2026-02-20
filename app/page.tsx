@@ -1,7 +1,7 @@
 // import { redirect } from "next/navigation"
 
 // export default async function HomePage() {
-   
+
 //     const { auth } = await import("@clerk/nextjs/server")
 //     const { userId } = await auth()
 
@@ -10,11 +10,10 @@
 //     } else {
 //       redirect("/sign-in")
 //     }
-  
+
 // }
 
 // "use client"
-
 // import { useState, useEffect } from "react"
 // import { Button } from "@/components/ui/button"
 // import { ArrowRight, Check, Moon, Sun } from "lucide-react"
@@ -618,7 +617,7 @@ export default function Home() {
         accent="green"
         style="split"
       /> */}
-      
+
 
       <IntegrationsSection />
       <HowItWorks />
