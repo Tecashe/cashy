@@ -73,28 +73,102 @@ function fmt(amount: number, currency: string) {
 }
 
 function SimpleBarChart({ data, currency }: { data: MonthlyData[]; currency: string }) {
-    if (!data.length) return <div className="flex items-center justify-center h-48 text-muted-foreground text-sm">No data for this period</div>
+    if (!data.length) return (
+        <div className="flex items-center justify-center h-56 text-muted-foreground text-sm">
+            No data for this period
+        </div>
+    )
+
+    const chartH = 180
+    const padLeft = 44
+    const padBottom = 30
+    const padRight = 8
     const max = Math.max(...data.map((d) => d.total))
+    const n = data.length
+    const totalW = 640
+    const barAreaW = totalW - padLeft - padRight
+    const barW = Math.max(10, Math.floor(barAreaW / n) - 4)
+
+    const toY = (val: number) => chartH - ((val / max) * chartH)
+
     return (
-        <div className="flex items-end gap-1.5 h-48 w-full">
-            {data.map((d, i) => {
-                const height = max > 0 ? Math.max((d.total / max) * 100, 3) : 3
-                return (
-                    <div key={d.month} className="flex-1 flex flex-col items-center gap-1 group relative" title={`${d.label}: ${fmt(d.total, currency)}`}>
-                        <div className="w-full bg-gradient-to-t from-violet-600 to-violet-400 rounded-t-sm transition-all duration-500 hover:from-violet-500 hover:to-violet-300 cursor-pointer"
-                            style={{ height: `${height}%` }} />
-                        {data.length <= 12 && (
-                            <span className="text-[9px] text-muted-foreground rotate-45 origin-left whitespace-nowrap">
+        <div className="w-full overflow-x-auto">
+            <svg
+                viewBox={`0 0 ${totalW} ${chartH + padBottom}`}
+                className="w-full"
+                style={{ minHeight: 200 }}
+            >
+                <defs>
+                    <linearGradient id="barGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#7c3aed" stopOpacity="1" />
+                        <stop offset="100%" stopColor="#a78bfa" stopOpacity="0.85" />
+                    </linearGradient>
+                </defs>
+
+                {/* Y gridlines + labels */}
+                {[0, 0.25, 0.5, 0.75, 1].map((frac) => {
+                    const y = (1 - frac) * chartH
+                    const val = max * frac
+                    return (
+                        <g key={frac}>
+                            <line
+                                x1={padLeft} y1={y}
+                                x2={totalW - padRight} y2={y}
+                                stroke="#6b7280" strokeOpacity={0.15} strokeWidth={1}
+                            />
+                            <text
+                                x={padLeft - 6} y={y + 4}
+                                textAnchor="end" fontSize={9} fill="#9ca3af"
+                            >
+                                {val >= 1000 ? `${(val / 1000).toFixed(1)}k` : Math.round(val)}
+                            </text>
+                        </g>
+                    )
+                })}
+
+                {/* Bars */}
+                {data.map((d, i) => {
+                    const barH = max > 0 ? Math.max((d.total / max) * chartH, 3) : 3
+                    const slotW = barAreaW / n
+                    const x = padLeft + i * slotW + (slotW - barW) / 2
+                    const y = chartH - barH
+
+                    return (
+                        <g key={d.month}>
+                            <rect
+                                x={x} y={y}
+                                width={barW} height={barH}
+                                fill="url(#barGrad)"
+                                rx={3}
+                            />
+                            {/* Month label */}
+                            <text
+                                x={x + barW / 2}
+                                y={chartH + 16}
+                                textAnchor="middle"
+                                fontSize={n > 10 ? 7.5 : 9}
+                                fill="#9ca3af"
+                                transform={n > 10 ? `rotate(-35, ${x + barW / 2}, ${chartH + 16})` : undefined}
+                            >
                                 {d.label.split(" ")[0]}
-                            </span>
-                        )}
-                        {/* Tooltip */}
-                        <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-popover border border-border rounded-lg px-2 py-1 text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-10 pointer-events-none shadow-lg">
-                            <span className="font-medium">{fmt(d.total, currency)}</span>
-                        </div>
-                    </div>
-                )
-            })}
+                            </text>
+                            {/* Value label above bar */}
+                            {barH > 22 && (
+                                <text
+                                    x={x + barW / 2} y={y - 4}
+                                    textAnchor="middle"
+                                    fontSize={n > 10 ? 7.5 : 9}
+                                    fill="#7c3aed"
+                                    fontWeight="700"
+                                >
+                                    {Math.round(d.total)}
+                                </text>
+                            )}
+                            <title>{`${d.label}: ${fmt(d.total, currency)}`}</title>
+                        </g>
+                    )
+                })}
+            </svg>
         </div>
     )
 }
