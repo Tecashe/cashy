@@ -9,16 +9,7 @@ export default async function AdminUsersPage() {
         prisma.user.findMany({
             orderBy: { createdAt: "desc" },
             take: 20,
-            select: {
-                id: true,
-                email: true,
-                firstName: true,
-                lastName: true,
-                subscriptionTier: true,
-                subscriptionStatus: true,
-                businessName: true,
-                role: true,
-                createdAt: true,
+            include: {
                 _count: { select: { orders: true, conversations: true, automations: true } },
             },
         }),
@@ -26,8 +17,19 @@ export default async function AdminUsersPage() {
     ])
 
     const serialized = users.map((u) => ({
-        ...u,
+        id: u.id,
+        email: u.email,
+        firstName: u.firstName,
+        lastName: u.lastName,
+        subscriptionTier: u.subscriptionTier,
+        subscriptionStatus: u.subscriptionStatus,
+        businessName: u.businessName,
+        role: u.role,
+        mrr: u.mrr ?? null,
+        contractValue: u.contractValue ?? null,
+        accountManager: u.accountManager ?? null,
         createdAt: u.createdAt.toISOString(),
+        _count: u._count,
     }))
 
     return (

@@ -26,6 +26,9 @@ interface UserRecord {
     subscriptionStatus: string
     businessName: string | null
     role: string
+    mrr: number | null
+    contractValue: number | null
+    accountManager: string | null
     createdAt: string | Date
     _count: { orders: number; conversations: number; automations: number }
 }
@@ -164,8 +167,9 @@ export function AdminUserTable({
                                     <th className="text-left px-4 py-3 font-medium">Business</th>
                                     <th className="text-left px-4 py-3 font-medium">Plan</th>
                                     <th className="text-left px-4 py-3 font-medium">Role</th>
+                                    <th className="text-left px-4 py-3 font-medium">MRR</th>
+                                    <th className="text-left px-4 py-3 font-medium">Contract</th>
                                     <th className="text-left px-4 py-3 font-medium">Activity</th>
-                                    <th className="text-left px-4 py-3 font-medium">Joined</th>
                                     <th className="text-left px-4 py-3 font-medium">Actions</th>
                                 </tr>
                             </thead>
@@ -214,6 +218,25 @@ export function AdminUserTable({
                                             </Badge>
                                         </td>
                                         <td className="px-4 py-3">
+                                            {user.mrr != null ? (
+                                                <span className="text-sm font-medium text-emerald-600">${user.mrr.toFixed(0)}/mo</span>
+                                            ) : (
+                                                <span className="text-xs text-muted-foreground">—</span>
+                                            )}
+                                        </td>
+                                        <td className="px-4 py-3">
+                                            {user.contractValue != null ? (
+                                                <div>
+                                                    <span className="text-sm font-medium">${user.contractValue.toLocaleString()}</span>
+                                                    {user.accountManager && (
+                                                        <p className="text-xs text-muted-foreground">{user.accountManager}</p>
+                                                    )}
+                                                </div>
+                                            ) : (
+                                                <span className="text-xs text-muted-foreground">—</span>
+                                            )}
+                                        </td>
+                                        <td className="px-4 py-3">
                                             <div className="flex items-center gap-3 text-muted-foreground">
                                                 <span className="flex items-center gap-1">
                                                     <ShoppingBag className="w-3 h-3" /> {user._count.orders}
@@ -226,9 +249,6 @@ export function AdminUserTable({
                                                     <Zap className="w-3 h-3" /> {user._count.automations}
                                                 </span>
                                             </div>
-                                        </td>
-                                        <td className="px-4 py-3 text-muted-foreground">
-                                            {new Date(user.createdAt).toLocaleDateString()}
                                         </td>
                                         <td className="px-4 py-3">
                                             <select

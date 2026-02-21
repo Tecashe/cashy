@@ -1,0 +1,92 @@
+date,amount,product,customer,description,currency,quantity
+1/1/2025,36.19,Enterprise Plan,Zuri Retail Group,Enterprise plan — monthly retainer,USD,1
+1/2/2025,87.53,Enterprise Plan,Bluewave Solutions,Enterprise plan — monthly retainer,USD,1
+1/4/2025,76.53,Enterprise Plan,Nouri & Co,Enterprise plan — monthly retainer,USD,1
+1/4/2025,63.24,Enterprise Plan,Thornfield Inc,Enterprise plan — monthly retainer,USD,1
+1/6/2025,119.16,Enterprise Plan,Apex Digital Ltd,Enterprise plan — monthly retainer,USD,1
+1/9/2025,56.26,Enterprise Plan,Kestrel Media,Enterprise plan — monthly retainer,USD,1
+1/11/2025,31.29,Enterprise Plan,Mara Consulting,Enterprise plan — monthly retainer,USD,1
+2/1/2025,127.87,Enterprise Plan,Apex Digital Ltd,Enterprise plan — monthly retainer,USD,1
+2/2/2025,38.48,Enterprise Plan,Mara Consulting,Enterprise plan — monthly retainer,USD,1
+2/5/2025,35.91,Enterprise Plan,Zuri Retail Group,Enterprise plan — monthly retainer,USD,1
+2/6/2025,51.42,Enterprise Plan,Thornfield Inc,Enterprise plan — monthly retainer,USD,1
+2/8/2025,105.91,Enterprise Plan,Nouri & Co,Enterprise plan — monthly retainer,USD,1
+2/14/2025,70.13,Enterprise Plan,Bluewave Solutions,Enterprise plan — monthly retainer,USD,1
+2/14/2025,56.97,Enterprise Plan,Kestrel Media,Enterprise plan — monthly retainer,USD,1
+3/2/2025,87.02,Enterprise Plan,Nouri & Co,Enterprise plan — monthly retainer,USD,1
+3/2/2025,46.29,Enterprise Plan,Mara Consulting,Enterprise plan — monthly retainer,USD,1
+3/4/2025,117.87,Enterprise Plan,Apex Digital Ltd,Enterprise plan — monthly retainer,USD,1
+3/4/2025,70.68,Enterprise Plan,Bluewave Solutions,Enterprise plan — monthly retainer,USD,1
+3/12/2025,55.04,Enterprise Plan,Thornfield Inc,Enterprise plan — monthly retainer,USD,1
+3/12/2025,43.33,Enterprise Plan,Zuri Retail Group,Enterprise plan — monthly retainer,USD,1
+3/15/2025,74.99,Enterprise Plan,Kestrel Media,Enterprise plan — monthly retainer,USD,1
+4/2/2025,94.07,Enterprise Plan,Nouri & Co,Enterprise plan — monthly retainer,USD,1
+4/5/2025,59.5,Enterprise Plan,Mara Consulting,Enterprise plan — monthly retainer,USD,1
+4/8/2025,73.89,Enterprise Plan,Bluewave Solutions,Enterprise plan — monthly retainer,USD,1
+4/9/2025,65.23,Enterprise Plan,Thornfield Inc,Enterprise plan — monthly retainer,USD,1
+4/12/2025,131.35,Enterprise Plan,Apex Digital Ltd,Enterprise plan — monthly retainer,USD,1
+4/13/2025,36.5,Enterprise Plan,Zuri Retail Group,Enterprise plan — monthly retainer,USD,1
+4/15/2025,81.09,Enterprise Plan,Kestrel Media,Enterprise plan — monthly retainer,USD,1
+5/2/2025,144.86,Enterprise Plan,Apex Digital Ltd,Enterprise plan — monthly retainer,USD,1
+5/4/2025,49.49,Enterprise Plan,Mara Consulting,Enterprise plan — monthly retainer,USD,1
+5/7/2025,82.41,Enterprise Plan,Kestrel Media,Enterprise plan — monthly retainer,USD,1
+5/7/2025,40.67,Enterprise Plan,Zuri Retail Group,Enterprise plan — monthly retainer,USD,1
+5/9/2025,99.12,Enterprise Plan,Nouri & Co,Enterprise plan — monthly retainer,USD,1
+5/10/2025,66.92,Enterprise Plan,Thornfield Inc,Enterprise plan — monthly retainer,USD,1
+5/14/2025,76.24,Enterprise Plan,Bluewave Solutions,Enterprise plan — monthly retainer,USD,1
+6/1/2025,119.38,Enterprise Plan,Nouri & Co,Enterprise plan — monthly retainer,USD,1
+6/1/2025,109.07,Enterprise Plan,Bluewave Solutions,Enterprise plan — monthly retainer,USD,1
+6/6/2025,51.44,Enterprise Plan,Thornfield Inc,Enterprise plan — monthly retainer,USD,1
+6/7/2025,57.15,Enterprise Plan,Mara Consulting,Enterprise plan — monthly retainer,USD,1
+6/9/2025,32.62,Enterprise Plan,Zuri Retail Group,Enterprise plan — monthly retainer,USD,1
+6/11/2025,63.25,Enterprise Plan,Kestrel Media,Enterprise plan — monthly retainer,USD,1
+6/13/2025,140.02,Enterprise Plan,Apex Digital Ltd,Enterprise plan — monthly retainer,USD,1
+7/2/2025,58.95,Enterprise Plan,Thornfield Inc,Enterprise plan — monthly retainer,USD,1
+7/3/2025,82.64,Enterprise Plan,Kestrel Media,Enterprise plan — monthly retainer,USD,1
+7/8/2025,38.04,Enterprise Plan,Mara Consulting,Enterprise plan — monthly retainer,USD,1
+7/11/2025,109.56,Enterprise Plan,Nouri & Co,Enterprise plan — monthly retainer,USD,1
+7/12/2025,150.42,Enterprise Plan,Apex Digital Ltd,Enterprise plan — monthly retainer,USD,1
+7/12/2025,94.82,Enterprise Plan,Bluewave Solutions,Enterprise plan — monthly retainer,USD,1
+7/15/2025,49.57,Enterprise Plan,Zuri Retail Group,Enterprise plan — monthly retainer,USD,1
+8/1/2025,114.93,Enterprise Plan,Nouri & Co,Enterprise plan — monthly retainer,USD,1
+8/2/2025,38.77,Enterprise Plan,Mara Consulting,Enterprise plan — monthly retainer,USD,1
+8/3/2025,107.55,Enterprise Plan,Bluewave Solutions,Enterprise plan — monthly retainer,USD,1
+8/7/2025,148.67,Enterprise Plan,Apex Digital Ltd,Enterprise plan — monthly retainer,USD,1
+8/8/2025,45.31,Enterprise Plan,Zuri Retail Group,Enterprise plan — monthly retainer,USD,1
+8/12/2025,74.92,Enterprise Plan,Thornfield Inc,Enterprise plan — monthly retainer,USD,1
+8/13/2025,87.28,Enterprise Plan,Kestrel Media,Enterprise plan — monthly retainer,USD,1
+9/2/2025,132.12,Enterprise Plan,Nouri & Co,Enterprise plan — monthly retainer,USD,1
+9/2/2025,72.9,Enterprise Plan,Thornfield Inc,Enterprise plan — monthly retainer,USD,1
+9/3/2025,112.4,Enterprise Plan,Bluewave Solutions,Enterprise plan — monthly retainer,USD,1
+9/3/2025,43.88,Enterprise Plan,Mara Consulting,Enterprise plan — monthly retainer,USD,1
+9/4/2025,73.27,Enterprise Plan,Kestrel Media,Enterprise plan — monthly retainer,USD,1
+9/7/2025,117.97,Enterprise Plan,Apex Digital Ltd,Enterprise plan — monthly retainer,USD,1
+9/14/2025,33.09,Enterprise Plan,Zuri Retail Group,Enterprise plan — monthly retainer,USD,1
+10/5/2025,45.97,Enterprise Plan,Zuri Retail Group,Enterprise plan — monthly retainer,USD,1
+10/8/2025,64.42,Enterprise Plan,Mara Consulting,Enterprise plan — monthly retainer,USD,1
+10/9/2025,126.14,Enterprise Plan,Apex Digital Ltd,Enterprise plan — monthly retainer,USD,1
+10/9/2025,80.05,Enterprise Plan,Kestrel Media,Enterprise plan — monthly retainer,USD,1
+10/10/2025,126.46,Enterprise Plan,Nouri & Co,Enterprise plan — monthly retainer,USD,1
+10/10/2025,108.42,Enterprise Plan,Bluewave Solutions,Enterprise plan — monthly retainer,USD,1
+10/14/2025,61.86,Enterprise Plan,Thornfield Inc,Enterprise plan — monthly retainer,USD,1
+11/1/2025,71.23,Enterprise Plan,Kestrel Media,Enterprise plan — monthly retainer,USD,1
+11/1/2025,74.44,Enterprise Plan,Thornfield Inc,Enterprise plan — monthly retainer,USD,1
+11/4/2025,116.6,Enterprise Plan,Nouri & Co,Enterprise plan — monthly retainer,USD,1
+11/4/2025,36.37,Enterprise Plan,Zuri Retail Group,Enterprise plan — monthly retainer,USD,1
+11/5/2025,143.2,Enterprise Plan,Apex Digital Ltd,Enterprise plan — monthly retainer,USD,1
+11/8/2025,86.81,Enterprise Plan,Bluewave Solutions,Enterprise plan — monthly retainer,USD,1
+11/15/2025,43.9,Enterprise Plan,Mara Consulting,Enterprise plan — monthly retainer,USD,1
+12/2/2025,117.62,Enterprise Plan,Nouri & Co,Enterprise plan — monthly retainer,USD,1
+12/7/2025,120.16,Enterprise Plan,Bluewave Solutions,Enterprise plan — monthly retainer,USD,1
+12/7/2025,64.55,Enterprise Plan,Mara Consulting,Enterprise plan — monthly retainer,USD,1
+12/12/2025,69.65,Enterprise Plan,Thornfield Inc,Enterprise plan — monthly retainer,USD,1
+12/13/2025,152.21,Enterprise Plan,Apex Digital Ltd,Enterprise plan — monthly retainer,USD,1
+12/14/2025,38.87,Enterprise Plan,Zuri Retail Group,Enterprise plan — monthly retainer,USD,1
+12/15/2025,79.05,Enterprise Plan,Kestrel Media,Enterprise plan — monthly retainer,USD,1
+1/2/2026,93.77,Enterprise Plan,Bluewave Solutions,Enterprise plan — monthly retainer,USD,1
+1/4/2026,49.02,Enterprise Plan,Thornfield Inc,Enterprise plan — monthly retainer,USD,1
+1/6/2026,76.05,Enterprise Plan,Kestrel Media,Enterprise plan — monthly retainer,USD,1
+1/6/2026,50.27,Enterprise Plan,Mara Consulting,Enterprise plan — monthly retainer,USD,1
+1/11/2026,39.62,Enterprise Plan,Zuri Retail Group,Enterprise plan — monthly retainer,USD,1
+1/14/2026,117.1,Enterprise Plan,Apex Digital Ltd,Enterprise plan — monthly retainer,USD,1
+1/14/2026,82.75,Enterprise Plan,Nouri & Co,Enterprise plan — monthly retainer,USD,1

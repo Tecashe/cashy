@@ -49,6 +49,11 @@ model User {
   knowledgeDocuments KnowledgeDocument[]
   businessProfile    BusinessProfile?
 
+  contractValue       Float?
+  contractStartDate   DateTime?
+  accountManager      String?
+  mrr                 Float?
+
   payments           Payment[] // added payments relationship
   subscription       Subscription? // added subscription relationship
   notifications      Notification[]
@@ -817,11 +822,12 @@ model Subscription {
 
 model SalesUpload {
   id          String   @id @default(cuid())
-  userId      String
+  userId      String?  // null for global admin imports
   fileName    String
   uploadedAt  DateTime @default(now())
   rowCount    Int      @default(0)
   status      String   @default("processed") // processed, failed
+  source      String   @default("csv")        // csv, mpesa, stripe
   notes       String?
 
   items       SalesUploadItem[]
@@ -831,23 +837,25 @@ model SalesUpload {
 }
 
 model SalesUploadItem {
-  id           String      @id @default(cuid())
-  uploadId     String
-  upload       SalesUpload @relation(fields: [uploadId], references: [id], onDelete: Cascade)
+  id            String      @id @default(cuid())
+  uploadId      String
+  upload        SalesUpload @relation(fields: [uploadId], references: [id], onDelete: Cascade)
 
-  date         DateTime
-  amount       Float
-  description  String?
-  product      String?
-  customer     String?
-  currency     String      @default("USD")
-  quantity     Int         @default(1)
-  metadata     Json?
+  date          DateTime
+  amount        Float
+  description   String?
+  product       String?
+  customer      String?
+  currency      String      @default("USD")
+  quantity      Int         @default(1)
+  paymentMethod String      @default("mpesa") // mpesa, stripe, bank_transfer, cash
+  metadata      Json?
 
-  createdAt    DateTime    @default(now())
+  createdAt     DateTime    @default(now())
 
   @@index([uploadId])
   @@index([date])
+  @@index([customer])
 }
 
 model Notification {
