@@ -1,0 +1,16 @@
+Environment variables loaded from .env
+Prisma schema loaded from prisma\schema.prisma
+System.Management.Automation.RemoteException
+Error: Prisma schema validation - (validate wasm)
+Error code: P1012
+[1;91merror[0m: [1mThe model "SupportTicket" cannot be defined because a model with that name already exists.[0m
+  [1;94m-->[0m  [4mprisma\schema.prisma:873[0m
+[1;94m   | [0m
+[1;94m872 | [0m
+[1;94m873 | [0mmodel [1;91mSupportTicket[0m {
+[1;94m   | [0m
+System.Management.Automation.RemoteException
+Validation Error Count: 1
+[Context: validate]
+System.Management.Automation.RemoteException
+Prisma CLI Version : 5.22.0

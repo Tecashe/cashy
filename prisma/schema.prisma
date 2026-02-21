@@ -15,6 +15,7 @@ model User {
   firstName           String?
   lastName            String?
   imageUrl            String?
+  role                String   @default("USER") // USER, ADMIN, SUPPORT
   subscriptionTier    String   @default("free")
   subscriptionStatus  String   @default("active")
   businessName        String?
@@ -51,6 +52,8 @@ model User {
   payments           Payment[] // added payments relationship
   subscription       Subscription? // added subscription relationship
   notifications      Notification[]
+  announcements      Announcement[]  @relation("AnnouncementAuthor")
+  auditLogs          AuditLog[]
 
 
   @@index([clerkId])
@@ -697,13 +700,16 @@ model SupportTicket {
   subject      String
   description  String @db.Text
 
-  status   String @default("open")
-  priority String @default("medium")
+  status   String @default("open")    // open, in_progress, resolved, closed
+  priority String @default("medium")  // low, medium, high, urgent
+  category String @default("general") // general, billing, technical, account, feature_request
 
   assignedTo String?
 
   zendeskTicketId String?
   hubspotTicketId String?
+
+  messages TicketMessage[]
 
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
@@ -713,6 +719,7 @@ model SupportTicket {
   @@index([conversationId])
   @@index([status])
   @@index([priority])
+  @@index([assignedTo])
 }
 
 model QueuedMessage {
@@ -862,5 +869,65 @@ model Notification {
   // Indexes
   @@index([userId])
   @@index([isRead])
+  @@index([createdAt])
+}
+
+
+model TicketMessage {
+  id        String   @id @default(cuid())
+  ticketId  String
+  ticket    SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  senderId  String   // clerkId of either user or admin
+  senderRole String  @default("USER") // USER, ADMIN, SUPPORT
+  content   String   @db.Text
+  isInternal Boolean @default(false) // internal notes only visible to admins
+
+  createdAt DateTime @default(now())
+
+  @@index([ticketId])
+  @@index([senderId])
+  @@index([createdAt])
+}
+
+// ----- Announcements -----
+
+model Announcement {
+  id         String   @id @default(cuid())
+  authorId   String
+  author     User     @relation("AnnouncementAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+
+  title      String
+  content    String   @db.Text
+  type       String   @default("info") // info, warning, success, maintenance
+  isActive   Boolean  @default(true)
+  isPinned   Boolean  @default(false)
+  expiresAt  DateTime?
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([isActive])
+  @@index([createdAt])
+}
+
+// ----- Audit Logs -----
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  adminId     String
+  admin       User     @relation(fields: [adminId], references: [id], onDelete: Cascade)
+
+  action      String   // e.g. "user.role_change", "user.subscription_override", "ticket.assign"
+  targetType  String   // e.g. "user", "ticket", "announcement"
+  targetId    String?
+  details     Json?    // any extra context
+  ipAddress   String?
+
+  createdAt   DateTime @default(now())
+
+  @@index([adminId])
+  @@index([action])
+  @@index([targetType])
   @@index([createdAt])
 }
