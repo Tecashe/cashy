@@ -3341,6 +3341,7 @@ import {
   Lock,
   LogOut,
   Headphones,
+  BookOpen,
 } from "lucide-react"
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
@@ -3797,6 +3798,11 @@ export function Sidebar() {
       name: "Billing",
       href: "/billing",
       icon: CreditCard,
+    },
+    {
+      name: "Guides",
+      href: "/guides",
+      icon: BookOpen,
     },
     {
       name: "Support",

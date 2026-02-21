@@ -57,7 +57,6 @@ const navSections = [
         label: "Data",
         items: [
             { label: "Revenue", href: "/admin/revenue", icon: DollarSign },
-            { label: "Sales Import", href: "/admin/sales", icon: FileUp },
             { label: "Audit Logs", href: "/admin/audit-logs", icon: ClipboardList },
         ],
     },
