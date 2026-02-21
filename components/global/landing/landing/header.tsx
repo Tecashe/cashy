@@ -23,8 +23,8 @@ export function Header() {
       <div className="container mx-auto px-4 lg:px-8">
         <div
           className={`relative rounded-2xl transition-all duration-500 ${scrolled
-              ? "bg-card/80 backdrop-blur-2xl border-2 border-border shadow-[0_8px_32px_rgba(0,0,0,0.4),0_2px_8px_rgba(255,107,53,0.1),inset_0_1px_0_rgba(255,255,255,0.05)]"
-              : "bg-card/60 backdrop-blur-xl border border-border/50 shadow-[0_4px_24px_rgba(0,0,0,0.3)]"
+            ? "bg-card/80 backdrop-blur-2xl border-2 border-border shadow-[0_8px_32px_rgba(0,0,0,0.4),0_2px_8px_rgba(255,107,53,0.1),inset_0_1px_0_rgba(255,255,255,0.05)]"
+            : "bg-card/60 backdrop-blur-xl border border-border/50 shadow-[0_4px_24px_rgba(0,0,0,0.3)]"
             }`}
         >
           <div className="absolute inset-0 rounded-2xl bg-gradient-to-b from-white/[0.03] to-transparent pointer-events-none" />
@@ -44,24 +44,24 @@ export function Header() {
             {/* Desktop Navigation */}
 
             <nav className="hidden md:flex items-center gap-1 bg-muted/50 rounded-xl p-1 border border-border/50">
-              <a
-                href="#features"
+              <Link
+                href="/features"
                 className="text-sm font-medium text-muted-foreground hover:text-white hover:bg-card px-4 py-2 rounded-lg transition-all duration-200"
               >
                 Features
-              </a>
-              <a
-                href="#demo"
+              </Link>
+              <Link
+                href="/solutions"
                 className="text-sm font-medium text-muted-foreground hover:text-white hover:bg-card px-4 py-2 rounded-lg transition-all duration-200"
               >
-                Demo
-              </a>
-              <a
-                href="#pricing"
+                Solutions
+              </Link>
+              <Link
+                href="/pricing"
                 className="text-sm font-medium text-muted-foreground hover:text-white hover:bg-card px-4 py-2 rounded-lg transition-all duration-200"
               >
                 Pricing
-              </a>
+              </Link>
               <Link
                 href="/blog"
                 className="text-sm font-medium text-muted-foreground hover:text-white hover:bg-card px-4 py-2 rounded-lg transition-all duration-200"
@@ -97,27 +97,27 @@ export function Header() {
           {/* Mobile Menu */}
           {mobileMenuOpen && (
             <div className="md:hidden border-t border-border/50 p-4 space-y-2 animate-fade-in">
-              <a
-                href="#features"
+              <Link
+                href="/features"
                 onClick={() => setMobileMenuOpen(false)}
                 className="block text-sm font-medium text-muted-foreground hover:text-white hover:bg-muted px-4 py-3 rounded-lg transition-colors"
               >
                 Features
-              </a>
-              <a
-                href="#demo"
+              </Link>
+              <Link
+                href="/solutions"
                 onClick={() => setMobileMenuOpen(false)}
                 className="block text-sm font-medium text-muted-foreground hover:text-white hover:bg-muted px-4 py-3 rounded-lg transition-colors"
               >
-                Demo
-              </a>
-              <a
-                href="#pricing"
+                Solutions
+              </Link>
+              <Link
+                href="/pricing"
                 onClick={() => setMobileMenuOpen(false)}
                 className="block text-sm font-medium text-muted-foreground hover:text-white hover:bg-muted px-4 py-3 rounded-lg transition-colors"
               >
                 Pricing
-              </a>
+              </Link>
               <Link
                 href="/blog"
                 onClick={() => setMobileMenuOpen(false)}
