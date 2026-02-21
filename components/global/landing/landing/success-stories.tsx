@@ -20,7 +20,7 @@ interface Story {
 const stories: Story[] = [
   {
     id: 1,
-    author: "Sarah Chen",
+    author: "Simon M",
     business: "Fashion Boutique",
     avatar: "/professional-woman-smiling.png",
     fallback: "SC",

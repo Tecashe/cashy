@@ -308,7 +308,7 @@
 //               {
 //                 quote:
 //                   "AutomateIG transformed how we handle customer inquiries. We went from missing 60% of comments to responding to everything instantly.",
-//                 author: "Sarah Chen",
+//                 author: "Simon M",
 //                 role: "Marketing Director, GlowBeauty",
 //                 image: "/professional-woman-headshot.png",
 //               },
