@@ -3340,7 +3340,7 @@ import {
   Menu,
   Lock,
   LogOut,
-  ShieldCheck,
+  Headphones,
 } from "lucide-react"
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
@@ -3799,9 +3799,9 @@ export function Sidebar() {
       icon: CreditCard,
     },
     {
-      name: "Admin",
-      href: "/admin",
-      icon: ShieldCheck,
+      name: "Support",
+      href: "/support",
+      icon: Headphones,
     },
   ]
 
