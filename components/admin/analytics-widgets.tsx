@@ -668,8 +668,8 @@ export function GoogleAnalyticsWidget({ siteUrl }: { siteUrl?: string }) {
                                     key={d}
                                     onClick={() => handleDaysChange(d)}
                                     className={`px-2.5 py-1 font-medium transition-colors ${days === d
-                                            ? "bg-primary text-primary-foreground"
-                                            : "bg-background text-muted-foreground hover:bg-muted"
+                                        ? "bg-primary text-primary-foreground"
+                                        : "bg-background text-muted-foreground hover:bg-muted"
                                         }`}
                                 >
                                     {d}d
@@ -834,6 +834,7 @@ export function SearchConsoleWidget({ siteUrl }: { siteUrl?: string }) {
                         </a>
                     </div>
                 ) : (
+
                     <div className="space-y-3">
                         <div className="p-3 rounded-lg bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800">
                             <p className="text-sm font-medium text-green-800 dark:text-green-200 flex items-center gap-2">

@@ -2,7 +2,6 @@ import { auth, currentUser } from "@clerk/nextjs/server"
 import { redirect } from "next/navigation"
 import { isAdminUser } from "@/lib/admin-auth"
 import { GoogleAnalyticsWidget, SearchConsoleWidget } from "@/components/admin/analytics-widgets"
-import { PexelsWidget } from "@/components/admin/pexels-widget"
 
 export default async function AdminIntegrationsPage({ params }: { params: Promise<{ slug: string }> }) {
     const { userId } = await auth()
@@ -23,7 +22,7 @@ export default async function AdminIntegrationsPage({ params }: { params: Promis
                 <SearchConsoleWidget />
             </div>
 
-            <PexelsWidget />
+
         </div>
     )
 }
