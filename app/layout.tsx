@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import type React from "react"
+import Script from "next/script"
 import { Analytics } from "@vercel/analytics/next"
 import "./globals.css"
 import { ThemeProvider } from "next-themes"
@@ -26,10 +27,24 @@ export default function RootLayout({
   return (
     <ClerkProvider>
       <html lang="en">
+        <head>
+          <Script
+            src="https://www.googletagmanager.com/gtag/js?id=G-YMKS2SDNPW"
+            strategy="afterInteractive"
+          />
+          <Script id="google-analytics" strategy="afterInteractive">
+            {`
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', 'G-YMKS2SDNPW');
+            `}
+          </Script>
+        </head>
         <body className={`font-sans antialiased`}>
           <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
-          <NotificationPopup />
-          {children}
+            <NotificationPopup />
+            {children}
           </ThemeProvider>
           <Analytics />
         </body>
