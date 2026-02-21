@@ -1,80 +1,129 @@
-import { auth, currentUser } from "@clerk/nextjs/server"
-import { isAdminUser } from "@/lib/admin-auth"
-import { prisma } from "@/lib/db"
 import { NextResponse } from "next/server"
+import { prisma } from "@/lib/db"
+import { requireAdmin } from "@/lib/admin-auth"
+
+const EXCHANGE_RATES: Record<string, number> = {
+    USD: 1,
+    GBP: 0.79,
+    EUR: 0.92,
+    KES: 129.5,
+    AED: 3.67,
+    CAD: 1.36,
+    AUD: 1.53,
+    INR: 83.1,
+}
 
 export async function GET(req: Request) {
-    const { userId } = await auth()
-    if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    try {
+        await requireAdmin()
 
-    const clerkUser = await currentUser()
-    const email = clerkUser?.emailAddresses?.[0]?.emailAddress
-    if (!isAdminUser(email)) return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+        const { searchParams } = new URL(req.url)
+        const days = parseInt(searchParams.get("days") || "365")
+        const currency = searchParams.get("currency") || "USD"
+        const rate = EXCHANGE_RATES[currency] || 1
 
-    const { searchParams } = new URL(req.url)
-    const range = searchParams.get("range") || "30d"
+        const since = new Date()
+        since.setDate(since.getDate() - days)
 
-    const daysMap: Record<string, number> = { "7d": 7, "30d": 30, "90d": 90, "12m": 365 }
-    const days = daysMap[range] || 30
-    const startDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000)
+        const [items, allItems] = await Promise.all([
+            prisma.salesUploadItem.findMany({
+                where: { date: { gte: since } },
+                orderBy: { date: "asc" },
+                select: {
+                    date: true,
+                    amount: true,
+                    customer: true,
+                    product: true,
+                    paymentMethod: true,
+                    currency: true,
+                },
+            }),
+            prisma.salesUploadItem.findMany({
+                orderBy: { date: "asc" },
+                select: { date: true, amount: true, customer: true },
+            }),
+        ])
 
-    const stripePayments = await prisma.payment.findMany({
-        where: { status: "succeeded", createdAt: { gte: startDate } },
-        select: { amount: true, createdAt: true, currency: true },
-        orderBy: { createdAt: "asc" },
-    })
+        const convert = (usd: number) => Math.round(usd * rate * 100) / 100
 
-    const salesItems = await prisma.salesUploadItem.findMany({
-        where: { date: { gte: startDate } },
-        select: { amount: true, date: true, currency: true, product: true },
-        orderBy: { date: "asc" },
-    })
-
-    const allTimeStripe = await prisma.payment.aggregate({
-        where: { status: "succeeded" },
-        _sum: { amount: true },
-    })
-    const allTimeSales = await prisma.salesUploadItem.aggregate({
-        _sum: { amount: true },
-    })
-
-    const dayMap = new Map<string, { stripe: number; sales: number; date: string }>()
-    const addDays = (d: Date) => {
-        const key = d.toISOString().slice(0, 10)
-        if (!dayMap.has(key)) dayMap.set(key, { stripe: 0, sales: 0, date: key })
-        return key
-    }
-
-    stripePayments.forEach((p) => {
-        const key = addDays(p.createdAt)
-        dayMap.get(key)!.stripe += p.amount / 100
-    })
-    salesItems.forEach((s) => {
-        const key = addDays(s.date)
-        dayMap.get(key)!.sales += s.amount
-    })
-
-    const chartData = Array.from(dayMap.values()).sort((a, b) => a.date.localeCompare(b.date))
-
-    const productMap = new Map<string, number>()
-    salesItems.forEach((s) => {
-        if (s.product) {
-            productMap.set(s.product, (productMap.get(s.product) || 0) + s.amount)
+        // Monthly aggregation
+        const monthlyMap: Record<string, number> = {}
+        for (const item of items) {
+            const key = `${item.date.getFullYear()}-${String(item.date.getMonth() + 1).padStart(2, "0")}`
+            monthlyMap[key] = (monthlyMap[key] || 0) + item.amount
         }
-    })
-    const topProducts = Array.from(productMap.entries())
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 5)
-        .map(([name, revenue]) => ({ name, revenue }))
 
-    return NextResponse.json({
-        chartData,
-        topProducts,
-        totals: {
-            allTimeStripe: (allTimeStripe._sum.amount || 0) / 100,
-            allTimeSales: allTimeSales._sum.amount || 0,
-        },
-        periodStripe: stripePayments.reduce((s, p) => s + p.amount / 100, 0),
-        periodSales: salesItems.reduce((s, si) => s + si.amount, 0),
-    })
+        const monthly = Object.entries(monthlyMap)
+            .sort(([a], [b]) => a.localeCompare(b))
+            .map(([month, total]) => ({
+                month,
+                label: new Date(month + "-01").toLocaleDateString("en-US", { month: "short", year: "numeric" }),
+                total: convert(total),
+                totalUSD: total,
+            }))
+
+        // Per-customer breakdown
+        const customerMap: Record<string, { total: number; count: number; lastDate: string }> = {}
+        for (const item of items) {
+            const c = item.customer || "Unknown"
+            if (!customerMap[c]) customerMap[c] = { total: 0, count: 0, lastDate: "" }
+            customerMap[c].total += item.amount
+            customerMap[c].count += 1
+            customerMap[c].lastDate = item.date.toISOString().split("T")[0]
+        }
+
+        const customers = Object.entries(customerMap)
+            .sort(([, a], [, b]) => b.total - a.total)
+            .map(([name, data]) => ({
+                name,
+                total: convert(data.total),
+                totalUSD: data.total,
+                transactions: data.count,
+                lastPayment: data.lastDate,
+                avgTransaction: convert(data.total / data.count),
+            }))
+
+        const totalUSD = items.reduce((s, i) => s + i.amount, 0)
+        const totalConverted = convert(totalUSD)
+
+        // Previous period comparison
+        const prevSince = new Date(since)
+        prevSince.setDate(prevSince.getDate() - days)
+        const prevItems = allItems.filter((i) => i.date >= prevSince && i.date < since)
+        const prevTotalUSD = prevItems.reduce((s, i) => s + i.amount, 0)
+        const growth = prevTotalUSD > 0
+            ? Math.round(((totalUSD - prevTotalUSD) / prevTotalUSD) * 1000) / 10
+            : 0
+
+        const mrr = monthly.length > 0
+            ? convert(monthly.reduce((s, m) => s + m.totalUSD, 0) / monthly.length)
+            : 0
+        const arr = mrr * 12
+
+        const recent = items.slice(-10).reverse().map((i) => ({
+            date: i.date.toISOString().split("T")[0],
+            amount: convert(i.amount),
+            customer: i.customer,
+            product: i.product,
+            paymentMethod: i.paymentMethod,
+        }))
+
+        return NextResponse.json({
+            currency,
+            rate,
+            totalRevenue: totalConverted,
+            totalRevenueUSD: totalUSD,
+            growth,
+            mrr,
+            arr,
+            transactionCount: items.length,
+            monthly,
+            customers,
+            recent,
+            exchangeRates: EXCHANGE_RATES,
+        })
+    } catch (e) {
+        console.error(e)
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
 }

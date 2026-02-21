@@ -1,6 +1,3 @@
-// Admin-facing Google Analytics route — delegates to the existing protected GA route logic
-// Re-exports from the protected route with admin auth check
-
 import { NextRequest, NextResponse } from "next/server"
 import { requireAdmin } from "@/lib/admin-auth"
 import { BetaAnalyticsDataClient } from "@google-analytics/data"
@@ -47,22 +44,16 @@ export async function GET(request: NextRequest) {
                 property: `properties/${propertyId}`,
                 dateRanges: [{ startDate: `${days}daysAgo`, endDate: "today" }],
                 metrics: [
-                    { name: "sessions" },
-                    { name: "screenPageViews" },
-                    { name: "activeUsers" },
-                    { name: "bounceRate" },
-                    { name: "averageSessionDuration" },
+                    { name: "sessions" }, { name: "screenPageViews" }, { name: "activeUsers" },
+                    { name: "bounceRate" }, { name: "averageSessionDuration" },
                 ],
             }),
             client.runReport({
                 property: `properties/${propertyId}`,
                 dateRanges: [{ startDate: prevRange.startDate, endDate: prevRange.endDate }],
                 metrics: [
-                    { name: "sessions" },
-                    { name: "screenPageViews" },
-                    { name: "activeUsers" },
-                    { name: "bounceRate" },
-                    { name: "averageSessionDuration" },
+                    { name: "sessions" }, { name: "screenPageViews" }, { name: "activeUsers" },
+                    { name: "bounceRate" }, { name: "averageSessionDuration" },
                 ],
             }),
             client.runReport({
