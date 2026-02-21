@@ -355,7 +355,6 @@ export default async function AdminRevenuePage({ params }: { params: Promise<{ s
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between">
                         <CardTitle>Top Products (90 days)</CardTitle>
-                        <p className="text-xs text-muted-foreground">Matches "Top Products" sheet in Excel export</p>
                     </CardHeader>
                     <CardContent>
                         <TopProductsChart data={topProducts} />
