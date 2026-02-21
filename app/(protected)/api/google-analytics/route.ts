@@ -44,7 +44,6 @@ export async function GET() {
         })
 
         const row = response.rows?.[0]?.metricValues
-
         const metrics = {
             sessions: parseInt(row?.[0]?.value ?? "0"),
             pageviews: parseInt(row?.[1]?.value ?? "0"),
