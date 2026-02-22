@@ -3,7 +3,7 @@
 import { prisma } from "@/lib/db"
 import { auth } from "@clerk/nextjs/server"
 
-export type SubscriptionTier = "free" | "pro" | "enterprise"
+export type SubscriptionTier = "freemium" | "pro" | "business" | "enterprise"
 
 export interface SubscriptionResponse {
   success: boolean
@@ -24,12 +24,12 @@ export async function getUserSubscriptionTier(userId: string): Promise<Subscript
 
     return {
       success: true,
-      tier: (user?.subscriptionTier as SubscriptionTier) || "free",
+      tier: (user?.subscriptionTier as SubscriptionTier) || "freemium",
       status: user?.subscriptionStatus || "active",
     }
   } catch (error) {
     console.error("[v0] Error fetching user subscription tier:", error)
-    return { success: false, tier: "free" as const }
+    return { success: false, tier: "freemium" as const }
   }
 }
 
@@ -39,7 +39,7 @@ export async function checkUserSubscription(requiredTier: SubscriptionTier): Pro
     if (!userId) return false
 
     const response = await getUserSubscriptionTier(userId)
-    const tiers = ["free", "pro", "enterprise"]
+    const tiers = ["freemium", "pro", "business", "enterprise"]
     const currentTierIndex = tiers.indexOf(response.tier)
     const requiredTierIndex = tiers.indexOf(requiredTier)
 

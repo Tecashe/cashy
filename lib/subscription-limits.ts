@@ -1,7 +1,7 @@
 export const SUBSCRIPTION_PLANS = {
-  free: {
-    name: "Free",
-    price: 0,
+  freemium: {
+    name: "Freemium",
+    price: 49,
     features: {
       automations: 2,
       monthlyMessages: 100,
@@ -12,26 +12,26 @@ export const SUBSCRIPTION_PLANS = {
       customBranding: false,
     },
   },
-  starter: {
-    name: "Starter",
-    price: 29,
+  pro: {
+    name: "Pro",
+    price: 79,
     features: {
       automations: 10,
-      monthlyMessages: 1000,
-      instagramAccounts: 2,
+      monthlyMessages: 5000,
+      instagramAccounts: 5,
       aiContentGeneration: 100,
       advancedAnalytics: true,
-      prioritySupport: false,
+      prioritySupport: true,
       customBranding: false,
     },
   },
-  pro: {
-    name: "Pro",
-    price: 99,
+  business: {
+    name: "Business",
+    price: 149,
     features: {
       automations: 50,
-      monthlyMessages: 10000,
-      instagramAccounts: 5,
+      monthlyMessages: 25000,
+      instagramAccounts: 15,
       aiContentGeneration: 500,
       advancedAnalytics: true,
       prioritySupport: true,
@@ -40,7 +40,7 @@ export const SUBSCRIPTION_PLANS = {
   },
   enterprise: {
     name: "Enterprise",
-    price: 299,
+    price: 0,
     features: {
       automations: -1, // unlimited
       monthlyMessages: -1, // unlimited
@@ -54,7 +54,7 @@ export const SUBSCRIPTION_PLANS = {
 }
 
 export function getSubscriptionLimits(tier: string) {
-  return SUBSCRIPTION_PLANS[tier as keyof typeof SUBSCRIPTION_PLANS] || SUBSCRIPTION_PLANS.free
+  return SUBSCRIPTION_PLANS[tier as keyof typeof SUBSCRIPTION_PLANS] || SUBSCRIPTION_PLANS.freemium
 }
 
 export function canCreateAutomation(currentCount: number, tier: string): boolean {

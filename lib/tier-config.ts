@@ -1,60 +1,6 @@
-// // Tier-based feature access configuration
-// export const TIER_FEATURES = {
-//   free: {
-//     triggers: ["message_reply", "story_reply"],
-//     actions: ["send_message", "add_tag"],
-//     maxAutomations: 2,
-//     maxTags: 5,
-//     maxStorageGB: 1,
-//   },
-//   pro: {
-//     triggers: ["message_reply", "story_reply", "comment", "keyword", "story_mention"],
-//     actions: ["send_message", "add_tag", "send_dm", "remove_tag", "add_to_list"],
-//     maxAutomations: 10,
-//     maxTags: 50,
-//     maxStorageGB: 50,
-//   },
-//   enterprise: {
-//     triggers: ["message_reply", "story_reply", "comment", "keyword", "story_mention", "direct_message"],
-//     actions: ["send_message", "add_tag", "send_dm", "remove_tag", "add_to_list", "webhook", "api_call"],
-//     maxAutomations: 999,
-//     maxTags: 999,
-//     maxStorageGB: 500,
-//   },
-// }
-
-// export type SubscriptionTier = keyof typeof TIER_FEATURES
-
-// export function isFeatureAvailable(
-//   tier: SubscriptionTier,
-//   featureType: "trigger" | "action",
-//   featureName: string,
-// ): boolean {
-//   const tierConfig = TIER_FEATURES[tier]
-//   if (featureType === "trigger") {
-//     return tierConfig.triggers.includes(featureName)
-//   }
-//   return tierConfig.actions.includes(featureName)
-// }
-
-// export function getUpgradeRequired(currentTier: SubscriptionTier, requiredTier: SubscriptionTier): boolean {
-//   const tierHierarchy = { free: 0, pro: 1, enterprise: 2 }
-//   return tierHierarchy[currentTier] < tierHierarchy[requiredTier]
-// }
-
-// export function getMinimumTierForFeature(featureType: "trigger" | "action", featureName: string): SubscriptionTier {
-//   for (const [tier, config] of Object.entries(TIER_FEATURES)) {
-//     const features = featureType === "trigger" ? config.triggers : config.actions
-//     if (features.includes(featureName)) {
-//       return tier as SubscriptionTier
-//     }
-//   }
-//   return "enterprise"
-// }
-
 import type { TriggerType, ActionType } from "./types/automation"
 
-export type SubscriptionTier = "free" | "pro" | "enterprise"
+export type SubscriptionTier = "freemium" | "pro" | "business" | "enterprise"
 
 interface TierLimits {
   maxAutomations: number
@@ -65,7 +11,7 @@ interface TierLimits {
 }
 
 export const TIER_FEATURES: Record<SubscriptionTier, TierLimits> = {
-  free: {
+  freemium: {
     triggers: ["new_message", "story_reply"],
     actions: ["send_message", "add_tag"],
     maxAutomations: 2,
@@ -78,6 +24,23 @@ export const TIER_FEATURES: Record<SubscriptionTier, TierLimits> = {
     maxAutomations: 10,
     maxTags: 50,
     maxStorageGB: 50,
+  },
+  business: {
+    triggers: ["new_message", "story_reply", "comment", "keyword", "mention", "new_follower"],
+    actions: [
+      "send_message",
+      "send_image",
+      "send_carousel",
+      "ai_response",
+      "add_tag",
+      "delay",
+      "condition",
+      "human_handoff",
+      "reply_to_comment",
+    ],
+    maxAutomations: 50,
+    maxTags: 200,
+    maxStorageGB: 200,
   },
   enterprise: {
     triggers: ["new_message", "story_reply", "comment", "keyword", "mention", "new_follower"],
@@ -101,21 +64,22 @@ export const TIER_FEATURES: Record<SubscriptionTier, TierLimits> = {
 }
 
 export const TIER_DISPLAY = {
-  free: {
-    name: "Free",
-    price: "$0",
-    tagline: "Perfect for getting started",
+  freemium: {
+    name: "Freemium",
+    price: "$49",
+    tagline: "14-day free trial, then $49/mo",
     features: [
       "Up to 2 automations",
       "Basic triggers & actions",
       "Message & Story replies",
       "5 custom tags",
       "1GB storage",
+      "14-day free trial",
     ],
   },
   pro: {
     name: "Pro",
-    price: "$49",
+    price: "$79",
     tagline: "Power up your automation",
     features: [
       "Up to 10 automations",
@@ -126,17 +90,30 @@ export const TIER_DISPLAY = {
       "Priority support",
     ],
   },
+  business: {
+    name: "Business",
+    price: "$149",
+    tagline: "Scale your operations",
+    features: [
+      "Up to 50 automations",
+      "All triggers including new followers",
+      "AI responses & human handoff",
+      "200 custom tags",
+      "200GB storage",
+      "Dedicated support",
+    ],
+  },
   enterprise: {
     name: "Enterprise",
     price: "Custom",
     tagline: "Unlimited power & flexibility",
     features: [
       "Unlimited automations",
-      "Direct message triggers",
+      "All triggers & actions",
       "Custom webhooks & API",
       "Unlimited tags",
       "500GB storage",
-      "Dedicated support",
+      "Dedicated account manager",
     ],
   },
 }
@@ -154,7 +131,7 @@ export function isFeatureAvailable(
 }
 
 export function getUpgradeRequired(currentTier: SubscriptionTier, requiredTier: SubscriptionTier): boolean {
-  const tierHierarchy = { free: 0, pro: 1, enterprise: 2 }
+  const tierHierarchy = { freemium: 0, pro: 1, business: 2, enterprise: 3 }
   return tierHierarchy[currentTier] < tierHierarchy[requiredTier]
 }
 
@@ -187,7 +164,7 @@ export function getTriggerBenefits(trigger: TriggerType, tier: SubscriptionTier)
       "Personalized onboarding",
       ...baseBenefits,
     ],
-    // Free triggers don't need upgrade benefits
+    // Freemium triggers don't need upgrade benefits
     new_message: baseBenefits,
     story_reply: baseBenefits,
   }
@@ -208,7 +185,7 @@ export function getActionBenefits(action: ActionType, tier: SubscriptionTier): s
     reply_to_comment: ["Auto-reply to comments", "Comment management", "Quick engagement", ...baseBenefits],
     hide_comment: ["Hide inappropriate comments", "Moderation automation", "Community management", ...baseBenefits],
     webhook: ["Connect to external systems", "Real-time data sync", "Custom integrations", ...baseBenefits],
-    // Free actions don't need upgrade benefits
+    // Freemium actions don't need upgrade benefits
     send_message: baseBenefits,
     add_tag: baseBenefits,
   }

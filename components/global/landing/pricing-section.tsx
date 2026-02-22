@@ -12,49 +12,67 @@ export default function PricingSection() {
   const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("monthly")
 
   const plans = [
-    // {
-    //   name: "Starter",
-    //   description: "Perfect for individuals and small creators",
-    //   monthlyPrice: 29,
-    //   yearlyPrice: 290,
-    //   features: [
-    //     { included: true, text: "1 Instagram account" },
-    //     { included: true, text: "Basic AI responses" },
-    //     { included: true, text: "Up to 500 messages/month" },
-    //     { included: true, text: "Standard analytics" },
-    //     { included: false, text: "Custom AI training" },
-    //     { included: false, text: "Multi-account management" },
-    //     { included: false, text: "Advanced analytics" },
-    //     { included: false, text: "Priority support" },
-    //   ],
-    //   cta: "Start Free Trial",
-    //   popular: false,
-    //   color: "from-slate-700 to-slate-800",
-    // },
     {
-      name: "Professional",
+      name: "Freemium",
+      description: "14-day free trial to explore the platform",
+      monthlyPrice: 49,
+      yearlyPrice: 490,
+      features: [
+        { included: true, text: "1 Instagram account" },
+        { included: true, text: "Basic AI responses" },
+        { included: true, text: "Up to 100 messages/month" },
+        { included: true, text: "14-day free trial" },
+        { included: false, text: "Advanced analytics" },
+        { included: false, text: "Multi-account management" },
+        { included: false, text: "Priority support" },
+      ],
+      cta: "Start Free Trial",
+      popular: false,
+      color: "from-slate-700 to-slate-800",
+    },
+    {
+      name: "Pro",
       description: "Ideal for growing businesses and influencers",
       monthlyPrice: 79,
       yearlyPrice: 790,
       features: [
-        { included: true, text: "3 Instagram accounts" },
+        { included: true, text: "5 Instagram accounts" },
         { included: true, text: "Advanced AI responses" },
-        { included: true, text: "Up to 2,000 messages/month" },
+        { included: true, text: "Up to 5,000 messages/month" },
         { included: true, text: "Advanced analytics" },
         { included: true, text: "Custom AI training" },
         { included: true, text: "Multi-account management" },
         { included: false, text: "API access" },
         { included: false, text: "Dedicated account manager" },
       ],
-      cta: "Upgrade to PRO",
+      cta: "Upgrade to Pro",
       popular: true,
       color: "from-blue-600 to-blue-800",
     },
     {
+      name: "Business",
+      description: "For teams scaling their Instagram presence",
+      monthlyPrice: 149,
+      yearlyPrice: 1490,
+      features: [
+        { included: true, text: "15 Instagram accounts" },
+        { included: true, text: "Premium AI responses" },
+        { included: true, text: "Up to 25,000 messages/month" },
+        { included: true, text: "Enterprise analytics" },
+        { included: true, text: "Advanced AI training" },
+        { included: true, text: "Team collaboration tools" },
+        { included: true, text: "Human handoff integration" },
+        { included: false, text: "Dedicated account manager" },
+      ],
+      cta: "Upgrade to Business",
+      popular: false,
+      color: "from-purple-600 to-purple-800",
+    },
+    {
       name: "Enterprise",
       description: "For agencies and large businesses",
-      monthlyPrice: 199,
-      yearlyPrice: 1990,
+      monthlyPrice: null,
+      yearlyPrice: null,
       features: [
         { included: true, text: "Unlimited Instagram accounts" },
         { included: true, text: "Premium AI responses" },
@@ -110,7 +128,7 @@ export default function PricingSection() {
           </motion.div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {plans.map((plan, index) => (
             <motion.div
               key={index}
@@ -138,12 +156,18 @@ export default function PricingSection() {
 
                   <div className="mb-6">
                     <div className="flex items-end">
-                      <span className="text-4xl font-bold text-white">
-                        ${billingCycle === "monthly" ? plan.monthlyPrice : plan.yearlyPrice}
-                      </span>
-                      <span className="text-slate-400 ml-2 mb-1">/{billingCycle === "monthly" ? "month" : "year"}</span>
+                      {plan.monthlyPrice !== null ? (
+                        <>
+                          <span className="text-4xl font-bold text-white">
+                            ${billingCycle === "monthly" ? plan.monthlyPrice : plan.yearlyPrice}
+                          </span>
+                          <span className="text-slate-400 ml-2 mb-1">/{billingCycle === "monthly" ? "month" : "year"}</span>
+                        </>
+                      ) : (
+                        <span className="text-4xl font-bold text-white">Custom</span>
+                      )}
                     </div>
-                    {billingCycle === "yearly" && (
+                    {billingCycle === "yearly" && plan.monthlyPrice !== null && plan.yearlyPrice !== null && (
                       <div className="text-sm text-green-400 mt-1">
                         Save ${plan.monthlyPrice * 12 - plan.yearlyPrice} per year
                       </div>
@@ -167,11 +191,10 @@ export default function PricingSection() {
                 </div>
 
                 <Button
-                  className={`w-full ${
-                    plan.popular
+                  className={`w-full ${plan.popular
                       ? "bg-blue-600 hover:bg-blue-700 text-white"
                       : "bg-slate-800 hover:bg-slate-700 text-white"
-                  }`}
+                    }`}
                   size="lg"
                 >
                   {plan.cta}
@@ -188,4 +211,3 @@ export default function PricingSection() {
     </section>
   )
 }
-

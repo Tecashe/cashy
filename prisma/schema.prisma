@@ -16,7 +16,7 @@ model User {
   lastName            String?
   imageUrl            String?
   role                String   @default("USER") // USER, ADMIN, SUPPORT
-  subscriptionTier    String   @default("free")
+  subscriptionTier    String   @default("freemium")
   subscriptionStatus  String   @default("active")
   businessName        String?
   businessDescription String?  @db.Text
@@ -805,13 +805,16 @@ model Subscription {
   userId                  String   @unique
   user                    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  tier                    String   @default("free") // free, pro, enterprise
-  status                  String   @default("active") // active, canceled, past_due
+  tier                    String   @default("freemium") // freemium, pro, business, enterprise
+  status                  String   @default("active") // active, canceled, past_due, trialing
   currentPeriodStart      DateTime
   currentPeriodEnd        DateTime
   cancelAtPeriodEnd       Boolean  @default(false)
   canceledAt              DateTime?
   stripeSubscriptionId    String?  @unique
+  pesapalOrderTrackingId  String?
+  trialEndsAt             DateTime?
+  trialActive             Boolean  @default(false)
   
   createdAt               DateTime @default(now())
   updatedAt               DateTime @updatedAt

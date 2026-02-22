@@ -1,15 +1,17 @@
 "use client"
 
 import { useEffect, useRef } from "react"
-import { Check, Zap, Rocket, Crown } from "lucide-react"
+import { Check, Zap, Rocket, Crown, Building2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 
 const plans = [
   {
-    name: "Free",
-    price: "$0",
-    description: "Perfect for small businesses just getting started",
+    name: "Freemium",
+    price: "$49",
+    period: "/month",
+    trialText: "14-day free trial",
+    description: "Get started with a free trial",
     icon: Zap,
     color: "yellow",
     features: [
@@ -17,43 +19,63 @@ const plans = [
       "DM automation",
       "Comment automation",
       "Basic analytics",
-      
+      "14-day free trial included",
     ],
-    cta: "Start for Free",
+    cta: "Start Free Trial",
     popular: false,
   },
   {
     name: "Pro",
-    price: "$15",
+    price: "$79",
+    period: "/month",
     description: "For growing businesses ready to scale",
     icon: Rocket,
     color: "orange",
     features: [
       "Unlimited automated conversations/month",
-      "Everything in Free",
+      "Everything in Freemium",
       "Advanced analytics & reports",
       "AI sentiment analysis",
       "Intelligent DM replies based on sentiment",
       "Priority support",
     ],
-    cta: "Start Free Trial",
+    cta: "Get Started",
     popular: true,
+  },
+  {
+    name: "Business",
+    price: "$149",
+    period: "/month",
+    description: "For teams and agencies",
+    icon: Building2,
+    color: "purple",
+    features: [
+      "Everything in Pro",
+      "Up to 15 Instagram accounts",
+      "AI responses & human handoff",
+      "Team collaboration tools",
+      "200 custom tags",
+      "200GB storage",
+      "Dedicated support",
+    ],
+    cta: "Get Started",
+    popular: false,
   },
   {
     name: "Enterprise",
     price: "Custom",
+    period: "",
     description: "For agencies and large businesses",
     icon: Crown,
     color: "purple",
     features: [
       "Unlimited conversations",
-      "Everything in Growth",
+      "Everything in Business",
       "Dedicated account manager",
       "24/7 phone support",
       "Custom development",
       "Human handoff integration",
       "Unlimited integrations with all your tools",
-      
     ],
     cta: "Contact Sales",
     popular: false,
@@ -89,11 +111,11 @@ export function PricingSection() {
             Simple, <span className="text-orange">Transparent</span> Pricing
           </h2>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Start with a free plan. No credit card required.
+            Start with a 14-day free trial. No credit card required.
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 max-w-7xl mx-auto">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8 max-w-7xl mx-auto">
           {plans.map((plan, index) => {
             const Icon = plan.icon
             return (
@@ -123,13 +145,16 @@ export function PricingSection() {
                 {/* Price */}
                 <div className="mb-8">
                   <span className="text-5xl font-bold">{plan.price}</span>
-                  <span className="text-muted-foreground">/month</span>
+                  <span className="text-muted-foreground">{plan.period}</span>
+                  {"trialText" in plan && plan.trialText && (
+                    <p className="text-sm text-green-500 mt-1">{plan.trialText}</p>
+                  )}
                 </div>
 
                 {/* CTA */}
                 {plan.cta === "Contact Sales" ? (
                   <a
-                    href="https://calendly.com/tecashe111/30min"  
+                    href="https://calendly.com/tecashe111/30min"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="block mb-8"

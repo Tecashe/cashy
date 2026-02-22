@@ -16,7 +16,7 @@ export default function PricingPage() {
                     <Badge variant="outline" className="border-primary/20 bg-primary/10 text-primary px-4 py-1.5 rounded-full text-sm mx-auto mb-6">
                         Pricing
                     </Badge>
-                    <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-6">Start free. <br />Scale as you grow.</h1>
+                    <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-6">Start with a free trial. <br />Scale as you grow.</h1>
                     <p className="text-lg text-muted-foreground">Every plan includes a 14-day free trial. No credit card required upfront.</p>
                 </div>
             </section>
@@ -24,20 +24,21 @@ export default function PricingPage() {
             {/* Pricing Cards */}
             <section className="py-12">
                 <div className="container mx-auto px-6 max-w-7xl">
-                    <div className="grid md:grid-cols-3 gap-8">
+                    <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
 
-                        {/* Starter Plan */}
+                        {/* Freemium Plan */}
                         <div className="bg-card border border-border rounded-3xl p-8 hover:border-primary/50 transition-colors">
-                            <h3 className="text-2xl font-bold mb-2">Starter</h3>
-                            <p className="text-muted-foreground mb-6 h-12">Perfect for single creators and small boutiques.</p>
-                            <div className="mb-6">
-                                <span className="text-5xl font-extrabold">$29</span>
+                            <h3 className="text-2xl font-bold mb-2">Freemium</h3>
+                            <p className="text-muted-foreground mb-6 h-12">14-day free trial to get started.</p>
+                            <div className="mb-2">
+                                <span className="text-5xl font-extrabold">$49</span>
                                 <span className="text-muted-foreground">/mo</span>
                             </div>
+                            <p className="text-sm text-green-500 mb-4">14-day free trial</p>
                             <Button className="w-full rounded-xl" variant="outline">Start Free Trial</Button>
                             <ul className="mt-8 space-y-4">
                                 <FeatureItem text="1 Instagram Account" />
-                                <FeatureItem text="Up to 1,000 Messages/mo" />
+                                <FeatureItem text="Up to 100 Messages/mo" />
                                 <FeatureItem text="Basic Keyword Triggering" />
                                 <FeatureItem text="Standard Analytics" />
                                 <MissingFeature text="Advanced AI Chatbots" />
@@ -50,20 +51,39 @@ export default function PricingPage() {
                             <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-primary text-primary-foreground px-4 py-1 rounded-full text-sm font-bold">
                                 MOST POPULAR
                             </div>
-                            <h3 className="text-2xl font-bold mb-2">Professional</h3>
+                            <h3 className="text-2xl font-bold mb-2">Pro</h3>
                             <p className="text-muted-foreground mb-6 h-12">For growing D2C brands that need to scale.</p>
                             <div className="mb-6">
-                                <span className="text-5xl font-extrabold">$99</span>
+                                <span className="text-5xl font-extrabold">$79</span>
                                 <span className="text-muted-foreground">/mo</span>
                             </div>
                             <Button className="w-full rounded-xl">Start Free Trial</Button>
                             <ul className="mt-8 space-y-4">
                                 <FeatureItem text="Up to 5 Instagram Accounts" />
-                                <FeatureItem text="Up to 10,000 Messages/mo" />
+                                <FeatureItem text="Up to 5,000 Messages/mo" />
                                 <FeatureItem text="AI Chatbots & NLP" />
                                 <FeatureItem text="Shopify & CRM Integrations" />
                                 <FeatureItem text="Lead Capture Forms" />
                                 <FeatureItem text="Priority Email Support" />
+                            </ul>
+                        </div>
+
+                        {/* Business Plan */}
+                        <div className="bg-card border border-border rounded-3xl p-8 hover:border-primary/50 transition-colors">
+                            <h3 className="text-2xl font-bold mb-2">Business</h3>
+                            <p className="text-muted-foreground mb-6 h-12">For teams and agencies scaling operations.</p>
+                            <div className="mb-6">
+                                <span className="text-5xl font-extrabold">$149</span>
+                                <span className="text-muted-foreground">/mo</span>
+                            </div>
+                            <Button className="w-full rounded-xl" variant="outline">Get Started</Button>
+                            <ul className="mt-8 space-y-4">
+                                <FeatureItem text="Up to 15 Instagram Accounts" />
+                                <FeatureItem text="Up to 25,000 Messages/mo" />
+                                <FeatureItem text="AI Responses & Human Handoff" />
+                                <FeatureItem text="Team Collaboration Tools" />
+                                <FeatureItem text="Advanced Analytics" />
+                                <FeatureItem text="Dedicated Support" />
                             </ul>
                         </div>
 

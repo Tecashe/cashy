@@ -8,6 +8,7 @@ import { Check, Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { TIER_DISPLAY, type SubscriptionTier } from "@/lib/tier-config"
 import { toast } from "sonner"
+import { PaymentModal } from "./payment-modal"
 
 interface SubscriptionTiersProps {
   currentTier: SubscriptionTier
@@ -17,80 +18,82 @@ interface SubscriptionTiersProps {
 export function SubscriptionTiers({ currentTier, userId }: SubscriptionTiersProps) {
   const [loading, setLoading] = useState(false)
   const [processingTier, setProcessingTier] = useState<SubscriptionTier | null>(null)
+  const [showPayment, setShowPayment] = useState(false)
+  const [redirectUrl, setRedirectUrl] = useState<string | null>(null)
+  const [selectedTier, setSelectedTier] = useState<SubscriptionTier | null>(null)
 
-  const tiers: SubscriptionTier[] = ["free", "pro", "enterprise"]
+  const tiers: SubscriptionTier[] = ["freemium", "pro", "business", "enterprise"]
 
-const handleUpgradeOrDowngrade = async (targetTier: SubscriptionTier) => {
-  try {
-    setLoading(true)
-    setProcessingTier(targetTier)
+  const handleUpgradeOrDowngrade = async (targetTier: SubscriptionTier) => {
+    try {
+      setLoading(true)
+      setProcessingTier(targetTier)
 
-    if (targetTier === "free") {
-      // Show confirmation dialog first
-      const confirmed = window.confirm(
-        "Are you sure you want to downgrade to Free? You'll lose access to premium features."
-      )
-      if (!confirmed) return
+      if (targetTier === "freemium") {
+        // Show confirmation dialog first
+        const confirmed = window.confirm(
+          "Are you sure you want to downgrade to Freemium? You'll lose access to premium features."
+        )
+        if (!confirmed) return
 
-      const res = await fetch("/api/subscriptions/downgrade", {
-        method: "POST",
-      })
+        const res = await fetch("/api/subscriptions/downgrade", {
+          method: "POST",
+        })
 
-      if (!res.ok) {
-        const error = await res.json()
-        toast.error(error.details || "Failed to downgrade subscription")
-        return
-      }
+        if (!res.ok) {
+          const error = await res.json()
+          toast.error(error.details || "Failed to downgrade subscription")
+          return
+        }
 
-      toast.success("Successfully downgraded to Free plan!")
-      
-      // Show loading state before reload
-      setTimeout(() => {
-        window.location.reload()
-      }, 1500)
-    } else {
-      // Show loading toast
-      const loadingToast = toast.loading(`Upgrading to ${TIER_DISPLAY[targetTier].name}...`)
+        toast.success("Successfully downgraded to Freemium plan!")
 
-      const res = await fetch("/api/subscriptions/upgrade", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tier: targetTier }),
-      })
-
-      toast.dismiss(loadingToast)
-
-      if (!res.ok) {
-        const error = await res.json()
-        toast.error(error.details || "Failed to upgrade subscription")
-        return
-      }
-
-      const data = await res.json()
-
-      // If checkout is required, redirect to Stripe Checkout
-      if (data.requiresCheckout && data.checkoutUrl) {
-        toast.success("Redirecting to payment...")
         setTimeout(() => {
-          window.location.href = data.checkoutUrl
-        }, 500)
-        return
-      }
+          window.location.reload()
+        }, 1500)
+      } else if (targetTier === "enterprise") {
+        // Open Calendly for enterprise
+        window.open("https://calendly.com/tecashe111/30min", "_blank")
+      } else {
+        // Show loading toast
+        const loadingToast = toast.loading(`Preparing ${TIER_DISPLAY[targetTier].name} upgrade...`)
 
-      // Show success and reload
-      toast.success(`Successfully upgraded to ${TIER_DISPLAY[targetTier].name} plan!`)
-      setTimeout(() => {
-        window.location.reload()
-      }, 1500)
+        const res = await fetch("/api/pesapal/submit-order", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ tier: targetTier }),
+        })
+
+        toast.dismiss(loadingToast)
+
+        if (!res.ok) {
+          const error = await res.json()
+          toast.error(error.details || "Failed to create payment order")
+          return
+        }
+
+        const data = await res.json()
+        setRedirectUrl(data.redirect_url)
+        setSelectedTier(targetTier)
+        setShowPayment(true)
+      }
+    } catch (error) {
+      console.error("Error:", error)
+      toast.error("Something went wrong. Please try again.")
+    } finally {
+      setLoading(false)
+      setProcessingTier(null)
     }
-  } catch (error) {
-    console.error("Error:", error)
-    toast.error("Something went wrong. Please try again.")
-  } finally {
-    setLoading(false)
-    setProcessingTier(null)
   }
-}
+
+  const handlePaymentSuccess = () => {
+    setShowPayment(false)
+    toast.success(`Successfully upgraded to ${selectedTier ? TIER_DISPLAY[selectedTier].name : ""} plan!`)
+    setTimeout(() => {
+      window.location.reload()
+    }, 1500)
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -100,11 +103,12 @@ const handleUpgradeOrDowngrade = async (targetTier: SubscriptionTier) => {
         </p>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid gap-6 lg:grid-cols-4">
         {tiers.map((tier) => {
           const display = TIER_DISPLAY[tier]
           const isCurrent = tier === currentTier
-          const isFreeTier = tier === "free"
+          const isFreemiumTier = tier === "freemium"
+          const isEnterprise = tier === "enterprise"
 
           return (
             <Card
@@ -126,7 +130,7 @@ const handleUpgradeOrDowngrade = async (targetTier: SubscriptionTier) => {
                 </CardDescription>
                 <h3 className="text-2xl font-bold tracking-tight text-foreground">{display.name}</h3>
                 <p className="mt-2 text-3xl font-bold text-foreground">{display.price}</p>
-                {tier !== "free" && <p className="text-xs text-muted-foreground">/month, billed monthly</p>}
+                {tier !== "enterprise" && <p className="text-xs text-muted-foreground">/month, billed monthly</p>}
               </CardHeader>
 
               <CardContent className="flex-1 space-y-6">
@@ -147,19 +151,37 @@ const handleUpgradeOrDowngrade = async (targetTier: SubscriptionTier) => {
                   className={cn(
                     "w-full mt-6",
                     isCurrent && "opacity-50 cursor-not-allowed",
-                    !isCurrent && !isFreeTier && "bg-foreground text-background hover:bg-foreground/90",
-                    !isCurrent && isFreeTier && "variant-outline bg-transparent border-border",
+                    !isCurrent && !isFreemiumTier && !isEnterprise && "bg-foreground text-background hover:bg-foreground/90",
+                    !isCurrent && isFreemiumTier && "variant-outline bg-transparent border-border",
                   )}
-                  variant={isCurrent ? "outline" : isFreeTier ? "outline" : "default"}
+                  variant={isCurrent ? "outline" : isFreemiumTier ? "outline" : "default"}
                 >
                   {processingTier === tier && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  {isCurrent ? "Current Plan" : isFreeTier ? "Downgrade" : "Upgrade Now"}
+                  {isCurrent
+                    ? "Current Plan"
+                    : isFreemiumTier
+                      ? "Downgrade"
+                      : isEnterprise
+                        ? "Contact Sales"
+                        : "Upgrade Now"}
                 </Button>
               </CardContent>
             </Card>
           )
         })}
       </div>
+
+      {/* Pesapal Payment Modal */}
+      {selectedTier && (
+        <PaymentModal
+          open={showPayment}
+          onOpenChange={setShowPayment}
+          tier={selectedTier}
+          redirectUrl={redirectUrl}
+          isLoading={loading}
+          onSuccess={handlePaymentSuccess}
+        />
+      )}
     </div>
   )
 }

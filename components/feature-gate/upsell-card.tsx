@@ -9,12 +9,12 @@ import Link from "next/link"
 interface UpsellCardProps {
   featureName: string
   description: string
-  requiredTier: "pro" | "enterprise"
-  currentTier?: "free" | "pro" | "enterprise"
+  requiredTier: "pro" | "business" | "enterprise"
+  currentTier?: "freemium" | "pro" | "business" | "enterprise"
 }
 
 export function UpsellCard({ featureName, description, requiredTier, currentTier }: UpsellCardProps) {
-  const tierDisplay = requiredTier === "pro" ? "Pro" : "Enterprise"
+  const tierDisplay = requiredTier === "pro" ? "Pro" : requiredTier === "business" ? "Business" : "Enterprise"
 
   return (
     <Card className="border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950/20">

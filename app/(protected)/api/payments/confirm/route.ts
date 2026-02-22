@@ -1,6 +1,6 @@
 import { auth } from "@clerk/nextjs/server"
 import { prisma } from "@/lib/db"
-import stripe from "@/lib/stripe"
+import { getTransactionStatus } from "@/lib/pesapal"
 import { upgradeSubscription } from "@/lib/subscription-context"
 import { type NextRequest, NextResponse } from "next/server"
 
@@ -11,17 +11,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const { paymentIntentId, tier, saveCard } = await request.json()
+    const { orderTrackingId, tier } = await request.json()
 
-    if (!paymentIntentId || !tier) {
+    if (!orderTrackingId || !tier) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
     }
 
-    // Get payment intent status from Stripe
-    const intent = await stripe.paymentIntents.retrieve(paymentIntentId)
+    // Get transaction status from Pesapal
+    const status = await getTransactionStatus(orderTrackingId)
 
-    if (intent.status !== "succeeded") {
-      return NextResponse.json({ error: "Payment not completed" }, { status: 400 })
+    // Status code 1 = COMPLETED
+    if (status.status_code !== 1) {
+      return NextResponse.json({ error: "Payment not completed", status: status.payment_status_description }, { status: 400 })
     }
 
     // Get user
@@ -36,38 +37,12 @@ export async function POST(request: NextRequest) {
 
     // Update payment attempt
     await prisma.paymentAttempt.updateMany({
-      where: { stripePaymentIntentId: paymentIntentId },
+      where: { stripePaymentIntentId: orderTrackingId },
       data: {
         status: "succeeded",
         completedAt: new Date(),
       },
     })
-
-    // Save payment method if requested
-    if (saveCard && intent.payment_method) {
-      const paymentMethod = await stripe.paymentMethods.retrieve(intent.payment_method as string)
-
-      if (paymentMethod.card) {
-        await prisma.paymentMethod.upsert({
-          where: {
-            stripePaymentMethodId: paymentMethod.id,
-          },
-          create: {
-            userId: user.id,
-            stripePaymentMethodId: paymentMethod.id,
-            last4: paymentMethod.card.last4,
-            brand: paymentMethod.card.brand,
-            expiryMonth: paymentMethod.card.exp_month,
-            expiryYear: paymentMethod.card.exp_year,
-            isDefault: true,
-          },
-          update: {
-            expiryMonth: paymentMethod.card.exp_month,
-            expiryYear: paymentMethod.card.exp_year,
-          },
-        })
-      }
-    }
 
     // Upgrade subscription
     const result = await upgradeSubscription(userId, tier)
@@ -81,7 +56,7 @@ export async function POST(request: NextRequest) {
       message: "Subscription upgraded successfully",
     })
   } catch (error) {
-    console.error("[v0] Payment confirmation error:", error)
+    console.error("[Pesapal] Payment confirmation error:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }

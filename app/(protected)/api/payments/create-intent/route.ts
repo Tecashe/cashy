@@ -1,7 +1,8 @@
 import { auth } from "@clerk/nextjs/server"
 import { prisma } from "@/lib/db"
-import { createPaymentIntent, getOrCreateStripeCustomer } from "@/lib/stripe"
-import { SUBSCRIPTION_PLANS } from "@/lib/subscription-plans"
+import { submitOrder } from "@/lib/pesapal"
+import { PESAPAL_PLAN_AMOUNTS } from "@/lib/stripe-utils"
+import { SUBSCRIPTION_PLANS, type SubscriptionTier } from "@/lib/subscription-plans"
 import { type NextRequest, NextResponse } from "next/server"
 
 export async function POST(request: NextRequest) {
@@ -14,80 +15,68 @@ export async function POST(request: NextRequest) {
     const { tier } = await request.json()
 
     // Validate tier
-    if (!["free", "pro", "enterprise"].includes(tier)) {
+    if (!["freemium", "pro", "business", "enterprise"].includes(tier)) {
       return NextResponse.json({ error: "Invalid tier" }, { status: 400 })
     }
 
-    // Free tier has no payment
-    if (tier === "free") {
-      return NextResponse.json({ error: "Free tier requires no payment" }, { status: 400 })
+    // Enterprise requires contacting sales
+    if (tier === "enterprise") {
+      return NextResponse.json({ error: "Enterprise requires contacting sales" }, { status: 400 })
+    }
+
+    const amount = PESAPAL_PLAN_AMOUNTS[tier as SubscriptionTier]
+    if (!amount || amount <= 0) {
+      return NextResponse.json({ error: "Invalid plan amount" }, { status: 400 })
     }
 
     // Get user
     const user = await prisma.user.findUnique({
       where: { clerkId: userId },
-      select: { id: true, email: true, firstName: true, lastName: true, stripeCustomerId: true },
+      select: { id: true, email: true, firstName: true, lastName: true },
     })
 
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 })
     }
 
-    // Get or create Stripe customer
-    const customerResult = await getOrCreateStripeCustomer(
-      user.id,
-      user.email,
-      `${user.firstName} ${user.lastName}`.trim(),
-    )
+    const orderId = `YAZ-PAY-${tier.toUpperCase()}-${Date.now()}`
+    const callbackUrl = process.env.PESAPAL_CALLBACK_URL || `${process.env.NEXT_PUBLIC_APP_URL}/api/pesapal/callback`
 
-    if (!customerResult.success) {
-      return NextResponse.json({ error: "Failed to create customer" }, { status: 500 })
-    }
-
-    const customerId = customerResult.customerId!
-
-    // Save customerId to user if not already saved
-    if (!user.stripeCustomerId) {
-      await prisma.user.update({
-        where: { clerkId: userId },
-        data: { stripeCustomerId: customerId },
-      })
-    }
-
-    // Get plan price (in dollars)
-    const planPrice = SUBSCRIPTION_PLANS[tier as "pro" | "enterprise"].price
-
-    // Create payment intent
-    const intentResult = await createPaymentIntent(planPrice, "usd", customerId, {
-      userId: user.id,
-      tier,
-      userEmail: user.email,
+    // Submit order to Pesapal
+    const orderResult = await submitOrder({
+      orderId,
+      amount,
+      currency: "USD",
+      description: `Yazzil ${SUBSCRIPTION_PLANS[tier as keyof typeof SUBSCRIPTION_PLANS].name} Plan`,
+      callbackUrl,
+      customerEmail: user.email,
+      customerFirstName: user.firstName || "",
+      customerLastName: user.lastName || "",
     })
-
-    if (!intentResult.success) {
-      return NextResponse.json({ error: "Failed to create payment intent" }, { status: 500 })
-    }
 
     // Record payment attempt
     await prisma.paymentAttempt.create({
       data: {
         userId: user.id,
-        conversationId: "", // Empty for subscription payments
-        amount: planPrice * 100,
+        conversationId: "",
+        amount: amount * 100,
         currency: "usd",
         status: "pending",
-        stripePaymentIntentId: intentResult.intentId,
-        metadata: { tier },
+        stripePaymentIntentId: orderResult.order_tracking_id,
+        metadata: {
+          tier,
+          pesapalOrderTrackingId: orderResult.order_tracking_id,
+          pesapalMerchantReference: orderResult.merchant_reference,
+        },
       },
     })
 
     return NextResponse.json({
-      clientSecret: intentResult.clientSecret,
-      intentId: intentResult.intentId,
-      customerId,
+      redirect_url: orderResult.redirect_url,
+      order_tracking_id: orderResult.order_tracking_id,
     })
   } catch (error) {
-    console.error("[v0] Payment intent creation error:", error)
+    console.error("[Pesapal] Payment order creation error:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }

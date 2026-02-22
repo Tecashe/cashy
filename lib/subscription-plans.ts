@@ -1,8 +1,8 @@
 export const SUBSCRIPTION_PLANS = {
-  free: {
-    name: "Free",
-    price: 0,
-    description: "Perfect for getting started",
+  freemium: {
+    name: "Freemium",
+    price: 49,
+    description: "14-day free trial, then $49/mo",
     features: {
       automations: 1,
       monthlyMessages: 100,
@@ -15,7 +15,7 @@ export const SUBSCRIPTION_PLANS = {
   },
   pro: {
     name: "Pro",
-    price: 49,
+    price: 79,
     description: "For growing businesses",
     features: {
       automations: 10,
@@ -27,9 +27,23 @@ export const SUBSCRIPTION_PLANS = {
       customBranding: false,
     },
   },
+  business: {
+    name: "Business",
+    price: 149,
+    description: "For scaling operations",
+    features: {
+      automations: 50,
+      monthlyMessages: 25000,
+      instagramAccounts: 15,
+      aiContentGeneration: 500,
+      advancedAnalytics: true,
+      prioritySupport: true,
+      customBranding: true,
+    },
+  },
   enterprise: {
     name: "Enterprise",
-    price: 199,
+    price: 0,
     description: "For large-scale operations",
     features: {
       automations: -1, // unlimited

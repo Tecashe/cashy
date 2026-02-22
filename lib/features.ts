@@ -1,7 +1,7 @@
 // Feature definitions for subscription tiers
 export const FEATURES = {
-  // Free tier features
-  free: {
+  // Freemium tier features (14-day trial, then $49/mo)
+  freemium: {
     createAutomations: false,
     aiAssistant: false,
     aiSuggestions: false,
@@ -14,7 +14,7 @@ export const FEATURES = {
     maxAutomations: 0,
   },
 
-  // Pro tier features
+  // Pro tier features ($79/mo)
   pro: {
     createAutomations: true,
     aiAssistant: true,
@@ -28,7 +28,21 @@ export const FEATURES = {
     maxAutomations: 10,
   },
 
-  // Enterprise tier features
+  // Business tier features ($149/mo)
+  business: {
+    createAutomations: true,
+    aiAssistant: true,
+    aiSuggestions: true,
+    knowledgeBase: true,
+    aiConfiguration: true,
+    advancedIntegrations: true,
+    aiTesting: true,
+    maxProducts: 500,
+    maxKnowledgeDocs: 200,
+    maxAutomations: 50,
+  },
+
+  // Enterprise tier features (Custom)
   enterprise: {
     createAutomations: true,
     aiAssistant: true,
@@ -49,7 +63,7 @@ export type FeatureKey = keyof (typeof FEATURES)[SubscriptionTier]
 /**
  * Check if a user tier has access to a feature
  */
-export function hasAccess(tier: SubscriptionTier | "free" | "pro" | "enterprise", feature: FeatureKey): boolean {
+export function hasAccess(tier: SubscriptionTier | "freemium" | "pro" | "business" | "enterprise", feature: FeatureKey): boolean {
   const tierFeatures = FEATURES[tier as SubscriptionTier]
   if (!tierFeatures) return false
 
@@ -94,13 +108,18 @@ export function getMinimumTierForFeature(feature: FeatureKey): SubscriptionTier 
     return "enterprise"
   }
 
+  // Check business
+  if (FEATURES.business[feature]) {
+    return "business"
+  }
+
   // Check pro
   if (FEATURES.pro[feature]) {
     return "pro"
   }
 
-  // Otherwise free
-  return "free"
+  // Otherwise freemium
+  return "freemium"
 }
 
 /**

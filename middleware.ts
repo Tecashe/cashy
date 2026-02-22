@@ -90,7 +90,7 @@
 
 //       if (response.ok) {
 //         const { isOnboarded } = await response.json()
-        
+
 //         // Redirect to onboarding if not completed
 //         if (!isOnboarded && !request.nextUrl.pathname.startsWith('/onboarding')) {
 //           return NextResponse.redirect(new URL('/onboarding', request.url))
@@ -131,10 +131,12 @@ import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server"
 import { NextResponse } from 'next/server'
 
 const isPublicRoute = createRouteMatcher([
-  "/sign-in(.*)", 
+  "/sign-in(.*)",
   "/sign-up(.*)",
   "/",
   "/api/webhook(.*)", // Webhooks are public (they use signature verification)
+  "/api/pesapal/ipn(.*)", // Pesapal IPN notifications
+  "/api/pesapal/callback(.*)", // Pesapal payment callbacks
   "/privacy",
   "/terms",
   "/onboarding(.*)", // Onboarding should be accessible

@@ -4,16 +4,16 @@ import { Check } from "lucide-react"
 export function PricingPreview() {
   const plans = [
     {
-      name: "Starter",
-      price: "29",
-      description: "Perfect for growing accounts",
+      name: "Freemium",
+      price: "49",
+      description: "14-day free trial, then $49/mo",
       features: [
-        "Up to 1,000 conversations/month",
+        "Up to 100 messages/month",
         "DM Automation",
         "Story Reply Automation",
         "Comment Automation",
         "Basic Analytics",
-        "Email Support",
+        "14-day free trial",
       ],
       cta: "Start Free Trial",
       popular: false,
@@ -23,15 +23,30 @@ export function PricingPreview() {
       price: "79",
       description: "For serious Instagram businesses",
       features: [
-        "Up to 10,000 conversations/month",
-        "Everything in Starter",
+        "Up to 5,000 messages/month",
+        "Everything in Freemium",
         "Advanced Analytics",
         "Priority Support",
         "Custom Workflows",
         "A/B Testing",
       ],
-      cta: "Start Free Trial",
+      cta: "Get Started",
       popular: true,
+    },
+    {
+      name: "Business",
+      price: "149",
+      description: "For teams and agencies",
+      features: [
+        "Up to 25,000 messages/month",
+        "Everything in Pro",
+        "15 Instagram Accounts",
+        "AI Responses & Handoff",
+        "Team Collaboration",
+        "Dedicated Support",
+      ],
+      cta: "Get Started",
+      popular: false,
     },
     {
       name: "Enterprise",
@@ -39,7 +54,7 @@ export function PricingPreview() {
       description: "For large-scale operations",
       features: [
         "Unlimited conversations",
-        "Everything in Pro",
+        "Everything in Business",
         "Dedicated Account Manager",
         "Custom Integrations",
         "White-label Options",
@@ -65,15 +80,14 @@ export function PricingPreview() {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
           {plans.map((plan, index) => (
             <div
               key={index}
-              className={`relative p-8 rounded-2xl border-2 ${
-                plan.popular
+              className={`relative p-8 rounded-2xl border-2 ${plan.popular
                   ? "border-instagram-purple bg-gradient-to-br from-instagram-purple/5 to-instagram-pink/5"
                   : "border-border bg-card"
-              }`}
+                }`}
             >
               {plan.popular && (
                 <div className="absolute -top-4 left-1/2 -translate-x-1/2">
