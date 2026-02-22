@@ -464,7 +464,7 @@ import { KnowledgeBaseTab } from "./tabs/knowledge-base-tab"
 import { AIConfigTab } from "./tabs/ai-config-tab"
 import { IntegrationsTab } from "./tabs/integrations-tab"
 import { OverviewTab } from "./tabs/overview-tab"
-import { TestingTab } from "./tabs/testing-tab"
+
 import {
   getProducts,
   getKnowledgeDocuments,
@@ -641,7 +641,7 @@ export function AIDashboard() {
 
       {/* Main Content Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="overview" className="gap-2">
             <Bot className="h-4 w-4" />
             Overview
@@ -662,10 +662,7 @@ export function AIDashboard() {
             <Plug className="h-4 w-4" />
             Integrations
           </TabsTrigger>
-          <TabsTrigger value="testing" className="gap-2">
-            <Play className="h-4 w-4" />
-            Testing
-          </TabsTrigger>
+
         </TabsList>
 
         <TabsContent value="overview">
@@ -688,9 +685,7 @@ export function AIDashboard() {
           <IntegrationsTab onUpdate={updateStats} />
         </TabsContent>
 
-        <TabsContent value="testing">
-          <TestingTab automationId={automationId} />
-        </TabsContent>
+
       </Tabs>
     </div>
   )

@@ -160,7 +160,7 @@ export function PricingSection() {
                     className="block mb-8"
                   >
                     <Button
-                      className={`w-full ${plan.popular ? `bg-${plan.color} text-white hover:bg-${plan.color}/90` : "bg-card border-2 border-border hover:border-${plan.color} hover:text-${plan.color}"}`}
+                      className={`w-full ${plan.popular ? "bg-orange-500 text-white hover:bg-orange-600" : "bg-white/10 border-2 border-white/30 text-white hover:bg-white/20 hover:border-white/50"}`}
                       size="lg"
                     >
                       {plan.cta}
@@ -169,7 +169,7 @@ export function PricingSection() {
                 ) : (
                   <Link href="/dashboard" className="block mb-8">
                     <Button
-                      className={`w-full ${plan.popular ? `bg-${plan.color} text-white hover:bg-${plan.color}/90` : "bg-card border-2 border-border hover:border-${plan.color} hover:text-${plan.color}"}`}
+                      className={`w-full ${plan.popular ? "bg-orange-500 text-white hover:bg-orange-600" : "bg-white/10 border-2 border-white/30 text-white hover:bg-white/20 hover:border-white/50"}`}
                       size="lg"
                     >
                       {plan.cta}
