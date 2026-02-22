@@ -58,11 +58,11 @@ const CURRENCIES = [
     { code: "AUD", symbol: "A$", flag: "🇦🇺", name: "Australian Dollar" },
 ]
 
-// Use 400 for "12 months" to cover Jan 2025–Jan 2026 regardless of current date
+// Use 450 for "12 months" to cover Jan 2025–Jan 2026 regardless of current date
 const PERIODS = [
     { days: 90, label: "Last 3 Months" },
     { days: 180, label: "Last 6 Months" },
-    { days: 400, label: "Last 12 Months" },
+    { days: 450, label: "Last 12 Months" },
     { days: 730, label: "All Time" },
 ]
 
@@ -291,7 +291,7 @@ function MpesaIcon() {
 export function AdminRevenueDashboard() {
     const [data, setData] = useState<RevenueData | null>(null)
     const [currency, setCurrency] = useState("USD")
-    const [days, setDays] = useState(400)  // 400 covers Jan 2025–Jan 2026 fully
+    const [days, setDays] = useState(450)  // 450 covers Jan 2025–Jan 2026 fully
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
     const [showAllCustomers, setShowAllCustomers] = useState(false)
