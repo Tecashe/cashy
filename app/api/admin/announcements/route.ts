@@ -32,7 +32,7 @@ export async function POST(req: Request) {
         })
 
         try {
-            // Create a notification for every user
+            // Create anotification for every user
             const users = await prisma.user.findMany({ select: { id: true } })
 
             let icon = "📋"
