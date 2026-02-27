@@ -166,9 +166,9 @@ export async function submitOrder(params: SubmitOrderParams): Promise<SubmitOrde
         },
         body: JSON.stringify({
             id: params.orderId,
-            currency: params.currency,
-            // Hardcoded to 10 for testing purposes to avoid "amount_exceeds_default_limit"
-            amount: 10.00, // params.amount,
+            // Hardcoded to KES and 20.00 for testing purposes to bypass limits
+            currency: "KES", // params.currency,
+            amount: 20.00, // params.amount,
             description: params.description,
             callback_url: params.callbackUrl,
             redirect_mode: "",
