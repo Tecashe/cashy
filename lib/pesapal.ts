@@ -21,7 +21,7 @@ const PESAPAL_URLS = {
 }
 
 function getUrls() {
-    const env = process.env.PESAPAL_ENVIRONMENT === "production" ? "production" : "sandbox"
+    const env = process.env.PESAPAL_ENV === "production" || process.env.PESAPAL_ENVIRONMENT === "production" ? "production" : "sandbox"
     return PESAPAL_URLS[env]
 }
 
@@ -110,11 +110,18 @@ let cachedIpnId: string | null = null
  * Get or register the IPN ID (cached for the lifetime of the server).
  */
 export async function getOrRegisterIPN(): Promise<string> {
+    // 1. Return from env var if provided (stops redundant registrations)
+    if (process.env.PESAPAL_IPN_ID) {
+        return process.env.PESAPAL_IPN_ID
+    }
+
+    // 2. Return from in-memory cache if already registered this session
     if (cachedIpnId) return cachedIpnId
 
+    // 3. Register anew if neither env var nor cache has it
     const ipnUrl = process.env.PESAPAL_IPN_URL
     if (!ipnUrl) {
-        throw new Error("PESAPAL_IPN_URL environment variable is not set")
+        throw new Error("PESAPAL_IPN_URL environment variable is not set and PESAPAL_IPN_ID is not provided.")
     }
 
     cachedIpnId = await registerIPN(ipnUrl)
@@ -196,7 +203,8 @@ export async function submitOrder(params: SubmitOrderParams): Promise<SubmitOrde
 
 export interface TransactionStatus {
     payment_method: string
-    amount: number
+    // amount: number
+    amount: 20
     created_date: string
     confirmation_code: string
     payment_status_description: string
