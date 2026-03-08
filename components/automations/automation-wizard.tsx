@@ -1683,7 +1683,7 @@ export function AutomationWizard({ automation, accounts, tags }: AutomationWizar
 
       try {
         const result = await getUserSubscriptionTier(userId)
-        setUserTier(result.tier)
+        setUserTier(result.tier === "free" ? "freemium" : result.tier as SubscriptionTier)
       } catch (error) {
         console.error("Failed to fetch user tier:", error)
         setUserTier("freemium")
