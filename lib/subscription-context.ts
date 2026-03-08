@@ -22,9 +22,12 @@ export async function getUserSubscriptionTier(userId: string): Promise<Subscript
       },
     })
 
+    let tier = user?.subscriptionTier || "freemium";
+    if (tier === "free") tier = "freemium";
+
     return {
       success: true,
-      tier: (user?.subscriptionTier as SubscriptionTier) || "freemium",
+      tier: tier as SubscriptionTier,
       status: user?.subscriptionStatus || "active",
     }
   } catch (error) {

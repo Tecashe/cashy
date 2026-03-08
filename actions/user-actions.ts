@@ -10,13 +10,16 @@ export async function getUserSubscriptionTier(userId: string) {
       select: { subscriptionTier: true },
     })
 
+    let tier = user?.subscriptionTier || "freemium";
+    if (tier === "free") tier = "freemium";
+
     return {
       success: true,
-      tier: (user?.subscriptionTier as "free" | "pro" | "enterprise") || "free",
+      tier: tier as "freemium" | "pro" | "enterprise",
     }
   } catch (error) {
     console.error("[v0] Error fetching user subscription tier:", error)
-    return { success: false, tier: "free" as const }
+    return { success: false, tier: "freemium" as const }
   }
 }
 
