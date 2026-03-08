@@ -54,7 +54,7 @@ export function UserButton() {
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem
-          onClick={() => signOut({ redirectUrl: "/sign-in" })}
+          onClick={() => signOut({ fallbackRedirectUrl: "/sign-in" })}
           className="text-destructive cursor-pointer"
         >
           <LogOut className="h-4 w-4 mr-2" />

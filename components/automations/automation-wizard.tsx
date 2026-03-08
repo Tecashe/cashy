@@ -1650,7 +1650,7 @@ export function AutomationWizard({ automation, accounts, tags }: AutomationWizar
   const [currentStep, setCurrentStep] = useState(1)
   const [isSaving, setIsSaving] = useState(false)
   const [validationErrors, setValidationErrors] = useState<string[]>([])
-  const [userTier, setUserTier] = useState<SubscriptionTier>("free")
+  const [userTier, setUserTier] = useState<SubscriptionTier>("freemium")
   const [isLoadingTier, setIsLoadingTier] = useState(true)
   const { buildHref } = useNavigation()
 
@@ -1676,7 +1676,7 @@ export function AutomationWizard({ automation, accounts, tags }: AutomationWizar
   useEffect(() => {
     async function fetchTier() {
       if (!userId) {
-        setUserTier("free")
+        setUserTier("freemium")
         setIsLoadingTier(false)
         return
       }
@@ -1686,7 +1686,7 @@ export function AutomationWizard({ automation, accounts, tags }: AutomationWizar
         setUserTier(result.tier)
       } catch (error) {
         console.error("Failed to fetch user tier:", error)
-        setUserTier("free")
+        setUserTier("freemium")
       } finally {
         setIsLoadingTier(false)
       }
@@ -1701,7 +1701,12 @@ export function AutomationWizard({ automation, accounts, tags }: AutomationWizar
       if (savedProgress) {
         try {
           const parsed = JSON.parse(savedProgress)
-          setFlow(parsed.flow)
+          setFlow({
+            ...parsed.flow,
+            triggers: parsed.flow.triggers || [],
+            actions: parsed.flow.actions || [],
+            triggerLogic: parsed.flow.triggerLogic || "OR",
+          })
           setCurrentStep(parsed.currentStep)
         } catch (error) {
           console.error("Failed to parse saved progress:", error)
@@ -1901,13 +1906,12 @@ export function AutomationWizard({ automation, accounts, tags }: AutomationWizar
                   transition={{ duration: 0.2 }}
                 >
                   <div
-                    className={`relative flex h-10 w-10 items-center justify-center rounded-xl text-sm font-semibold transition-all duration-300 ${
-                      currentStep > step.id
-                        ? "bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-lg ring-2 ring-primary/20"
-                        : currentStep === step.id
-                          ? "bg-gradient-to-br from-primary/20 to-primary/10 text-primary ring-2 ring-primary/50 shadow-md"
-                          : "bg-muted/50 text-muted-foreground ring-1 ring-border/50"
-                    }`}
+                    className={`relative flex h-10 w-10 items-center justify-center rounded-xl text-sm font-semibold transition-all duration-300 ${currentStep > step.id
+                      ? "bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-lg ring-2 ring-primary/20"
+                      : currentStep === step.id
+                        ? "bg-gradient-to-br from-primary/20 to-primary/10 text-primary ring-2 ring-primary/50 shadow-md"
+                        : "bg-muted/50 text-muted-foreground ring-1 ring-border/50"
+                      }`}
                   >
                     {currentStep > step.id ? (
                       <motion.div
