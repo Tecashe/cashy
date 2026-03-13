@@ -199,7 +199,7 @@ export function ConversationView({
   const [isLoading, startTransition] = useTransition()
   const [showCustomerSidebar, setShowCustomerSidebar] = useState(false)
   const [showAISuggestions, setShowAISuggestions] = useState(false)
-  const [userTier, setUserTier] = useState<"free" | "pro" | "enterprise">("free")
+  const [userTier, setUserTier] = useState<"freemium" | "pro" | "enterprise">("freemium")
   const [messageInputValue, setMessageInputValue] = useState("")
   const isMobile = useMobile()
 
